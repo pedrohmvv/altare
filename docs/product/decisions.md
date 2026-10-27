@@ -896,3 +896,23 @@
   - Manter o `<select>` nativo: seletor do sistema, fora da identidade, rejeitado pelo usuário.
   - Escrever a lista do zero, sem Radix: perderia o teclado, o foco e a semântica de `listbox` prontos.
   - Antecipar o `Combobox` pesquisável: não há lista longa para pesquisar antes do Bloco 3.1.
+
+---
+
+## D-048 — Etapa (c), Lote 2 (Exibição): `Money` sem o Modo `none` e Convenção de Classes de Texto
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** perguntou em que caso de uso o `Money` precisaria arredondar e, sem caso concreto, preferiu **tirar o modo `none`**.
+- **Decisão:**
+  1. **`Money` tem só `precision` `auto` e `always`.** O modo `none` de `design-system.md` §9 não foi construído: nenhuma feature o usa, o `auto` já cobre os resumos ("sem centavos se inteiro", §14, item 4) e arredondar na exibição faria um total divergir da soma das linhas, que o casal confere à mão. Se uma tela futura precisar de um resumo sem centavos, a regra de arredondamento se decide naquele momento. As regras de arredondamento de cálculo (`F-ORC-03`, `F-CTR`) continuam só no backend.
+  2. **Formatador puro `lib/money.ts`:** só inteiros seguros de centavos (qualquer outra coisa lança `RangeError`), `R$` + U+00A0, milhares com ponto, vírgula decimal, menos tipográfico (U+2212) nos negativos e `+` apenas com `signed`, nunca no zero.
+  3. **`Badge`:** as variantes `consensus` e `attention` **exigem `icon` no tipo**, verificado pelo `tsc`, para a cor nunca ser o único sinal.
+  4. **`Table`:** região rolável com `section` nomeada e focável por teclado (única supressão do Biome do lote, com o motivo na linha); cabeçalho de coluna fixo no topo, primeira coluna fixa opcional e duas densidades. A densidade chega às células **por contexto**, não por variantes de grupo.
+  5. **Convenção:** as classes de texto do Altare (`text-body`, `text-eyebrow`, `text-num-*`…) definem família, tamanho, peso e entrelinha. Uma **variante** do Tailwind (`group-data-…:`, `md:`) que as use sobrescreve família e peso, porque as variantes vêm depois no CSS. Componentes escolhem a classe de texto em código (por *prop* ou contexto) e deixam a variante para tamanho e posição. A ordem entre `text-*` e utilitários do Tailwind (`font-medium`, `normal-case`) foi conferida no CSS gerado, não é garantida pelo Tailwind.
+  6. **`PageHeader`** traz o único `h1` da tela; o `App` provisório já o usa.
+- **Ajustes em arquivos aprovados:** `design-system.md` §9 (linha do `Money`, `none` riscado).
+- **Razão:** manter o `Money` pequeno e sem arredondamento de exibição até haver um caso real, e registrar a armadilha das classes de texto antes de os próximos componentes repetirem o erro.
+- **O que ficou rejeitado:**
+  - `none` arredondando ao real mais próximo: risco de total divergente das parcelas.
+  - `none` truncando: subestima valores e também diverge da soma.
+  - Variantes `group-data` para a densidade da `Table`: sobrescreviam o estilo do cabeçalho e o mono das células.
