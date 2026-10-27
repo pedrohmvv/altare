@@ -1,2 +1,16 @@
 @import "tailwindcss";
 @import "./tokens.css";
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink text-body;
+  }
+
+  /* Anel duplo de foco (design-system.md §7); o contorno transparente sobrevive ao modo de alto contraste. */
+  :focus-visible {
+    outline: 2px solid transparent;
+    box-shadow:
+      0 0 0 2px var(--canvas),
+      0 0 0 4px var(--focus-ring);
+  }
+}
