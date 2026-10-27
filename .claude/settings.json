@@ -1,0 +1,15 @@
+{
+  "skillListingBudgetFraction": 0.02,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sed -n '/<!-- skills-map:start -->/,/<!-- skills-map:end -->/p' \"$CLAUDE_PROJECT_DIR/AGENTS.md\""
+          }
+        ]
+      }
+    ]
+  }
+}
