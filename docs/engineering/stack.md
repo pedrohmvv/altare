@@ -96,7 +96,7 @@ Cada módulo segue: `models.py` (SQLAlchemy) · `schemas.py` (Pydantic) · `rule
 
 Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a primeira migração** para a troca futura ser mecânica:
 
-1. **Dinheiro = inteiro em centavos** (`BIGINT`), nunca `float`. Helper `Money` em `core/money.py`; formatação `R$` apenas na borda (frontend). Cálculos *per capita* usam arredondamento definido e testado.
+1. **Dinheiro = inteiro em centavos** (`BIGINT`), nunca `float`. Helper `Money` em `shared_kernel/money.py`; formatação `R$` apenas na borda (frontend). Cálculos *per capita* usam arredondamento definido e testado.
 2. **Enums** como `VARCHAR` + `CHECK` (`native_enum=False`), nunca enum nativo do banco.
 3. **`PRAGMA foreign_keys=ON`**, `journal_mode=WAL` e `busy_timeout` configurados na conexão SQLite.
 4. **Timestamps em UTC** com `TypeDecorator` que preserva tz (SQLite descarta fuso); datas de vencimento e prazos como `DATE`; exibição em `America/Sao_Paulo`.
@@ -144,6 +144,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 - Dois usuários criados por CLI, cada um vinculado a um `Profile` (`Noivo` ou `Noiva`). `Ambos` é um valor de responsabilidade/visão, não um login.
 - **Autoria** de avaliações, interações, tarefas e comprovantes vem **sempre da sessão**, nunca de um campo enviado pelo cliente.
 - **Seletor de lente** (barra superior): `Visão do Casal` · `Minha visão`. Ele altera foco e destaques, **não** a autoria.
+- Parâmetros de sessão, cookie, CSRF e *rate limit* do login: `D-059`, item 3.
 - Questões de produto abertas por essa decisão: `OQ-ENG-004`.
 
 ---
@@ -158,9 +159,10 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Testes backend | **pytest** + `httpx`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
 | E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
-| Hooks locais | `pre-commit` (ruff, pyright, biome); **adiado até o `apps/api`** (`D-043`) |
-| CI (quando houver remoto) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
-| Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` |
+| Hooks locais | `pre-commit` (ruff, biome, pyright e import-linter), criado com o `apps/api` no PR 1 (`D-043`, `D-059`) |
+| CI (GitHub Actions, criado no PR 1, `D-059`) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
+| Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make typecheck`, `make api-types`, `make migrate` |
+| Contrato OpenAPI | `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`; o drift é `make api-types && git diff --exit-code` (`D-059`) |
 
 ---
 
@@ -169,7 +171,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 ```
 wedding-planner/
 ├─ apps/
-│  ├─ api/     (Python — ver §3.1)
+│  ├─ api/     (Python — ver `architecture.md` §4)
 │  └─ web/     (React — src/app, routes, features/<modulo>, components/ui, lib, styles)
 ├─ data/       (gitignored: SQLite e uploads em desenvolvimento)
 ├─ docs/
@@ -213,7 +215,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 
 **Bloco 0.1 — Fundação** *(executado em duas partes, `D-028`: primeiro só o item 1 na parte do `apps/web`, com Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`; os demais itens em outra sessão)*
 1. Monorepo `apps/api` + `apps/web`, Makefile, `uv`, `pnpm`, hooks e linters.
-2. FastAPI com `core/` (config, DB SQLite com PRAGMAs, `Money`, `FileStorage` local, erros padronizados) + Alembic + primeira migração.
+2. FastAPI com `shared_kernel/` (`Money`, erros base) e `platform/` (config, DB SQLite com PRAGMAs, `FileStorage` local, erros padronizados), conforme `architecture.md` §4 (`D-059`) + Alembic + primeira migração.
 3. Modelo de domínio **inicial mínimo** do Nível 0: `User`, `Session`, `FileAsset` (`Profile` é enum de domínio — `architecture.md` §12), com o *mixin* de histórico básico e módulos `identity` e `files` nas 4 camadas. As demais entidades entram **junto de cada bloco que as usa** (evita modelar 10 objetos no escuro).
 4. Login para os dois usuários (CLI de criação), logout, sessão e CSRF.
 5. SPA com `openapi-fetch` + geração de tipos, roteamento, guarda de rota autenticada e **seletor de lente**.

@@ -1162,3 +1162,45 @@
   - Rota separada `/design-system/marca`: outra rota só de desenvolvimento e mais um caso de teste de produção.
   - Reproduzir a aba escura com cor solta: quebra a regra de só token (`D-055`) por um tema que não existe ainda.
 - **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na vitrine (a navegação por âncoras do índice, o foco e o zoom de 200%) e a revisão dos textos do catálogo, que são do guia, com os subtítulos de origem propostos pelo agente.
+
+---
+
+## D-059 — Bloco 0.1, parte 2: plano em 4 PRs, parâmetros de segurança do login e esquema de versão
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2: planejamento, sem código)
+- **Pedido do usuário:** planejar a segunda metade do Bloco 0.1 (API, banco, login, PWA e E2E) antes de codar, porque o critério do Nível 0 pede login individual de Noivo e Noiva (`roadmap.md` Bloco 0.1). Escolhas dele: 4 PRs por dependência, CI no primeiro PR, lente só na URL e o esquema de versão por bloco.
+- **Decisão:**
+  1. **Versão:** `MINOR` por bloco concluído, `PATCH` por hotfix, `1.0.0` no fim do Nível 4 (`altare-git-fluxo`, regra 5, agora confirmada). `v0.1.0` marca o Bloco 0.2 (merge `335c5a3`); o fechamento do Nível 0 será `v0.2.0`.
+  2. **Quatro PRs para a `develop`, nesta ordem, cada um com os gates verdes:**
+     - **PR 1, `feat/api-esqueleto`:** `apps/api` com `uv`, Ruff, Pyright `standard`, pytest + Hypothesis e import-linter com os contratos de `architecture.md` §9; `shared_kernel/` e `platform/` (config, db com PRAGMAs e convenção de nomes, `problem+json`); Alembic com teste sobe/desce/sobe; `GET /api/v1/health` com snapshot do OpenAPI; Makefile (`dev`, `test`, `lint`, `typecheck`, `migrate`); proxy `/api` no Vite; `pre-commit`; **CI no GitHub Actions** (jobs de API e web, com *path filters*).
+     - **PR 2, `feat/login`** (um PR só, `D-040`): módulo `identity` nas 4 camadas com `CLAUDE.md`; CLI `wedding create-user`; `POST /api/v1/auth/login`, `POST /api/v1/auth/logout` e `GET /api/v1/auth/me`; `make api-types` e o gate de drift no CI; `openapi-fetch` e TanStack Query no web; tela de login (pág. 37 do guia); guarda de rota; bloco de sessão e logout (pág. 38); testes de segurança dedicados.
+     - **PR 3, `feat/api-files`:** módulo `files` nas 4 camadas com `CLAUDE.md`.
+     - **PR 4, `feat/web-pwa-e2e`:** `vite-plugin-pwa` (sem escrita offline) e Playwright desktop e mobile.
+  3. **Parâmetros de segurança do login** (nenhum documento os definia):
+     - Sessão: token opaco de `secrets.token_urlsafe(32)`, guardado só como hash SHA-256; expira com 30 dias sem uso e 90 dias no máximo; token novo a cada login (anti-fixação); logout apaga a linha.
+     - Cookie `altare_session`: `HttpOnly`, `SameSite=Lax`, `Path=/api`, `Secure` fora de desenvolvimento.
+     - CSRF: header `X-Altare-CSRF: 1` obrigatório em todo método mutador; sem ele, 403 `csrf_missing`. Sem CORS habilitado.
+     - Rate limit: 5 falhas por usuário e IP em 15 minutos, 429 `too_many_attempts` com `Retry-After`; em memória, o que vale para um processo só.
+     - Senha: `argon2-cffi` com os padrões da biblioteca e *rehash* no login quando preciso. Usuário inexistente verifica um hash fictício e devolve o mesmo 401 `invalid_credentials`.
+  4. **Contrato:** `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos vão para `apps/web/src/lib/api/schema.d.ts`, gerado e nunca editado; o drift é `make api-types && git diff --exit-code`.
+  5. **Lente:** continua só na URL (`D-051`, item 3); sem `?lente` abre em Casal.
+  6. **Contradições entre documentos, resolvidas:** vale `shared_kernel/` + `platform/` (`architecture.md` §4), não `core/` (`stack.md` §4, §8, §11); `Profile` é enum, não tabela; o `pre-commit` roda Ruff, Biome, Pyright e import-linter; o `dependency-cruiser` está obsoleto (`D-051`); a tabela e os casos de uso de sessão ficam em `identity`, e `platform/http` só lê o cookie, confere o CSRF e monta o `Actor`.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1; `roadmap.md` (Bloco 0.1); `stack.md` (§4, §6, §7, §8, §11); skills `altare-git-fluxo` (regra 5), `altare-monorepo` (caminho do OpenAPI e provedor de CI) e `altare-devops` (provedor de CI).
+- **Razão:** o 0.1 mistura cinco assuntos (banco, login, contrato, PWA, E2E) e os documentos deixaram em aberto os números de segurança e o caminho do OpenAPI; fechar isso antes do código evita decidir no meio de um PR.
+- **O que ficou rejeitado:**
+  - Um PR só: revisão enorme e sem ponto de retorno.
+  - Backend do login e tela em PRs separados: o contrato mudaria entre eles, contra `D-040`.
+  - `files` junto do esqueleto: nenhuma tela do Nível 0 o usa; atrasaria o login.
+  - CI só no fechamento do Nível 0: o drift de tipos e os gates de Python ficariam sem rede por três PRs.
+  - Lente por usuário agora: "Minha visão" ainda não filtra nada, então a preferência não teria efeito visível.
+  - CSRF por token duplo (*double submit*): mais código sem ganho para duas contas e sem CORS.
+  - Rate limit em tabela: persistência que dois usuários não pedem.
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | Lente lembrada por usuário | o primeiro bloco em que "Minha visão" filtrar dados |
+  | Rate limit persistente e IP real atrás de proxy | decisão de deploy (`stack.md` §9) |
+  | Suíte em PostgreSQL, `axe`, tema escuro, passkeys, backup | os gatilhos já registrados (`D-028`, `stack.md` §9 e §10) |
+- **Aprovado (2026-10-27):** o texto da decisão, incluindo os parâmetros de segurança do item 3 ("Aprovo").
+- **Pendente (do usuário):** criar a tag `v0.1.0` em `335c5a3` e empurrá-la; decidir, no PR 2 e pela pág. 38, se o bloco de sessão fica só no pé da barra lateral ou também no menu da barra superior (`D-028` e `D-052` divergem); exigir os *status checks* na proteção de `develop` e `main` quando o CI do PR 1 existir (`D-041`, item 6); a passada manual de acessibilidade do Nível 0.
