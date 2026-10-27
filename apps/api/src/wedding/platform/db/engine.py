@@ -3,6 +3,7 @@ from typing import Any
 
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.engine import make_url
+from sqlalchemy.orm import Session, sessionmaker
 
 BUSY_TIMEOUT_MS = 5000
 
@@ -17,6 +18,11 @@ def create_db_engine(url: str) -> Engine:
     if is_sqlite:
         event.listen(engine, "connect", _configure_sqlite)
     return engine
+
+
+def create_session_factory(engine: Engine) -> sessionmaker[Session]:
+    # Sem autoflush: a gravação acontece no commit, e o StaleDataError só nasce ali.
+    return sessionmaker(engine, autoflush=False, expire_on_commit=False)
 
 
 def _configure_sqlite(dbapi_connection: Any, _record: Any) -> None:
