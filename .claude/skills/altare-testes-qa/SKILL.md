@@ -96,4 +96,4 @@ def test_parcelas_somam_o_total(parts):
 
 ## Em aberto
 
-- **Hooks do `pre-commit`:** `stack.md` §7 lista Ruff, Pyright e Biome; `architecture.md` §2 e §14 acrescentam `import-linter` e `dependency-cruiser`. Fechar na Etapa 0.1 e registrar.
+- **Hooks do `pre-commit`:** `stack.md` §7 lista Ruff, Pyright e Biome; `architecture.md` §2 e §14 acrescentam `import-linter` e `dependency-cruiser`. Decidido na `D-043`: o `pre-commit` e o `dependency-cruiser` ficam adiados (o primeiro, até o `apps/api`; o segundo, até a primeira `feature`). Ao criá-los, fechar a lista de hooks e registrar.

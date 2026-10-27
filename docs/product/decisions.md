@@ -793,3 +793,23 @@
   - Três implementações independentes, uma por canal.
   - Agente falando com fornecedores pelo WhatsApp: contraria o não-objetivo "não é um mensageiro".
 - **Em aberto (`OQ-IA-001`, sem bloquear a v1):** lugar do módulo de chat na navegação, detalhamento do Nível 5, busca aproximada portátil entre SQLite e Postgres e custo e conta da API do WhatsApp (o *webhook* exige o app na nuvem) e a convivência do ícone flutuante com o "+ Registrar Rápido" no canto inferior direito.
+
+---
+
+## D-043 — Etapa 0: Base do `apps/web` Construída, com Hooks e Verificação de Limites Adiados
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** gerar o plano do scaffold da Etapa 0 e executá-lo (`D-028`).
+- **Decisão:**
+  1. **Escopo entregue:** monorepo pnpm (sem `packages/` e sem *submodules*, `D-040`), `apps/web` com Vite, React 19, TypeScript `strict`, Tailwind v4 (plugin do Vite), Vitest com Testing Library e Biome (regras de acessibilidade incluídas). Scripts `lint`, `typecheck`, `test`, `build` e `dev`, expostos na raiz e no `Makefile`, que só orquestra o pnpm. Gates verdes: Biome, `tsc`, Vitest e `vite build`.
+  2. **Versões fixadas pelo `pnpm-lock.yaml`:** React 19.3, Vite 8.3, TypeScript 7.0, Tailwind 4.3, Vitest 5.0 e Biome 2.6 (esta em versão exata). Tudo compatível na instalação, sem recuo para TypeScript 5.x.
+  3. **`pre-commit` adiado** para o `apps/api`: só o Biome rodaria hoje, e Ruff, Pyright e `import-linter` dependem do backend. Fecha o item "hooks" que `altare-testes-qa` deixava para a Etapa 0.1.
+  4. **`dependency-cruiser` adiado** para a primeira `feature` (Bloco 1.1): ainda não há `features/` para cobrar. As regras de `architecture.md` §11 valem desde já por revisão.
+  5. **Fora da Etapa 0, por pertencerem à etapa seguinte:** roteamento, TanStack Query, formulários, Radix/shadcn, fontes, `tokens.css`, ativos de marca, PWA e cliente OpenAPI.
+  6. **Um `biome.json` na raiz**, com escopo em `apps/web`; o Python usará Ruff.
+  7. **Próximo passo:** Bloco 0.2, etapa (a): `tokens.css` gerado do `tokens.json`, fontes autohospedadas, `cn()` e `cva` (`design-system.md` §13).
+- **Razão:** entregar só o necessário para o `apps/web` existir, com gates reais, antes de qualquer tela (`D-028`).
+- **O que ficou rejeitado:**
+  - Criar `pre-commit` e `dependency-cruiser` já: configurações sem nada para verificar, que envelhecem sem uso.
+  - Criar pastas vazias de `routes/`, `features/` e `components/ui`: o git não as rastreia e cada uma nasce com o primeiro arquivo.
+  - Recuar para TypeScript 5.x por precaução: a instalação e os quatro gates passaram com a 7.0.

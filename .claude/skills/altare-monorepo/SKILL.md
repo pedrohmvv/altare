@@ -27,7 +27,7 @@ wedding-planner/
 └─ AGENTS.md · CLAUDE.md
 ```
 
-**Estado atual:** não há código ainda. Pela `D-028`, `apps/web` nasce primeiro e `apps/api` depois; os alvos do Makefile crescem junto, sem stub de alvo para app inexistente.
+**Estado atual:** só o `apps/web` existe (Etapa 0 concluída, `D-043`); `apps/api` vem depois (`D-028`); os alvos do Makefile crescem junto, sem stub de alvo para app inexistente.
 
 ## Princípios
 

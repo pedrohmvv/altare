@@ -158,7 +158,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Testes backend | **pytest** + `httpx`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
 | E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
-| Hooks locais | `pre-commit` (ruff, pyright, biome) |
+| Hooks locais | `pre-commit` (ruff, pyright, biome); **adiado até o `apps/api`** (`D-043`) |
 | CI (quando houver remoto) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
 | Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` |
 
