@@ -1,7 +1,7 @@
 export function App() {
   return (
     <main>
-      <h1>Altare</h1>
+      <h1 className="font-bold">Altare</h1>
     </main>
   )
 }
