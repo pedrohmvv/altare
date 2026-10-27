@@ -1,0 +1,10 @@
+---
+description: "Tom de voz e textos em pt-BR do Altare: voz calma, direta e que fala com vocês, vocabulário do casamento brasileiro, nomes fixos dos conceitos do produto, formatos de valores, datas e notas, rótulos de botão com verbo, mensagens de erro e de estado vazio, texto neutro quanto à religião e onde guardar as strings. Use sempre que for escrever ou revisar qualquer texto que o casal lê: rótulo, botão, mensagem, estado vazio, toast, e-mail, lista exportada, nome de seção ou resposta do assistente, mesmo que o pedido seja só 'coloca um texto aí' ou 'qual nome damos pra isso'. NÃO use para decidir onde a mensagem aparece e o que ela precisa dizer (use altare-ui-ux), para cor, fonte e ícone (use altare-design) nem para o prompt do assistente (use altare-engenharia-de-ia)."
+globs: apps/web/src/**/copy.ts
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-conteudo-copy/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-conteudo-copy/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

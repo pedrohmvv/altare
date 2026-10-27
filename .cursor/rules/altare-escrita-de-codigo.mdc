@@ -1,0 +1,9 @@
+---
+description: "Como escrever código limpo, modular e sem cara de código gerado por IA no Altare (Python/FastAPI/SQLAlchemy/Pydantic em apps/api e TypeScript/React em apps/web). Cobre nomes, funções pequenas, erros de domínio, dinheiro em centavos, onde o arquivo mora e a lista de sinais de código de IA a evitar (comentário óbvio, abstração especulativa, try/except defensivo, arquivo solto, duplicação, nomes genéricos). Use sempre que for escrever, editar ou refatorar código de produção ou de teste neste repositório, mesmo que o usuário não peça estilo explicitamente. NÃO use para revisar um diff pronto (use altare-code-review), para decidir camadas ou limites de módulo (use altare-arquitetura) nem para convenções de rota e erro HTTP (use altare-backend-api)."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-escrita-de-codigo/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-escrita-de-codigo/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

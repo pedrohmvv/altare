@@ -1,0 +1,9 @@
+---
+description: "Checklist manual de acessibilidade WCAG 2.2 AA do Altare, que é o gate que substitui o axe automatizado adiado em D-028. Cobre teclado, foco visível, nome acessível, contraste, alvos de toque, landmarks e skip link, tabelas, formulários e erros, toasts, diálogos e gavetas, reflow em 320 px e zoom 200%, movimento reduzido, anúncio de troca de rota na SPA, regras a11y do Biome e o gatilho para reativar o axe. Use sempre que concluir ou revisar componente, tela, formulário, diálogo ou tabela no apps/web, antes de pedir review, mesmo que ninguém mencione acessibilidade. NÃO use para a aparência dos tokens (use altare-design), para o fluxo e os estados (use altare-ui-ux), para a estrutura do código (use altare-frontend) nem para o texto das mensagens (use altare-conteudo-copy)."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-acessibilidade/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-acessibilidade/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).
