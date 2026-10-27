@@ -1,0 +1,50 @@
+{
+ "H": 200.0,
+ "modulo": 10.0,
+ "fonte": {
+  "familia": "Newsreader",
+  "wght": 500,
+  "opsz": 72,
+  "upm": 2000,
+  "cap": 1340,
+  "xh": 852
+ },
+ "A_largura": 231.94,
+ "A_largura_modulos": 23.19,
+ "A_topo": -215.82,
+ "A_overshoot_modulos": 1.58,
+ "simbolo_box": [
+  -135.0,
+  -215.82,
+  135.0,
+  30.0
+ ],
+ "simbolo_pequeno_box": [
+  -135.0,
+  -215.82,
+  135.0,
+  40.0
+ ],
+ "wordmark_box": [
+  -3.13,
+  -221.79,
+  846.27,
+  3.43
+ ],
+ "wordmark_xh": 127.16,
+ "assinatura_box": [
+  -3.13,
+  -224.63,
+  1597.76,
+  8.96
+ ],
+ "vertical_box": [
+  -163.35,
+  -215.82,
+  163.35,
+  185.17
+ ],
+ "vertical_wordmark_versal": 76.92,
+ "vertical_wordmark_linha_de_base": 183.85,
+ "vertical_simbolo_base_mensa": 30.0
+}

@@ -1,0 +1,11 @@
+---
+description: Regras operacionais do projeto — aponta para AGENTS.md e docs/
+globs: 
+alwaysApply: true
+---
+
+# Fonte Única de Verdade
+
+1. Siga rigorosamente o contrato operacional definido em [`AGENTS.md`](mdc:AGENTS.md).
+2. Consulte e mantenha a documentação viva em [`docs/`](mdc:docs/) conforme as regras de fase descritas em `AGENTS.md`.
+3. Não duplique instruções operacionais nesta regra.
