@@ -13,6 +13,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Money } from '@/components/ui/money'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Select } from '@/components/ui/select'
 import {
   Table,
@@ -41,7 +42,17 @@ const CATEGORIAS = [
   { value: 'foto', label: 'Fotografia (indisponível)', disabled: true },
 ]
 
-// Conferência visual dos primitivos (etapa (c)); a vitrine /design-system a substitui na etapa (e).
+const LENTES = [
+  { value: 'casal', label: 'Visão do Casal' },
+  { value: 'minha', label: 'Minha visão' },
+]
+const ETAPAS = [
+  { value: 'a', label: 'Em definição' },
+  { value: 'b', label: 'Definido' },
+  { value: 'c', label: 'Indisponível', disabled: true },
+]
+
+// Variantes e estados dos primitivos. Hover, ativo e foco são estados vivos: passe o mouse, clique e use Tab.
 export function Conferencia() {
   const { toast } = useToast()
 
@@ -64,12 +75,32 @@ export function Conferencia() {
           <Button>
             <Plus aria-hidden /> Novo contato
           </Button>
-          <Button loading>Salvando</Button>
-          <Button disabled>Desabilitado</Button>
           <Button variant="secondary" size="icon" aria-label="Salvar">
             <Save aria-hidden />
           </Button>
         </div>
+        <p className="text-body-sm text-ink-muted">Carregando</p>
+        <div className="flex flex-wrap items-center gap-3">
+          {VARIANTS.map((variant) => (
+            <Button key={variant} variant={variant} loading>
+              {variant}
+            </Button>
+          ))}
+        </div>
+        <p className="text-body-sm text-ink-muted">Desabilitado</p>
+        <div className="flex flex-wrap items-center gap-3">
+          {VARIANTS.map((variant) => (
+            <Button key={variant} variant={variant} disabled>
+              {variant}
+            </Button>
+          ))}
+          <Button variant="secondary" size="icon" aria-label="Salvar (desabilitado)" disabled>
+            <Save aria-hidden />
+          </Button>
+        </div>
+        <p className="text-body-sm text-ink-muted">
+          Hover, ativo e foco: passem o mouse, cliquem e usem Tab.
+        </p>
       </section>
 
       <section aria-labelledby="conf-campos" className="flex max-w-md flex-col gap-5">
@@ -91,6 +122,7 @@ export function Conferencia() {
         <Input label="Campo desabilitado" disabled defaultValue="Espaço Exemplo B" />
         <Textarea label="Observações" hint="Só vocês dois veem isto" />
         <Textarea label="Observações com erro" error="Escreva ao menos uma frase." />
+        <Textarea label="Observações desabilitadas" disabled defaultValue="Somente leitura" />
         <Select label="Categoria" placeholder="Escolha uma categoria" options={CATEGORIAS} />
         <Select
           label="Categoria com erro"
@@ -98,11 +130,38 @@ export function Conferencia() {
           placeholder="Escolha"
           options={CATEGORIAS}
         />
+        <Select
+          label="Categoria obrigatória"
+          required
+          placeholder="Escolha uma categoria"
+          options={CATEGORIAS}
+        />
+        <Select
+          label="Categoria desabilitada"
+          disabled
+          defaultValue="espaco"
+          options={CATEGORIAS}
+        />
         <div className="flex flex-col">
           <Checkbox label="Incluir bebidas" />
           <Checkbox label="Marcado" defaultChecked />
           <Checkbox label="Todos os convidados" checked="indeterminate" />
           <Checkbox label="Desabilitado" disabled />
+          <Checkbox label="Desabilitado e marcado" disabled defaultChecked />
+        </div>
+      </section>
+
+      <section aria-labelledby="conf-segmentado" className="flex flex-col gap-4">
+        <h2 id="conf-segmentado" className="text-heading">
+          Seletor segmentado
+        </h2>
+        <div className="flex flex-wrap items-center gap-6">
+          <SegmentedControl aria-label="Lente de exemplo" options={LENTES} defaultValue="casal" />
+          <SegmentedControl
+            aria-label="Etapa de exemplo, com opção desabilitada"
+            options={ETAPAS}
+            defaultValue="a"
+          />
         </div>
       </section>
 
@@ -110,7 +169,7 @@ export function Conferencia() {
         <h2 id="conf-dinheiro" className="text-heading">
           Dinheiro
         </h2>
-        <ul className="flex flex-col gap-1 text-num">
+        <ul className="flex flex-col gap-1 text-body">
           <li>
             Resumo (auto): <Money cents={2_800_000} />
           </li>
@@ -121,7 +180,7 @@ export function Conferencia() {
             Parcela (always): <Money cents={2_800_000} precision="always" />
           </li>
           <li>
-            Custo real comparável: <Money cents={1_248_000} tone="comparable" />
+            Custo extra (comparable): <Money cents={248_000} signed tone="comparable" />
           </li>
           <li>
             Dentro do teto: <Money cents={-310_000} signed tone="positive" />
@@ -200,14 +259,15 @@ export function Conferencia() {
                     <Money cents={espaco.capa} precision="always" />
                   </TableCell>
                   <TableCell numeric>
-                    <Money cents={espaco.extras} precision="always" signed />
+                    <Money
+                      cents={espaco.extras}
+                      precision="always"
+                      signed
+                      tone={espaco.extras > 0 ? 'comparable' : 'default'}
+                    />
                   </TableCell>
                   <TableCell numeric>
-                    <Money
-                      cents={espaco.capa + espaco.extras}
-                      precision="always"
-                      tone="comparable"
-                    />
+                    <Money cents={espaco.capa + espaco.extras} precision="always" />
                   </TableCell>
                 </TableRow>
               ))}
@@ -234,6 +294,14 @@ export function Conferencia() {
             illustration="arco"
             title="Nada por aqui ainda"
             description="Quando houver possibilidades, elas aparecem aqui."
+          />
+        </Card>
+        <Card className="md:col-span-2">
+          <EmptyState
+            headingLevel={3}
+            illustration="ramo-grande"
+            title="Não encontramos esta página"
+            description="O ramo grande é o da página não encontrada."
           />
         </Card>
       </section>
@@ -291,6 +359,9 @@ export function Conferencia() {
             <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
             <TabsTrigger value="historico">Histórico de decisões</TabsTrigger>
             <TabsTrigger value="anexos">Anexos</TabsTrigger>
+            <TabsTrigger value="arquivadas" disabled>
+              Arquivadas
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="ativo">
             Total estimado: <Money cents={12_480_000} precision="always" />

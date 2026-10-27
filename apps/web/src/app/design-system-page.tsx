@@ -1,7 +1,8 @@
 import { PageHeader } from '@/components/ui/page-header'
 import { Conferencia } from './Conferencia'
+import { TokensShowcase } from './tokens-showcase'
 
-// Conferência visual provisória (etapas (a) a (d)); a vitrine /design-system definitiva vem na etapa (e).
+// Vitrine em construção (etapa (e)): tokens, tipografia e os primitivos com variantes e estados.
 export function DesignSystemPage() {
   return (
     <>
@@ -10,6 +11,7 @@ export function DesignSystemPage() {
         title="Design System"
         description="Espaço Exemplo A · texto de interface"
       />
+      <TokensShowcase />
       <Conferencia />
     </>
   )
