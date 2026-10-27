@@ -40,6 +40,10 @@ select = ["E", "F", "I", "UP", "B", "SIM", "N", "C4", "PT", "RUF"]
 # N818: os erros de domínio têm os nomes de architecture.md §8 (NotFound, Conflict...)
 ignore = ["N818"]
 
+[tool.ruff.lint.per-file-ignores]
+# O template do Alembic importa `op` e `sa` mesmo quando a migração não os usa.
+"migrations/versions/*" = ["F401", "I001"]
+
 [tool.pyright]
 include = ["src", "tests"]
 typeCheckingMode = "standard"
