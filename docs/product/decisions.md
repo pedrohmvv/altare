@@ -878,3 +878,21 @@
   - Um pacote Radix por componente: mais dependências para o mesmo resultado.
   - `sonner` para os *toasts*: segunda biblioteca de acessibilidade a conferir.
   - Rótulo e erro repetidos em cada campo: três cópias do mesmo `aria-describedby`.
+
+---
+
+## D-047 — `Select` com Lista Própria do App (Revisa o Item 3 de `D-046`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** ao conferir o lote 1, viu que o `Select` abria o seletor do sistema (macOS) e queria que a lista de opções fosse do próprio app, com a identidade do Altare.
+- **Decisão:**
+  1. **O `Select` passa a ser o Radix Select estilizado** (`radix-ui`), com a lista aberta pelo app: superfície `surface` com *hairline* e sombra de nível 1, opção realçada em `surface-muted`, marca de escolhida em `primary`, opção desabilitada a 40%, alvo de 44 px no toque. Teclado (Enter abre, setas navegam, Enter escolhe, Esc fecha) e leitor de tela vêm do Radix.
+  2. **API:** os filhos `<option>` dão lugar à prop `options` (`{ value, label, disabled? }`), e `onValueChange` substitui `onChange`. `value` não pode ser vazio; o *placeholder* é o texto da prop `placeholder`.
+  3. **Testes:** o `setup.ts` ganha polyfills de `hasPointerCapture`, `setPointerCapture`, `releasePointerCapture` e `scrollIntoView`, que o jsdom não tem.
+  4. **Continua adiado** o `Combobox` pesquisável e a "folha inferior" no celular (`D-028`, `design-system.md` §8).
+- **Ajustes em arquivos aprovados:** `design-system.md` §8 (linha de `Select / Combobox`). O item 3 de `D-046` fica como histórico; vale esta decisão.
+- **Razão:** a lista do sistema ignora a tipografia, a cor e os cantos do Altare, e destoava do restante dos campos.
+- **O que ficou rejeitado:**
+  - Manter o `<select>` nativo: seletor do sistema, fora da identidade, rejeitado pelo usuário.
+  - Escrever a lista do zero, sem Radix: perderia o teclado, o foco e a semântica de `listbox` prontos.
+  - Antecipar o `Combobox` pesquisável: não há lista longa para pesquisar antes do Bloco 3.1.
