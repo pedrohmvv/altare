@@ -8,5 +8,5 @@ alwaysApply: true
 
 1. Siga rigorosamente o contrato operacional definido em [`AGENTS.md`](mdc:AGENTS.md).
 2. Consulte e mantenha a documentação viva em [`docs/`](mdc:docs/) conforme as regras de fase descritas em `AGENTS.md`.
-3. As skills do projeto ficam em `.claude/skills/altare-*/SKILL.md`. As regras `altare-*.mdc` desta pasta são geradas a partir delas (`make cursor-rules`): quando a tarefa casar com a descrição de uma, abra o `SKILL.md` indicado.
+3. As skills do projeto ficam em `.claude/skills/altare-*/SKILL.md`. As regras `altare-*.mdc` desta pasta são geradas a partir delas (`make cursor-rules`): quando a tarefa casar com a descrição de uma, abra o `SKILL.md` indicado, sem esperar o usuário citar a skill. A tabela "tarefa → skills" está no `AGENTS.md` §5 (`D-062`).
 4. Não duplique instruções operacionais nesta regra.

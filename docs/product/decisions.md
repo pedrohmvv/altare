@@ -1238,3 +1238,24 @@
   - O CI usa Node 22 e a máquina local só tem o 25; o workflow só foi validado por leitura do YAML e pela execução local dos mesmos alvos, e a prova é a primeira execução no GitHub, neste PR.
   - Dois testes de migração só passam a ter peso quando houver tabela (banco migrado sem diferença e `downgrade` em todo arquivo).
 - **Pendente (do usuário):** revisar os textos de `messages.py`; exigir o check `CI` na proteção de `develop` e `main` depois da primeira execução (`D-041`, item 6); rodar `pre-commit install` se quiser os hooks neste clone; a passada manual de acessibilidade do Nível 0, que segue pendente.
+
+---
+
+## D-062 — Skills: carregamento automático, sem o usuário citar a skill
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2)
+- **Pedido do usuário:** "não precisar ficar explicitando qual skill usar" e "que as skills sejam carregadas corretamente".
+- **Decisão:**
+  1. A auditoria das 13 sessões do projeto mostrou que a lista de skills do Claude Code tem orçamento de caracteres e que, com 93 skills, de 9 a 16 das 23 `altare-*` apareciam só pelo nome, sem descrição, e por isso não disparavam sozinhas. As chamadas à Skill tool vinham quase sempre de pedido explícito do usuário, e o resto era lido de forma parcial com `cat` ou `sed`.
+  2. As 23 `description` passam a ter de 220 a 360 caracteres (antes, de 740 a 1.120), com o gatilho primeiro. O "NÃO use" saiu da descrição: continua em "Limites e vizinhas" no corpo de cada `SKILL.md`.
+  3. `AGENTS.md` §5 ganha a tabela "tarefa → skills" entre os marcadores `skills-map`. Um hook de `SessionStart` em `.claude/settings.json` injeta esse bloco no início de cada sessão e depois de cada compactação, e a regra é: carregar pela Skill tool, antes da primeira edição, sem `cat` nem `sed`.
+  4. `.claude/settings.json` também define `skillListingBudgetFraction: 0.02` (o padrão é 0,01), para dar folga ao orçamento da lista.
+  5. `.cursor/rules/altare-*.mdc` foram regeradas (`make cursor-rules`) e `project.mdc` aponta para a tabela.
+  6. O `CLAUDE.md` da raiz segue sem regras (`D-039`): o hook cobre o que ele cobriria.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §5 (parágrafo de carregamento automático e tabela), `.claude/skills/altare-*/SKILL.md` (só o `description`), `.cursor/rules/*.mdc` (geradas) e `.cursor/rules/project.mdc` (um ponteiro).
+- **Razão:** a skill só ajuda se carregar inteira e no momento certo, e o usuário não deveria precisar lembrar disso a cada pedido.
+- **O que ficou rejeitado:**
+  - Desligar as skills `dharma-*` neste projeto com `skillOverrides`: com as descrições curtas, tudo cabe no orçamento, e isso mexeria na configuração pessoal do usuário. Fica como opção.
+  - Pôr a tabela no `CLAUDE.md`: ele não recebe regras (`D-039`).
+  - Um hook `UserPromptSubmit` por palavra-chave: mais frágil e mais ruído que a tabela injetada uma vez.
+- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta"); conferir em uma sessão nova, com `/context`, se as 23 skills aparecem com descrição.

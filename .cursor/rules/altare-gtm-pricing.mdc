@@ -1,5 +1,5 @@
 ---
-description: "Skill DORMENTE: só vale depois que o usuário decidir explorar a hipótese de abrir o Altare a outros casais (D-002). Cobre posicionamento, segmentos, modelos e faixa de preço, aquisição e os pré-requisitos técnicos e jurídicos dessa abertura (multi-tenant, LGPD como obrigação, suporte, backup, custo por casal). Use quando o usuário falar em lançar, vender, cobrar, monetizar, SaaS, assinatura, plano, landing page, beta aberto, outros casais ou aquisição de clientes. Se a hipótese ainda não foi aberta pelo usuário, não proponha nada comercial: responda que está fora da premissa de uso pessoal e ofereça registrar a ideia como pergunta em aberto. NÃO use para decidir o que construir na v1 ou se o produto é bom (use `altare-produto`), para métricas de uso (use `altare-analytics-metricas`) nem para implementar autenticação, isolamento de dados ou LGPD (use `altare-seguranca-privacidade`)."
+description: "DORMENTE: só depois que o usuário decidir abrir o Altare a outros casais (D-002): posicionamento, preço, aquisição, pré-requisitos. Use quando falarem em lançar, vender, cobrar, SaaS, assinatura, landing page ou outros casais; sem essa decisão, não proponha nada comercial."
 alwaysApply: false
 ---
 

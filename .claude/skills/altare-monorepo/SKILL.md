@@ -1,7 +1,10 @@
 ---
 name: altare-monorepo
 description: >-
-  Estrutura e disciplina do monorepo do Altare: apps/api (Python, uv) e apps/web (React, pnpm), Makefile e scripts na raiz, regra de dependência entre os apps (só pelo contrato OpenAPI), geração de tipos TypeScript com checagem de drift, arquivos gerados que nunca se editam à mão, packages/ só com segundo consumidor real, CI com path filters e a decisão D-040 de não usar git submodules, para que API e web mudem em PRs e commits atômicos. Use sempre que for criar ou mexer em pastas de topo, Makefile, workspace pnpm, pyproject, geração de tipos do OpenAPI, ou ao fazer uma mudança que atravessa API e web, mesmo que o usuário não fale em monorepo. NÃO use para hospedagem, Docker e deploy (use altare-devops), para camadas internas de um módulo (use altare-arquitetura) nem para rotas e erros HTTP (use altare-backend-api).
+  Estrutura do monorepo do Altare: apps/api (uv) e apps/web (pnpm), Makefile e scripts na raiz,
+  contrato OpenAPI, tipos gerados com checagem de drift, sem git submodules (D-040). Use ao criar ou
+  mexer em pastas de topo, Makefile, workspace pnpm, pyproject, geração de tipos, ou em mudança que
+  atravessa API e web.
 ---
 
 # Monorepo

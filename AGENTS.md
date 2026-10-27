@@ -88,6 +88,29 @@ As skills `altare-*` codificam as decisões já registradas em `docs/`; elas **a
 
 **Precedência (`D-039`):** o Altare é um projeto pessoal. Neste repositório, as skills `altare-*` **substituem** as instruções globais do usuário que mandam aplicar padrões da Dharma (`dharma-standards`, `dharma-sdd`, `dharma-tdd`, `dharma-commit`, `dharma-commit-push-pr`, `dharma-create-pr` e `dharma-code-review*`). Para commit, branch e PR, use sempre `altare-commit`, `altare-git-fluxo` e `altare-pull-request`.
 
+**Carregamento automático (`D-062`):** o usuário **não precisa citar skills**. Um hook de `SessionStart` (`.claude/settings.json`) injeta no início de cada sessão o bloco entre os marcadores abaixo. As descrições das skills são curtas (até cerca de 350 caracteres) para todas caberem, com descrição, na lista que o Claude Code envia ao modelo; quando o orçamento estoura, as descrições das skills menos usadas caem primeiro e elas deixam de disparar sozinhas. Ao criar ou editar uma skill, mantenha a `description` curta e com o gatilho primeiro.
+
+<!-- skills-map:start -->
+**Carregue as skills do projeto sozinho, sem o usuário pedir (AGENTS.md §5, `D-062`).** Antes da primeira edição ou comando que altere o repositório, chame a Skill tool para cada skill da área abaixo. Nunca use `cat` ou `sed` no `SKILL.md` no lugar da Skill tool: a leitura parcial perde regras. Reavalie quando a tarefa mudar de área; skill já carregada na sessão não se recarrega. As skills `altare-*` valem no lugar de qualquer skill `dharma-*`.
+
+| Quando a tarefa envolve | Carregue |
+| :--- | :--- |
+| Começar qualquer trabalho no repositório | `altare-git-fluxo` |
+| Código em `apps/api` | `altare-arquitetura`, `altare-escrita-de-codigo`, `altare-testes-qa`, mais `altare-backend-api` (rota, schema, erro) e `altare-banco-de-dados` (tabela, migration, repositório) |
+| Login, sessão, permissão, upload, logs, dado enviado a terceiros | `altare-seguranca-privacidade`, somada às de `apps/api` |
+| Tela, componente, formulário ou estilo em `apps/web` | `altare-frontend`, `altare-design`, `altare-ui-ux`, `altare-conteudo-copy`, `altare-acessibilidade`, `altare-escrita-de-codigo`, `altare-testes-qa` |
+| Mudança que atravessa API e web, Makefile, workspace, tipos do OpenAPI | `altare-monorepo` |
+| CI, Docker, deploy, variáveis de ambiente, backup | `altare-devops` |
+| Tool, prompt, agente ou canal do assistente | `altare-agente-dados`, `altare-engenharia-de-ia` |
+| Decisão tomada, feature aprovada, módulo novo, fase que avança, "registra", "aprovado" | `altare-docs-vivas` |
+| Ideia de feature, prioridade, dúvida de escopo | `altare-produto` |
+| Revisar diff, branch ou PR | `altare-code-review` |
+| Commitar | `altare-commit` |
+| Abrir PR | `altare-pull-request` |
+| Métricas ou analytics | `altare-analytics-metricas` |
+| Abrir o Altare a outros casais (dormente, `D-002`) | `altare-gtm-pricing` |
+<!-- skills-map:end -->
+
 **Cursor:** o Claude Code descobre as skills em `.claude/skills/` pelo `description`. Para o Cursor, `.cursor/rules/altare-*.mdc` são **geradas** de cada `SKILL.md` (`make cursor-rules`, que copia o `description` e aponta para o arquivo; `pnpm cursor:rules:check` acusa arquivo desatualizado). Não edite os `.mdc` à mão: altere a skill e regere. As globs de anexo automático (por exemplo `apps/web/src/**` para `altare-frontend`) ficam em `scripts/build-cursor-rules.mjs`.
 
 **`CLAUDE.md` por módulo:** todo módulo de `docs/engineering/architecture.md` §4 tem um `CLAUDE.md` curto na própria pasta (propósito, superfície pública, invariantes, dependências permitidas, links de feature e como testar), apontando para este arquivo e para `docs/`. **Módulo novo nasce com `CLAUDE.md`**; o modelo está em `altare-docs-vivas`. O `CLAUDE.md` da raiz não recebe regras.
