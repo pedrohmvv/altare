@@ -126,7 +126,7 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Ícones | `lucide-react` | Leve e consistente | — |
 | Datas | `date-fns` (locale `pt-BR`) | — | dayjs |
 | Formatação monetária | `Intl.NumberFormat('pt-BR')` sobre centavos inteiros | Sem aritmética de float | — |
-| Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016` — **escolha estética a confirmar** | Instrument Serif / DM Sans / Geist Mono |
+| Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016`; **aprovadas em `D-025`** | Instrument Serif / DM Sans / Geist Mono |
 | PDFs | Início: visualização nativa (`<object>`/nova aba). Evolução: `react-pdf` (pdf.js) para o painel lateral no desktop e no iOS | Evita dependência pesada antes de ser necessária | — |
 | PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell* | `D-003` | — |
 | Lint / format | **Biome** (um único binário para lint + format) + **`dependency-cruiser`** para limites entre `features` | Menos configuração | ESLint + Prettier |

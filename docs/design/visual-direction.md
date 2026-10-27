@@ -50,6 +50,8 @@ A interface combina a **atmosfera de um caderno/revista autoral de casamento con
 
 ## 4. Tipografia e Hierarquia (`D-015` + `D-016`)
 
+> **Fontes definitivas (`D-025`):** Newsreader, Plus Jakarta Sans e JetBrains Mono. As demais citadas abaixo são as referências originais de `D-015`/`D-016` e não são mais candidatas.
+
 1. **Família Editorial (`Serif`) — Títulos e Protagonistas:**
    - *Referências de fonte:* `Instrument Serif`, `Newsreader`, `Playfair Display` ou `Lora` (com fallback `Georgia, serif`).
    - *Onde usar:*
