@@ -3,9 +3,9 @@ import {
   createRoute,
   createRouter,
   lazyRouteComponent,
-  Outlet,
   type RouterHistory,
 } from '@tanstack/react-router'
+import { AppShell } from '@/app/shell/app-shell'
 import { NotFoundPage } from './not-found'
 
 /** A lente fica na URL: ausente é `Casal`, `minha` é `Minha visão` (D-021). Qualquer outro valor vira `Casal`. */
@@ -17,12 +17,7 @@ const rootRoute = createRootRoute({
   validateSearch: (search: Record<string, unknown>): RootSearch => ({
     lente: search.lente === 'minha' ? 'minha' : undefined,
   }),
-  // Provisório: a casca de navegação substitui este contêiner no commit seguinte.
-  component: () => (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <Outlet />
-    </main>
-  ),
+  component: AppShell,
   notFoundComponent: NotFoundPage,
 })
 

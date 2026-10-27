@@ -2,6 +2,17 @@
 @import "./tokens.css";
 
 @layer base {
+  /* Espaço que a barra inferior do celular ocupa; o Toast e o conteúdo o respeitam (design-system.md §5). */
+  :root {
+    --shell-bottom-offset: calc(4rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 48rem) {
+    :root {
+      --shell-bottom-offset: 0px;
+    }
+  }
+
   body {
     @apply bg-canvas text-ink text-body;
   }

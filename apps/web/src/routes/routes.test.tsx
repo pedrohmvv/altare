@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from '@/test/render-route'
 
@@ -25,7 +25,7 @@ describe('rotas das áreas', () => {
     await renderRoute(path)
 
     expect(await screen.findByRole('heading', { level: 2 })).toBeVisible()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('main')).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('um caminho desconhecido mostra a página não encontrada com a saída para a Visão Geral', async () => {
