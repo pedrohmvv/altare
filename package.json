@@ -10,6 +10,8 @@
     "build": "pnpm --filter @altare/web build",
     "lint": "pnpm --filter @altare/web lint",
     "typecheck": "pnpm --filter @altare/web typecheck",
-    "test": "pnpm --filter @altare/web test"
+    "test": "pnpm --filter @altare/web test",
+    "cursor:rules": "node scripts/build-cursor-rules.mjs",
+    "cursor:rules:check": "node scripts/build-cursor-rules.mjs --check"
   }
 }

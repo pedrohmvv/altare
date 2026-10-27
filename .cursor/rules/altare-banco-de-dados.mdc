@@ -1,0 +1,9 @@
+---
+description: "Modelagem e persistência do Altare: tabelas SQLAlchemy 2, mapeamento imperativo, migrations Alembic (batch no SQLite, testar sobe/desce/sobe), índices e índices únicos parciais com deleted_at, constraints e CHECK de enum, dinheiro em centavos BIGINT, UUID, timestamps UTC, mixin de histórico (created_by, version, deleted_at), valores derivados em vez de colunas duplicadas, e portabilidade SQLite para PostgreSQL. Use ao criar ou alterar tabela, coluna, índice, migration, repositório, consulta SQL ou script de migração de dados, mesmo que o pedido seja só salvar um campo novo. NÃO use para política de LGPD, retenção e consentimento (use altare-seguranca-privacidade), desenho de schema legível por agente (use altare-agente-dados), camadas e portas (use altare-arquitetura) ou rotas (use altare-backend-api)."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-banco-de-dados/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-banco-de-dados/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

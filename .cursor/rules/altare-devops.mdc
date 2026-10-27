@@ -1,0 +1,10 @@
+---
+description: "CI/CD, ambientes, deploy e custos do Altare: pipeline que executa os gates de qualidade, configuração por variáveis de ambiente (DATABASE_URL, STORAGE_BACKEND, SECRET_KEY, ALLOWED_HOSTS), imagem Docker multi-stage de um único container, caminho local para nuvem, migração dos dados de SQLite para PostgreSQL com contagem e somatório, backup como requisito de implantação e controle de custo. Use sempre que for criar ou alterar CI, Dockerfile, variáveis de ambiente, deploy, hospedagem, backup, migração de banco entre ambientes ou estimar custo de infraestrutura, mesmo que o usuário só diga vamos publicar o app. NÃO use para decidir quais gates existem ou escrever testes (use altare-testes-qa), para estrutura de pastas, Makefile e drift de OpenAPI (use altare-monorepo) nem para política de segredos e LGPD (use altare-seguranca-privacidade)."
+globs: .github/**,Dockerfile
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-devops/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-devops/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

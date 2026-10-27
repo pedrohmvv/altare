@@ -1,0 +1,10 @@
+---
+description: "Estratégia de testes e qualidade automatizada do Altare, em Python e TypeScript. Cobre a pirâmide por camada, TDD (RED antes de GREEN), Hypothesis para invariantes numéricas, Vitest com Testing Library, Playwright desktop e mobile, SQLite temporário, o portão em PostgreSQL antes do primeiro deploy e a configuração e os gates de Ruff, Pyright, Biome, tsc, import-linter, o gate de limites do frontend e pre-commit. Use sempre que for implementar feature, regra de negócio, correção de bug ou refatoração (o teste vem primeiro), ao decidir que teste escrever, ao configurar linter, formatter, tipos ou quality gate, mesmo que o usuário só diga implemente isso. NÃO use para rodar ou manter o pipeline no CI (use altare-devops), para o checklist manual de acessibilidade (use altare-acessibilidade) nem para revisar um diff (use altare-code-review)."
+globs: apps/web/src/**/*.test.ts,apps/web/src/**/*.test.tsx
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-testes-qa/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-testes-qa/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

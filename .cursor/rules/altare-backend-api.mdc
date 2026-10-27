@@ -1,0 +1,9 @@
+---
+description: "Convenções da API FastAPI do Altare: rotas em /api/v1, recursos REST com ações de domínio como sub-recursos (POST /possibilities/{id}/decide), erros application/problem+json com code estável e detail em pt-BR, mapeamento NotFound/Forbidden/DomainRuleViolated/Conflict, bloqueio otimista com version e 409, DTOs e schemas Pydantic, operationId estável, paginação limit/offset, uploads e downloads, e autoria sempre vinda da sessão. Use ao criar ou alterar rota, schema, router, mapper, tratamento de erro ou contrato OpenAPI, mesmo que o pedido seja apenas adicionar um endpoint. NÃO use para onde o código mora e camadas (use altare-arquitetura), login, sessão e CSRF (use altare-seguranca-privacidade), geração de tipos TypeScript e checagem de drift (use altare-monorepo) ou tools de agente (use altare-agente-dados)."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-backend-api/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-backend-api/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

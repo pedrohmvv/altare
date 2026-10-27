@@ -1,0 +1,9 @@
+---
+description: "Arquitetura do Altare: camadas (domínio, aplicação, adaptadores, infraestrutura, composição), regra de dependência, limites entre módulos via public.py, CQRS leve, eventos de domínio, quando criar porta, repositório ou abstração, e como registrar decisões como D-xxx em decisions.md. Use ao criar ou mover módulo, caso de uso, entidade, porta ou evento, ao decidir onde um código mora, ao ver import cruzando camadas ou módulos, ou ao pensar em introduzir abstração nova, mesmo que o usuário só peça uma funcionalidade. Todo módulo novo nasce com CLAUDE.md. NÃO use para rotas e erros HTTP (use altare-backend-api), tabelas e migrations (use altare-banco-de-dados), ferramentas de agente (use altare-agente-dados) ou formato do registro de decisão e do CLAUDE.md de módulo (use altare-docs-vivas)."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-arquitetura/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-arquitetura/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

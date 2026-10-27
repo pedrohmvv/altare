@@ -1,0 +1,9 @@
+---
+description: "Critérios para decidir se o Altare é bom e o que construir, adiar ou cortar: valor percebido (substitui planilha, pasta e WhatsApp?), facilidade de aprender e usar, uso recorrente do casal e viabilidade comercial só como hipótese. Define como priorizar dentro da pirâmide de blocos, como dizer não a uma ideia fora das fronteiras e como validar com os dois usuários, sem pesquisa de mercado. Use quando surgir uma ideia de feature, um pedido de priorização, uma dúvida de escopo (v1, depois ou fora), um julgamento do tipo isso está bom para o casal, ou antes de começar um bloco novo, mesmo que o usuário não peça uma análise de produto. NÃO use para medir uso (use `altare-analytics-metricas`), preço e aquisição (use `altare-gtm-pricing`), desenho de fluxos e telas (use `altare-ui-ux`) nem para registrar a decisão tomada (use `altare-docs-vivas`)."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-produto/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-produto/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).
