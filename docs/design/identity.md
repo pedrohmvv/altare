@@ -164,9 +164,9 @@ Todos os entregáveis **já existem** em `docs/design/identidade-visual/` e ser�
 | :--- | :--- | :--- |
 | Logos-mestre (5 peças × 6 versões) | `fonte/altare-<peça>-<sufixo>.svg` | SVG em curvas (contornos reais da Newsreader 500, `opsz` 72, com kerning) |
 | Logos em PNG | `componentes/logo/` | 256, 1024 e 2048 px (símbolo pequeno: 32 e 64 px) |
-| Favicon | `componentes/aplicacoes/favicon-e-icone-de-app/` | SVG + PNG 16/32/48/192/512 + `.ico` |
-| Ícone do app (PWA, *apple-touch*) | idem | SVG + PNG 180/192/512/1024 |
-| Ornamentos (arco simples, arco duplo, arcada, ramo grande, ramo pequeno, ramo-faixa) | `fonte/ornamentos/` | SVG em traço + PNG 1024 |
+| Favicon | `componentes/favicon/` | SVG + PNG 16/32/48/192/512 + `favicon.ico` |
+| Ícone do app (PWA, *apple-touch*) | `componentes/app-icon/` | SVG + PNG 180/192/512/1024 |
+| Ornamentos (arco simples, arco duplo, arcada, ramo grande, ramo pequeno, ramo-faixa) | `fonte/ornamentos/` (SVG) e `componentes/ornamentos/` (PNG) | SVG em traço + PNG 1024 |
 
 ---
 
