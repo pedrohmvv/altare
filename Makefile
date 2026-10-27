@@ -1,7 +1,7 @@
 # Ponto de entrada das tarefas (stack.md §7). Só orquestra: a lógica mora nos scripts do pnpm e do uv.
 .PHONY: dev dev-api dev-web build \
 	lint lint-api lint-web typecheck typecheck-api typecheck-web test test-api test-web \
-	migrate tokens brand cursor-rules
+	migrate api-types tokens brand cursor-rules
 
 API := apps/api
 DATABASE_URL ?= sqlite:///$(CURDIR)/data/altare.db
@@ -45,6 +45,10 @@ test-web:
 
 migrate:
 	cd $(API) && uv run alembic upgrade head
+
+api-types:
+	cd $(API) && uv run wedding export-openapi
+	pnpm --filter @altare/api-types generate
 
 tokens:
 	pnpm --filter @altare/web tokens:build
