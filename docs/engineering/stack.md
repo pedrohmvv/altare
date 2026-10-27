@@ -129,7 +129,7 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016`; **aprovadas em `D-025`** | Instrument Serif / DM Sans / Geist Mono |
 | PDFs | Início: visualização nativa (`<object>`/nova aba). Evolução: `react-pdf` (pdf.js) para o painel lateral no desktop e no iOS | Evita dependência pesada antes de ser necessária | — |
 | PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell* | `D-003` | — |
-| Lint / format | **Biome** (um único binário para lint + format) + **`dependency-cruiser`** para limites entre `features` | Menos configuração | ESLint + Prettier |
+| Lint / format | **Biome** (um único binário para lint + format) + o gate de limites (`apps/web/src/architecture.test.ts`, `D-051`) para limites entre `features` (no lugar do `dependency-cruiser`, que não suporta o Node 25) | Menos configuração | ESLint + Prettier |
 | Vitrine do Design System | Rota interna `/design-system` (tokens, tipografia, componentes, estados) | Cumpre o Bloco 0.2 sem o peso do Storybook | Storybook |
 
 **Fronteira explícita do PWA na v1:** instalável e com *app shell* em cache; **sem modo offline de escrita** e sem sincronização offline de dados (não está no escopo aprovado). Se vocês quiserem consulta offline do último estado, isso vira nova decisão.
@@ -223,7 +223,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 1. Tokens do **tema claro** gerados do `tokens.json` e mapeados em `@theme`, com nomes semânticos; fontes autohospedadas. Tema escuro adiado até o usuário pedir.
 2. Ativos de marca copiados para `public/brand/`.
 3. 15 primitivos shadcn/Radix re-estilizados: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money`. Componentes de domínio e gaveta (`vaul`) nascem no bloco que os usa.
-4. Casca de navegação das 7 áreas (desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
+4. Casca de navegação das 8 áreas (as 7 de `D-025` mais o Assistente, `D-050`; desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente, ícone flutuante do assistente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
 5. Rota `/design-system` **mínima**. Testes com Vitest + Testing Library; sem *snapshots* visuais e sem `axe` no CI.
 
 **Critério de conclusão do Nível 0:** abrir no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta.

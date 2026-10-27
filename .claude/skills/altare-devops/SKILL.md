@@ -28,7 +28,7 @@ O Altare é um app de duas pessoas e um casamento. A infraestrutura boa aqui é 
 O pipeline roda, nesta ordem lógica, com *path filters* conforme `altare-monorepo`:
 
 1. API: Ruff, Pyright, `import-linter`, pytest (SQLite temporário).
-2. Web: Biome, `tsc`, `dependency-cruiser`, Vitest, build.
+2. Web: Biome, `tsc`, Vitest (inclui o gate de limites, `D-051`), build.
 3. Contrato: regenerar tipos do OpenAPI e falhar se houver diff.
 4. Antes do deploy: suíte de integração contra **PostgreSQL** em contêiner efêmero.
 5. E2E com Playwright (desktop e mobile), quando o login existir.

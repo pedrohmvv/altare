@@ -194,7 +194,7 @@ Consequência: a decisão (`DecisionRecord`) **não precisa atualizar** orçamen
 | Ponta a ponta | Fluxos críticos em *desktop* e *mobile* (`axe` automatizado adiado em `D-028`) | Playwright |
 | Portabilidade | Suíte de integração também contra PostgreSQL antes do primeiro deploy (`stack.md` §4) | Docker/testcontainers |
 
-**Frontend:** limites entre `features` verificados com **`dependency-cruiser`** (ver §11).
+**Frontend:** limites entre `features` verificados pelo gate de limites (`apps/web/src/architecture.test.ts`, `D-051`), que substitui o `dependency-cruiser` (ver §11).
 
 ---
 
@@ -301,7 +301,7 @@ erDiagram
 
 | Nível/Bloco | Arquitetura entregue |
 | :--- | :--- |
-| **0.1** | `shared_kernel`, `platform/*`, módulos `identity` e `files` completos nas 4 camadas, `UnitOfWork`, dispatcher de eventos (vazio), `import-linter`, `dependency-cruiser`, mixin de histórico básico, erros `problem+json`, bloqueio otimista |
+| **0.1** | `shared_kernel`, `platform/*`, módulos `identity` e `files` completos nas 4 camadas, `UnitOfWork`, dispatcher de eventos (vazio), `import-linter`, gate de limites do frontend, mixin de histórico básico, erros `problem+json`, bloqueio otimista |
 | **1.x** | Módulos `wedding`, `guests`, `schedule` (primeiros agregados ricos e consultas) |
 | **2.x** | `budget` (simulador e derivação), `possibilities` nível macro |
 | **3.x** | `vendors`, `possibilities` nível proposta, `contracts`; primeiro uso real de eventos (`ProposalDecided`) |
@@ -318,4 +318,4 @@ erDiagram
 | Mapeamento imperativo do SQLAlchemy pode atritar com a tipagem do Pyright | Plano B de mapeadores explícitos só nos agregados ricos |
 | Consultas fora do domínio podem vazar regra para SQL | Regra de negócio **numérica** fica em funções puras reutilizadas; consultas apenas projetam/agregam |
 | Eventos síncronos podem esconder acoplamento | Catálogo documentado; handlers síncronos restritos a consistência de estado |
-| Disciplina de camadas se perde com o tempo | `import-linter` e `dependency-cruiser` no CI e no `pre-commit` |
+| Disciplina de camadas se perde com o tempo | `import-linter` e o gate de limites do frontend no CI e no `pre-commit` |

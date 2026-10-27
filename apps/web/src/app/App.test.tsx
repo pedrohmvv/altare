@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { App } from './App'
 
 describe('App', () => {
-  it('apresenta o nome do produto como título principal', () => {
+  it('abre na Visão Geral', async () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Altare' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Visão Geral' }),
+    ).toBeInTheDocument()
   })
 })

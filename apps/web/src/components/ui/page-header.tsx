@@ -13,7 +13,7 @@ export interface PageHeaderProps {
   className?: string
 }
 
-/** Cabeçalho editorial: rótulo, título em serifa, apoio, ações e uma hairline (identity.md §5). */
+/** Cabeçalho editorial (o título recebe o foco ao trocar de rota, por isso `tabIndex={-1}`): rótulo, título em serifa, apoio, ações e uma hairline (identity.md §5). */
 export function PageHeader({ title, eyebrow, description, actions, className }: PageHeaderProps) {
   return (
     <header
@@ -24,7 +24,9 @@ export function PageHeader({ title, eyebrow, description, actions, className }: 
     >
       <div className="flex min-w-0 flex-col gap-1">
         {eyebrow && <p className="text-eyebrow text-ink-muted">{eyebrow}</p>}
-        <h1 className="text-display text-ink">{title}</h1>
+        <h1 tabIndex={-1} className="text-display text-ink">
+          {title}
+        </h1>
         {description && <p className="max-w-[68ch] text-body text-ink-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}

@@ -15,7 +15,7 @@ description: >-
 
 ## Princípios
 1. **Toda tela define as duas posturas** (`D-003`). Desktop é planejar junto: comparação lado a lado, simulador, detalhe lateral. Mobile é consultar e capturar: próximo passo, custo comparável, abrir WhatsApp, anexar PDF, registrar nota. O que só cabe no desktop vai para "Mais" no celular sem perder a função.
-2. **Navegação aprovada:** 7 áreas; no mobile, barra inferior com 4 destinos mais "Mais" e o "+ Registrar Rápido" (`design-system.md` §10.1, `D-025`). O Registrar Rápido reaproveita os formulários da área e abre cada um em até 2 toques (`D-038`). Não invente uma 8ª área sem decisão registrada.
+2. **Navegação aprovada:** 7 áreas mais o **Assistente** como 8ª, separado ao fim (`D-050`); no mobile, barra inferior com 4 destinos mais "Mais", que também abre o Assistente, e o "+ Registrar Rápido" (`design-system.md` §10.1, `D-025`). O Registrar Rápido reaproveita os formulários da área e abre cada um em até 2 toques (`D-038`). Não invente uma 9ª área sem decisão registrada.
 3. **Capturar em segundos, decidir com calma.** Registrar um contato ou anexar um PDF nunca exige preencher campo opcional; a decisão (comparar, registrar motivo) é que ganha espaço e tempo.
 4. **Divergência é convite, não erro.** Quando as avaliações de `Noivo` e `Noiva` diferem, a interface sugere conversar; nunca acusa. Acordo e atenção usam `consensus-*` e `attention-*`, nunca vermelho (`altare-design`).
 5. **O outro vê na hora, mas cada um edita só o seu.** Avaliações são visíveis de imediato e cada pessoa altera apenas a própria coluna (`D-021`). A lente (`Visão do Casal` / `Minha visão`) muda foco, não autoria.
@@ -44,10 +44,10 @@ Toda mensagem de erro, aviso ou estado vazio responde, nesta ordem e só no que 
 - **Nunca preencha com dado inventado** (`AGENTS.md` §2): sem data, convidados ou orçamento, o cartão fica vazio com orientação. O Cronograma funciona em *Modo Sem Data*.
 - O produto aprende o casal conforme ele preenche; não há configuração prévia.
 
-## Ícone flutuante do assistente (`D-042`, Bloco 5.3): só o padrão de interação
+## Ícone flutuante do assistente (`D-042`, `D-050`): padrão de interação
 - Fica no canto inferior direito das demais áreas, **recolhido por padrão**, e expande para um chat que já conhece a tela atual. **Nunca abre sozinho** e nunca cobre a tabela comparativa nem o conteúdo principal.
 - Resposta é de leitura livre. Qualquer mudança aparece como **prévia com Confirmar e Rejeitar** explícitos (`D-008`); o assistente não "faz e avisa depois".
-- A tela do módulo de chat e a posição na navegação ainda não estão decididas (`OQ-IA-001`).
+- **A casca já existe (`D-050`):** o ícone, oculto na própria área Assistente, e a área **Assistente** na navegação. O painel de chat de verdade é do Bloco 5.3; até lá o ícone abre um painel provisório que diz, com calma, que o assistente ainda não está disponível.
 
 ## Checklist (tela ou fluxo novo)
 - [ ] Li o doc da área e o fluxo em `experience.md` §4; o job da tela está claro.
@@ -65,5 +65,5 @@ Toda mensagem de erro, aviso ou estado vazio responde, nesta ordem e só no que 
 - Se a tela vale a pena e em que ordem construir: `altare-produto`. Registrar decisão de fluxo: `altare-docs-vivas`.
 
 ## Em aberto
-- O módulo de chat é uma 8ª área ou só o ícone flutuante mais uma tela de histórico: `OQ-IA-001`.
-- O "+ Registrar Rápido" no mobile também é um botão flutuante (`design-system.md` §9, `QuickAddFab`) e disputa o canto inferior direito com o ícone do assistente. A convivência dos dois não está decidida.
+- Detalhamento do Nível 5, busca aproximada e WhatsApp: `OQ-IA-001`, itens 2 a 4.
+- O "+ Registrar Rápido" no mobile também é um botão flutuante (`design-system.md` §9, `QuickAddFab`) e disputa o canto inferior direito com o ícone do assistente, que já existe (`D-050`). A convivência dos dois se decide no Bloco 3.1 (`OQ-IA-001`, item 5).

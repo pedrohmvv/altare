@@ -71,4 +71,4 @@ O agente exige do restante do sistema: casos de uso independentes de HTTP, `Acto
 ## Em aberto
 - **Provedor de LLM e biblioteca de orquestração** (própria, LangGraph, outra): adiados para o Bloco 5.1 (`stack.md` §10, `architecture.md` §7 item 8). Mantenha o código atrás da porta `LLMClient`.
 - Agendador de jobs, Web Push e envio proativo por WhatsApp: Bloco 5.2. Observabilidade de erros (Sentry): antes do deploy.
-- Posição do chat na navegação, detalhamento do Nível 5 e custo do WhatsApp: `OQ-IA-001`.
+- Detalhamento do Nível 5 e custo do WhatsApp: `OQ-IA-001`. O chat tem área própria na navegação (`D-050`).

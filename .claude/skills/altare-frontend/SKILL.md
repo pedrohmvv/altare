@@ -7,7 +7,7 @@ description: >-
 # Frontend do Altare
 
 ## Docs a consultar
-- `docs/engineering/architecture.md` §11 (estrutura e regras do frontend) e §9 (`dependency-cruiser`).
+- `docs/engineering/architecture.md` §11 (estrutura e regras do frontend) e §9 (gate de limites, `D-051`).
 - `docs/engineering/stack.md` §5 (escolhas), §5.1 (onde mora cada cálculo), §6 (sessão e lente), §7 (testes).
 - `docs/design/design-system.md` §9 (props dos componentes de domínio), §10 (padrões de interface), §12.
 - O doc da área em `docs/product/features/` para a tela em construção: os critérios de aceite viram testes.
@@ -15,7 +15,7 @@ description: >-
 
 ## Princípios
 1. **Rotas finas.** Arquivo em `routes/` só monta a página de `features/<modulo>/pages`. Assim a tela se testa sem o router.
-2. **Feature se importa só pelo `index.ts`.** `components/ui` não importa de `features` nem de `lib/api`, para a vitrine `/design-system` funcionar sem backend. O `dependency-cruiser` cobra isso: corrija o import, não a regra.
+2. **Feature se importa só pelo `index.ts`.** `components/ui` não importa de `features` nem de `lib/api`, para a vitrine `/design-system` funcionar sem backend. O gate de limites (`apps/web/src/architecture.test.ts`) cobra isso: corrija o import, não a regra.
 3. **`components/domain` nasce no bloco que usa** (`D-028`), com as props puras de `design-system.md` §9. Enquanto só uma feature usa o componente, ele fica em `features/<m>/components`; sobe para `domain` quando a segunda precisar.
 4. **Cada estado no seu lugar:**
 
@@ -45,7 +45,7 @@ description: >-
 
 ## Checklist (tela ou componente novo)
 - [ ] Li o doc de feature e os critérios de aceite viraram testes.
-- [ ] Imports respeitam a regra de camadas (`dependency-cruiser` verde).
+- [ ] Imports respeitam a regra de camadas (gate de limites verde).
 - [ ] Nenhum cálculo de negócio no cliente; nenhum `float` em valor.
 - [ ] Formulário: React Hook Form + Zod para UX, erro `422` mapeado para o campo, botão com `loading`.
 - [ ] Desktop e mobile definidos (`altare-ui-ux`); estados vazio, carregando e erro existem.
@@ -69,7 +69,7 @@ const { data } = useBudgetSimulation(scenarioId, premises) // premises com debou
 ## Widget de chat flutuante (`D-042`, Bloco 5.3)
 - Componente da casca do app, **só UI**: mensagens, campo de texto e a prévia de uma `ChangeProposal` com Confirmar e Rejeitar explícitos. Sem regra de negócio; consome a API do assistente pelo cliente OpenAPI gerado.
 - O contexto da tela (rota e id do registro aberto) segue como parâmetro. O widget não lê dados de outras features.
-- **Não nasce antes do Bloco 5.3**, nem como placeholder.
+- **O ícone flutuante e o painel provisório nascem na etapa (d) do Bloco 0.2** (`D-050`), sem regra de negócio: só o botão, o texto de que o assistente ainda não está disponível e o fechamento. **O chat de verdade (mensagens, campo de texto, prévia de `ChangeProposal`) não nasce antes do Bloco 5.3.**
 - Padrão de interação em `altare-ui-ux`; foco e `aria-live` em `altare-acessibilidade`.
 
 ## Limites e vizinhas
@@ -78,4 +78,4 @@ const { data } = useBudgetSimulation(scenarioId, premises) // premises com debou
 - Estratégia de testes e gates: `altare-testes-qa`. Estilo de código geral: `altare-escrita-de-codigo`.
 
 ## Em aberto
-- Posição do módulo de chat na navegação (8ª área ou só o ícone flutuante): `OQ-IA-001`.
+- Convivência do ícone do assistente com o "+ Registrar Rápido" no canto inferior direito: `OQ-IA-001`, item 5 (Bloco 3.1).

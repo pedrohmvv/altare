@@ -65,6 +65,6 @@ def tool_propose_pay_installment(ctx: AgentContext, installment_id: UUID, paid_c
 - Autenticação, vínculo de número, dados enviados a terceiros: `altare-seguranca-privacidade`. Componente do chat flutuante: `altare-frontend`; texto das respostas: `altare-conteudo-copy`.
 
 ## Em aberto
-- Lugar do módulo de chat na navegação (8ª área?), detalhamento do Nível 5 e busca aproximada portátil: `OQ-IA-001`.
+- O módulo de chat é a 8ª área, "Assistente" (`D-050`). Detalhamento do Nível 5 e busca aproximada portátil: `OQ-IA-001`.
 - Custo, conta do WhatsApp Business e hospedagem do webhook (exige app na nuvem): `OQ-IA-001`, `stack.md` §9 e §10.
 - Provedor de LLM e orquestração: Bloco 5.1, ainda não decididos.

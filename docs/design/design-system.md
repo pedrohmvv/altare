@@ -30,6 +30,7 @@ Tokens (CSS variables)  →  Primitivos UI (shadcn/Radix re-estilizados)  →  C
 
 - **Distribuição:** dentro do repositório (`apps/web/src/components`), **não** como pacote publicado (uso pessoal, `D-002`).
 - **Base:** shadcn/ui (código copiado) sobre Radix, **totalmente re-estilizado** com os tokens. Nenhum componente é usado "de fábrica".
+- **Acesso à vitrine:** `/design-system` não está no menu aprovado; em desenvolvimento há um link discreto no pé da barra lateral, ausente na versão publicada (`D-053`).
 - **Vitrine:** rota interna `/design-system` **mínima** (tokens, tipografia e cada primitivo com variantes e estados, no tema claro). Cresce junto com os componentes (`D-028`).
 - **Dados de exemplo:** a vitrine e os testes usam **dados claramente fictícios e rotulados** ("Espaço Exemplo", "Fornecedor Exemplo"). Nunca dados reais ou inventados do casamento (`AGENTS.md`).
 
@@ -135,9 +136,9 @@ Todo token mono aplica `font-variant-numeric: tabular-nums`. Largura máxima de 
 ### Casca do aplicativo (shell)
 | Faixa | Layout |
 | :--- | :--- |
-| **≥ 1024 (desktop)** | Barra lateral fixa de 256 px (marca, 7 áreas) + barra superior (título da área, **seletor de lente**, menu do usuário) + conteúdo (máx. 1200 px; tabelas comparativas usam largura total) |
+| **≥ 1024 (desktop)** | Barra lateral fixa de 256 px (marca, 7 áreas e, separado por uma hairline ao fim, o **Assistente**, `D-050`) + barra superior (título da área, **seletor de lente**, menu do usuário) + conteúdo (máx. 1200 px; tabelas comparativas usam largura total) |
 | **768–1023 (tablet)** | Barra lateral recolhida em trilho de ícones (72 px) |
-| **< 768 (mobile)** | Barra superior compacta + **barra inferior** com 4 destinos + "Mais" + botão flutuante **"+ Registrar Rápido"** |
+| **< 768 (mobile)** | Barra superior compacta + **barra inferior** com 4 destinos + "Mais" + botão flutuante **"+ Registrar Rápido"** (Bloco 3.1). O **ícone flutuante do assistente** fica acima da barra inferior; a convivência dos dois é a `OQ-IA-001`, item 5 |
 
 ---
 
@@ -235,16 +236,19 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 7. **Estados vazios, carregando e erro:** conforme `identity.md` §9.
 8. **Atalhos de teclado (desktop):** `g` + letra navega às áreas, `n` novo item, `/` busca (documentados na vitrine; opcionais na v1).
 
-### 10.1 Navegação (aprovada em `D-025`, §14 item 1)
-| Posição | Desktop (barra lateral) | Mobile (barra inferior) |
-| :--- | :--- | :--- |
-| 1 | Visão Geral | **Início** (Visão Geral) |
-| 2 | Planejamento & Caminhos | **Possibilidades** |
-| 3 | Cronograma & Dependências | **Contatos** |
-| 4 | Possibilidades & Decisões | **Orçamento** |
-| 5 | Orçamento & Simulador | **Mais** → folha com Planejamento, Cronograma, Convidados/Enxoval/Dia D |
-| 6 | Contatos & Fornecedores | — |
-| 7 | Convidados, Enxoval & Dia D | — |
+### 10.1 Navegação (aprovada em `D-025`, §14 item 1; Assistente acrescentado em `D-050`; ícones e celular conforme o guia em `D-052`)
+| Posição | Desktop (barra lateral) | Ícone (Lucide) | Mobile (barra inferior) | Ícone no mobile |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Visão Geral | `layout-dashboard` | **Início** | `house` |
+| 2 | Planejamento & Caminhos | `map` | **Possib.** (Possibilidades) | `scale` |
+| 3 | Cronograma & Dependências | `calendar` | **Orçam.** (Orçamento) | `wallet` |
+| 4 | Possibilidades & Decisões | `scale` | **Contatos** | `users` |
+| 5 | Orçamento & Simulador | `wallet` | **Mais** → folha com a lente de visão, Planejamento, Cronograma, Convidados/Enxoval/Dia D e Assistente | `ellipsis` |
+| 6 | Contatos & Fornecedores | `users` | — | — |
+| 7 | Convidados, Enxoval & Dia D | `gift` | — | — |
+| 8 | **Assistente** (separado por hairline; `D-050`) | `message-square-text` | Dentro de "Mais" | — |
+
+Medidas do guia de identidade (aplicação "Visão Geral no desktop" e "Mobile"): barra lateral com itens de 40 px a cada 46 px, ícone de 20 px e rótulo de 12 px, ativo com fundo `surface-muted`, ícone `primary` e rótulo em seminegrito; barra superior de 72 px; barra inferior de 72 px, ícone de 22 px e rótulo de 12 px, ativo em `primary` e seminegrito. Os rótulos abreviados ("Possib.", "Orçam.") têm o nome completo para o leitor de tela. O ícone do Assistente, que não existe no guia, evita `message-circle` (WhatsApp) e `messages-square` (divergência).
 
 Racional: no celular o casal consulta próximo passo, compara opções, abre WhatsApp e confere saldo (`D-003`); áreas de planejamento profundo ficam em "Mais" e continuam completas no desktop.
 
@@ -283,7 +287,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 1. **Tokens e fontes:** `tokens.css` gerado do `tokens.json` (tema claro), mapeado em `@theme`; fontes autohospedadas (Fontsource); `cn()` e `cva`.
 2. **Ativos de marca:** copiar do pacote `docs/design/identidade-visual/` para `public/brand/`; favicon e ícones no `index.html`.
 3. **Primitivos (15), concluída em 2026-10-27 (`D-049`):** `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money` (mono tabular).
-4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as 7 áreas como páginas-esqueleto com `EmptyState`.
+4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as **8 áreas** (as 7 de `D-025` e o Assistente, `D-050`) como páginas-esqueleto com `EmptyState`. **Lote 1 (casca, rotas e seletor de lente) feito em `D-051`; o ícone flutuante do assistente é o lote 2.**
 5. **Vitrine `/design-system`:** tokens, tipografia e cada primitivo com variantes e estados.
 
 **Adiado, com gatilho para retomar:**
