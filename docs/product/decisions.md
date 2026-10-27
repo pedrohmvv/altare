@@ -853,3 +853,28 @@
   - Copiar só os logos usados hoje: obrigaria a revisitar o script a cada tela nova.
   - Importar os SVGs do pacote direto em `src/`: o app passaria a depender de um caminho em `docs/` para renderizar.
   - Criar o manifesto e o `Logo` agora: dependem de decisões do PWA e da casca.
+
+---
+
+## D-046 — Bloco 0.2, Etapa (c): Abordagem dos 15 Primitivos, em 3 Lotes; Lote 1 (Campos)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** plano detalhado da etapa (c), quebrado em lotes, e execução (`D-028`).
+- **Decisão:**
+  1. **Três lotes, um PR cada:** (1) campos: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`; (2) exibição: `Badge`, `Card`, `Table`, `Money`, `PageHeader`, `EmptyState`; (3) sobreposições: `Dialog`, `Tabs`, `Tooltip`, `Toast`. Este registro vale para a etapa inteira; o lote 1 está feito.
+  2. **`radix-ui` unificado** (`import { Checkbox } from 'radix-ui'`) em vez de um pacote por componente, e `lucide-react` para os ícones (`identity.md` §7).
+  3. **`Select` é o `<select>` nativo estilizado**, não o Radix Select: o celular abre o seletor do sistema, teclado e leitor de tela vêm de graça e o jsdom testa bem. A versão pesquisável e a "folha inferior" são do `Combobox`, adiado em `D-028`. Desvio consciente de "Radix re-estilizado".
+  4. **`Toast` com Radix Toast** (região `aria-live="polite"`, 4 s, ação "Desfazer" opcional) e uma API mínima `useToast()`; sem `sonner`.
+  5. **`Field` interno** (`components/ui/field.tsx`): rótulo acima, ajuda, erro com ícone, "obrigatório" escrito no rótulo e `aria-describedby` e `aria-invalid` ligados ao controle. Reusado por `Input`, `Textarea` e `Select`; não é um 16º primitivo da vitrine.
+  6. **Convenções:** sem `forwardRef` (React 19), importação direta por arquivo e sem *barrel*; só classes de token; botão só de ícone **exige `aria-label` no tipo**, verificado pelo `tsc`; o `Button` tem `type="button"` por padrão; o `Money` (lote 2) é um formatador puro em `lib/money.ts` que só aceita inteiros em centavos.
+  7. **Testes:** por papel e teclado (`getByRole`, `user-event`), escritos antes do código; o `setup.ts` limpa o DOM entre casos (com `globals: false` o Testing Library não o faz sozinho) e traz um *stub* de `ResizeObserver` para o jsdom.
+  8. **Página de conferência provisória** (`src/app/Conferencia.tsx`) mostra os primitivos de cada lote para conferência com `make dev`; a vitrine `/design-system` a substitui na etapa (e).
+  9. **Foco:** o anel duplo usa o espaçador `--focus-gap` (padrão `canvas`); `Card` e `Dialog` o redefinem para `surface`.
+  10. **Acessibilidade:** teclado, nomes e `aria-*` são cobertos por teste; 320 px, zoom de 200%, leitor de tela e "reduzir movimento" seguem a checklist manual de `altare-acessibilidade`, a cargo do usuário em cada PR.
+- **Ajustes em arquivos aprovados:** `design-system.md` §8 (notas sobre o `Select` nativo e o `Field`).
+- **Razão:** dividir a maior etapa do Bloco 0.2 em entregas revisáveis, com o mecanismo de campos acessível definido uma vez.
+- **O que ficou rejeitado:**
+  - Radix Select no Bloco 0.2: custo de teste e de mobile sem ganho antes de existir lista pesquisável.
+  - Um pacote Radix por componente: mais dependências para o mesmo resultado.
+  - `sonner` para os *toasts*: segunda biblioteca de acessibilidade a conferir.
+  - Rótulo e erro repetidos em cada campo: três cópias do mesmo `aria-describedby`.

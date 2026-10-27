@@ -175,8 +175,8 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 | Componente | Variantes / API | Notas |
 | :--- | :--- | :--- |
 | **Button** | `primary` · `secondary` (contorno `border-strong`) · `ghost` · `soft-destructive` (argila) · `link`; tamanhos `sm/md/lg/icon`; `loading` | Verbo direto no rótulo ("Registrar decisão"). Botão só-ícone exige `aria-label` |
-| **Input / Textarea** | Rótulo **acima**, ajuda, erro com ícone; `prefix`/`suffix` | Placeholder em `ink-subtle`, nunca substitui rótulo |
-| **Select / Combobox** | Pesquisável (fornecedores, categorias) | No mobile abre como folha inferior |
+| **Input / Textarea** | Rótulo **acima**, ajuda, erro com ícone; `prefix`/`suffix` | Placeholder em `ink-subtle`, nunca substitui rótulo. O mecanismo comum (rótulo, ajuda, erro, `aria-describedby`) é o `Field` interno (`D-046`) |
+| **Select / Combobox** | Pesquisável (fornecedores, categorias) | No mobile abre como folha inferior. **No Bloco 0.2 o `Select` é o `<select>` nativo estilizado** (seletor do sistema no celular); a versão pesquisável é o `Combobox`, adiado (`D-046`) |
 | **Checkbox · Radio · Switch** | Com rótulo clicável | Alvo 44 px no mobile |
 | **SegmentedControl** | 2–5 opções | Base do seletor de lente e das classificações |
 | **Tabs** | Horizontal; no mobile rolável | Abas das áreas (ex.: Orçamento Ativo / Simulador / Pagamentos) |
