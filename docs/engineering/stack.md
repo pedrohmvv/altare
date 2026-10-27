@@ -60,7 +60,7 @@ Princípios que guiam as escolhas:
 | Autenticação | **Própria e mínima**: `argon2-cffi`, **sessões server-side** em tabela, cookie `HttpOnly` + `SameSite=Lax` + `Secure` (em produção), proteção CSRF por header customizado, rate limit simples no login, **sem cadastro público** (usuários criados por comando CLI) | Só 2 contas; evita dependência de provedor externo e JWT em localStorage | `fastapi-users`, Supabase Auth, passkeys/WebAuthn (candidato a evolução futura) |
 | Arquivos | Interface **`FileStorage`** com `LocalFileStorage` (disco, nome por hash SHA-256, fora da pasta pública, servido por endpoint autenticado) e `S3FileStorage` (`boto3`, compatível com R2/Backblaze/Supabase Storage S3) | Troca de backend sem mexer em regra de negócio | Armazenar blob no banco |
 | Validação de upload | Tipo MIME + assinatura real do arquivo (PDF/imagem), limite de tamanho, hash para dedupe | Segurança básica | — |
-| Exportações | CSV via stdlib `csv`; texto formatado via template Jinja2 | Atende `D-006` sem dependência extra | — |
+| Exportações | **Excel (`.xlsx`) via `openpyxl`** como formato padrão e **CSV via stdlib `csv`** como opção (UTF-8 com BOM e `;`); texto formatado via template Jinja2 | Atende `D-006` e `D-030`. `openpyxl` é a única dependência extra, adotada porque o uso diário é em Excel | Só CSV (rejeitado em `D-030`) |
 | CLI | **Typer** (`wedding create-user`, `wedding seed`, `wedding export-openapi`) | Operações administrativas sem endpoint público | — |
 | Logs | `logging` padrão com formatação JSON em produção | Suficiente agora | structlog (futuro) |
 
@@ -157,7 +157,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Arquitetura Python | **`import-linter`** com os contratos de `architecture.md` §9 |
 | Testes backend | **pytest** + `httpx`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
-| E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular) + verificação de acessibilidade com `axe` |
+| E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
 | Hooks locais | `pre-commit` (ruff, pyright, biome) |
 | CI (quando houver remoto) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
 | Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` |
@@ -211,7 +211,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 
 ## 11. O que Muda nos Blocos 0.1 e 0.2 (revisado)
 
-**Bloco 0.1 — Fundação**
+**Bloco 0.1 — Fundação** *(executado em duas partes, `D-028`: primeiro só o item 1 na parte do `apps/web`, com Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`; os demais itens em outra sessão)*
 1. Monorepo `apps/api` + `apps/web`, Makefile, `uv`, `pnpm`, hooks e linters.
 2. FastAPI com `core/` (config, DB SQLite com PRAGMAs, `Money`, `FileStorage` local, erros padronizados) + Alembic + primeira migração.
 3. Modelo de domínio **inicial mínimo** do Nível 0: `User`, `Session`, `FileAsset` (`Profile` é enum de domínio — `architecture.md` §12), com o *mixin* de histórico básico e módulos `identity` e `files` nas 4 camadas. As demais entidades entram **junto de cada bloco que as usa** (evita modelar 10 objetos no escuro).
@@ -219,13 +219,14 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 5. SPA com `openapi-fetch` + geração de tipos, roteamento, guarda de rota autenticada e **seletor de lente**.
 6. PWA instalável (manifesto + *app shell*).
 
-**Bloco 0.2 — Design System**
-1. Tokens claro **e escuro** em `@theme`, fontes autohospedadas e mecanismo de tema (`docs/design/design-system.md` §3). O Bloco 0.2 segue a ordem de construção de `design-system.md` §13.
-2. Componentes shadcn re-estilizados: botão, input, select, badge (consenso/divergência/atenção), cartão editorial, tabela comparativa, gaveta/painel lateral.
-3. Casca de navegação das 7 áreas (desktop: lateral; mobile: barra inferior + "+ Registrar Rápido") com páginas vazias.
-4. Rota `/design-system` e testes E2E de navegação em *desktop* e *mobile*.
+**Bloco 0.2 — Design System (enxuto, `D-028`)** — ordem de construção em `docs/design/design-system.md` §13
+1. Tokens do **tema claro** gerados do `tokens.json` e mapeados em `@theme`, com nomes semânticos; fontes autohospedadas. Tema escuro adiado até o usuário pedir.
+2. Ativos de marca copiados para `public/brand/`.
+3. 15 primitivos shadcn/Radix re-estilizados: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money`. Componentes de domínio e gaveta (`vaul`) nascem no bloco que os usa.
+4. Casca de navegação das 7 áreas (desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
+5. Rota `/design-system` **mínima**. Testes com Vitest + Testing Library; sem *snapshots* visuais e sem `axe` no CI.
 
-**Critério de conclusão do Nível 0 (inalterado):** abrir no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta.
+**Critério de conclusão do Nível 0:** abrir no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta.
 
 ---
 

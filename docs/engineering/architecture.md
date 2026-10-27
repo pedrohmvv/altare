@@ -1,6 +1,6 @@
 # Arquitetura do Projeto (`docs/engineering/architecture.md`)
 
-> **Status:** Estilo arquitetural (Clean Architecture pragmática), histórico básico e tema escuro registrados em `D-022` (2026-10-26). **Os detalhes abaixo são PROPOSTA aguardando aprovação** (`OQ-ENG-005`).
+> **Status:** **Aprovado pelo usuário em 2026-10-27 (`D-027`)**. Estilo arquitetural (Clean Architecture pragmática), histórico básico e tema escuro em `D-022` (2026-10-26). Mudanças a partir daqui exigem nova decisão registrada.
 >
 > Complementa `docs/engineering/stack.md` (ferramentas) e **substitui** a seção §3.1 daquele documento (organização de código) e a frase "sem barramento de eventos" (ver §6).
 
@@ -190,7 +190,7 @@ Consequência: a decisão (`DecisionRecord`) **não precisa atualizar** orçamen
 | Aplicação | Casos de uso com **fakes das portas** (sem banco, sem rede) | pytest |
 | Infraestrutura | Integração com SQLite real: repositórios, mapeamento, migrações Alembic (subir, descer, subir) | pytest |
 | Adaptadores HTTP | `TestClient` com a aplicação composta e SQLite temporário; *snapshot* do OpenAPI | pytest, httpx |
-| Ponta a ponta | Fluxos críticos em *desktop* e *mobile* + acessibilidade | Playwright, axe |
+| Ponta a ponta | Fluxos críticos em *desktop* e *mobile* (`axe` automatizado adiado em `D-028`) | Playwright |
 | Portabilidade | Suíte de integração também contra PostgreSQL antes do primeiro deploy (`stack.md` §4) | Docker/testcontainers |
 
 **Frontend:** limites entre `features` verificados com **`dependency-cruiser`** (ver §11).
@@ -230,8 +230,8 @@ apps/web/src/
 │  ├─ pages/       composição das telas
 │  └─ index.ts     API pública da feature
 ├─ components/
-│  ├─ ui/          primitivos do Design System (sem conhecimento de API/domínio)
-│  └─ domain/      componentes compartilhados com semântica do produto (Money, ProfileChip, RatingPair…)
+│  ├─ ui/          primitivos do Design System, incluindo Money (sem conhecimento de API/domínio)
+│  └─ domain/      componentes compartilhados com semântica do produto (ProfileChip, RatingPair…), criados no bloco que os usa (D-028)
 ├─ lib/            cliente OpenAPI, formatação pt-BR, utilitários de acessibilidade
 ├─ styles/         tokens.css, base, impressão
 └─ test/           utilitários e *mocks*
@@ -244,7 +244,7 @@ apps/web/src/
 4. Formulários: React Hook Form + Zod, mapeando erros `422` do backend para campos.
 5. Atualização otimista **apenas** para ações de baixo risco (marcar tarefa, mudar status); o resto invalida a query.
 6. Rotas protegidas por `beforeLoad` (sessão); erro de rede/`401` redireciona ao login preservando o destino.
-7. Tema aplicado por atributo `data-theme` no `<html>` (ver `docs/design/design-system.md` §3).
+7. Tema aplicado por atributo `data-theme` no `<html>` (ver `docs/design/design-system.md` §3). No Nível 0, fixo em `light` (`D-028`).
 
 ---
 
@@ -287,10 +287,11 @@ erDiagram
 | `ScopeCategory` | `Em discussão` ⇄ `Entra` / `Talvez` / `Fica de fora` (este exige motivo) |
 | `Guest` | `Rascunho` → `Convidado` → `Confirmado` \| `Não irá` |
 | `Milestone` | `Bloqueado` → `Destravado` (derivado) → `Em andamento` → `Concluído` |
-| `Contact` (funil) | `Para contatar` → `Em contato` → `Proposta recebida` → `Contratado` \| `Descartado` *(estados intermediários a confirmar no Bloco 3.1)* |
+| `Contact` (funil, só tipo Fornecedor) | `Para contatar` → `Aguardando orçamento` → `Orçamento recebido` → `Em negociação / Visita` → `Contratado` \| `Descartado` (transição livre; `Contratado` derivado a partir do Bloco 3.2; `D-034`) |
 | `Possibility` | `Em análise` → `Escolhida` \| `Descartada` (via `DecisionRecord`, com motivos) |
 | `BudgetScenario` | `Rascunho/Simulação` ⇄ `Oficial/Ativo` (**exatamente um** ativo, garantido por índice único parcial) |
-| `PaymentInstallment` | `Pendente` → `Pago` (com comprovante e pagador) |
+| `Contract` | `Aguardando assinatura` → `Assinado` \| `Cancelado` (`Quitado` é selo derivado; `D-036`) |
+| `PaymentInstallment` | `Pendente` ⇄ `Pago` (com valor pago, comprovante e pagador; `Atrasada` é derivado; `D-036`) |
 | `ChangeProposal` (Nível 5) | `Pendente` → `Aprovada` \| `Rejeitada` \| `Expirada` |
 
 ---
@@ -303,7 +304,7 @@ erDiagram
 | **1.x** | Módulos `wedding`, `guests`, `schedule` (primeiros agregados ricos e consultas) |
 | **2.x** | `budget` (simulador e derivação), `possibilities` nível macro |
 | **3.x** | `vendors`, `possibilities` nível proposta, `contracts`; primeiro uso real de eventos (`ProposalDecided`) |
-| **4.x** | `trousseau`, `dossier` (somente consultas) |
+| **4.x** | `trousseau`; `dossier` (consultas sobre as outras áreas e **pequena escrita própria**: local do evento, horários-chave, checklist de itens físicos e versões entregues, `D-038`); visão geral e exportação de dados como casos de uso de leitura |
 | **5.x** | `agent_tools`, `ChangeProposal`, `LLMClient`, `Notifier`, `AgentRun` |
 
 ---
