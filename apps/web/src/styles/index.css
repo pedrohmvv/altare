@@ -13,6 +13,11 @@
     }
   }
 
+  /* Os links do índice da vitrine (/design-system) não podem parar o título sob a barra superior fixa. */
+  [id^="conf-"] {
+    scroll-margin-top: 6rem;
+  }
+
   body {
     @apply bg-canvas text-ink text-body;
     /* A textura fica num pseudo-elemento abaixo do conteúdo (isolation cria a camada própria). */

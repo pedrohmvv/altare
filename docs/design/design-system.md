@@ -31,7 +31,7 @@ Tokens (CSS variables)  →  Primitivos UI (shadcn/Radix re-estilizados)  →  C
 - **Distribuição:** dentro do repositório (`apps/web/src/components`), **não** como pacote publicado (uso pessoal, `D-002`).
 - **Base:** shadcn/ui (código copiado) sobre Radix, **totalmente re-estilizado** com os tokens. Nenhum componente é usado "de fábrica".
 - **Acesso à vitrine:** `/design-system` não está no menu aprovado e **só existe em desenvolvimento** (`D-053`, `D-057`): há um link discreto no pé da barra lateral, e a rota e o link somem da versão publicada, onde a URL cai na página não encontrada.
-- **Vitrine:** rota interna `/design-system`, **definitiva** desde `D-057` (tokens, tipografia e cada primitivo com variantes e estados, no tema claro). Cresce junto com os componentes (`D-028`).
+- **Vitrine:** rota interna `/design-system`, **definitiva** desde `D-057` (tokens, tipografia e cada primitivo com variantes e estados, no tema claro), com o **catálogo da identidade** (arranjos da marca, arco, ramo, ícones, favicon e ícone do app e as peças do Dossiê, `D-058`) e um índice em duas partes, Identidade e Componentes. Cresce junto com os componentes (`D-028`).
 - **Dados de exemplo:** a vitrine e os testes usam **dados claramente fictícios e rotulados** ("Espaço Exemplo", "Fornecedor Exemplo"). Nunca dados reais ou inventados do casamento (`AGENTS.md`).
 
 ---
@@ -276,7 +276,7 @@ Racional: no celular o casal consulta próximo passo, compara opções, abre Wha
 | **Definição de pronto (UI)** | Todo componente ou tela do `apps/web` só está pronto quando foi **comparado com a página do guia** que o define (§15: abrir o PNG, ler a medida em `build/componentes.py`) e **cada divergência está registrada** em `decisions.md`. Vale também para estados que o guia não mostra: o espírito do guia, com a decisão registrada |
 | **Componentes puros** | Só recebem *props*: sem regra de negócio, sem chamada de API, sem acesso a `features` (`architecture.md` §11) |
 | **Utilitário de classes** | `cn()` (`clsx` + `tailwind-merge`) e `cva` (`class-variance-authority`) para variantes |
-| **Vitrine `/design-system`** | **Definitiva** (`D-057`), só em desenvolvimento: tokens (cores com função), tipografia e cada primitivo com variantes e estados, no tema claro, legível em desktop e mobile. Ganha seções conforme os componentes surgem; um teste exige que cada arquivo de `components/ui` apareça nela |
+| **Vitrine `/design-system`** | **Definitiva** (`D-057`), só em desenvolvimento: tokens (cores com função), tipografia, o catálogo da identidade (`D-058`) e cada primitivo com variantes e estados, no tema claro, legível em desktop e mobile. Ganha seções conforme os componentes surgem; um teste exige que cada arquivo de `components/ui` apareça nela |
 | **Testes** | Vitest + Testing Library para comportamento (variantes, estados, teclado onde houver lógica) e para a navegação da casca. **Sem *snapshots* visuais e sem `axe` no CI** |
 | **Acessibilidade** | Verificação **manual** (teclado, foco, contraste) + regras de acessibilidade do Biome no lint (§7) |
 | **Dados de exemplo** | Claramente fictícios e rotulados ("Espaço Exemplo"); nunca dados do casamento (`AGENTS.md`) |
@@ -366,6 +366,7 @@ O **guia de identidade** (`docs/design/identidade-visual/`, aprovado em `D-024` 
 | Avaliação dupla, `RatingPair` | 34, 39, 40 | `elementos/interface`, `aplicacoes/mobile` | `:703-712`, `:987-994` | Pendente (Bloco 2.2) |
 | Comparador de propostas | 40 | `aplicacoes/comparador` | `build_comparador` `:1003-1053` | Pendente (Bloco 3.2) |
 | `QuickAddFab` ("Registrar") | 39 | `aplicacoes/mobile` | `:963` | Pendente (Bloco 3.1) |
+| Catálogo da identidade na vitrine | 12, 30, 31, 33, 36, 42 | `construcao/lockups`, `elementos/arco`, `elementos/ramo`, `elementos/iconografia`, `aplicacoes/favicon-e-icone-de-app`, `aplicacoes/dossie-do-dia-d` | `build_lockups` `:226`, `build_arco` `:555`, `build_ramo` `:577`, `build_iconografia` `:643-661`, `build_favicon_app` `:784-819`, `build_dossie` `:1055-1103` | Desvio: sem a aba escura nem a grade de apps; Dossiê só com as peças e as regras (`D-058`) |
 | Login | 37 | `aplicacoes/tela-de-login` | `build_login` `:821-841` | Pendente (restante do Bloco 0.1) |
 | Dossiê do Dia D (impressão) | 42 | `aplicacoes/dossie-do-dia-d` | `build_dossie` `:1055-1103` | Pendente (Bloco 4.2) |
 
