@@ -1,10 +1,12 @@
 from alembic import context
 
+from wedding.platform.bootstrap.tables import load_tables
 from wedding.platform.config import Settings
 from wedding.platform.db.engine import create_db_engine
 from wedding.platform.db.metadata import metadata
 
 config = context.config
+load_tables()
 
 
 def _database_url() -> str:
