@@ -834,3 +834,22 @@
   - Manter a paleta padrão do Tailwind: `bg-red-600` ficaria a um *autocomplete* de distância.
   - Escrever à mão a lista de tokens do `cn()`: criaria uma segunda verdade que diverge da primeira.
   - `?raw` no teste de defasagem: o Vitest devolve string vazia para CSS e o teste passaria sem testar nada.
+
+---
+
+## D-045 — Bloco 0.2, Etapa (b): Ativos de Marca Copiados para o `apps/web`
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** planejar e executar a etapa (b) do Bloco 0.2 (`D-028`).
+- **Decisão:**
+  1. **`apps/web/public/brand/` é cópia derivada** do pacote `docs/design/identidade-visual/`, gerada por `make brand` (`apps/web/scripts/build-brand.ts`, com o plano em `scripts/brand.ts`). Nada é redesenhado (`identity.md` §2.6). Um teste do Vitest falha se o conteúdo divergir do pacote ou se sobrar ou faltar arquivo.
+  2. **O que se copia:** os 30 logos-mestre SVG (`fonte/`, 5 peças × 6 cores) em `logo/`, os 6 ornamentos em `ornamentos/`, o favicon (SVG, `.ico` e PNG 16/32/48) e o ícone do app (SVG e PNG 180/192/512). Os 30 logos entram de uma vez, mesmo os que a interface ainda não usa (`salvia` para o escuro, `preto` e `carvao` para o Dossiê), para a regra não mudar a cada etapa (~190 KB estáticos).
+  3. **O que não se copia:** PNG dos logos (servem a documentos), ícone de 1024 px (loja de apps), favicons PNG 192 e 512 (o ícone do app cobre) e o restante de `componentes/` (guia, usos incorretos, paletas). Se um arquivo esperado faltar no pacote, o script falha em voz alta.
+  4. **`index.html`:** favicon SVG com `.ico` de reserva, `apple-touch-icon` de 180 px e `theme-color` `#F9F5EC`, do tema claro. Um teste exige que cada link aponte para arquivo existente e que a cor seja a de `tokens.json` (`marca.app_icon.theme_color_claro`). A variante escura acompanha o tema escuro (adiado, `D-028`).
+  5. **Biome ignora `public/brand`:** a cópia é derivada, como o `tokens.css`, e as regras de acessibilidade do Biome não se aplicam a SVG de marca editado fora do app.
+  6. **Adiados:** o manifesto (vem com o PWA, restante do Bloco 0.1) e o componente `Logo` (nasce na casca de navegação, etapa (d)).
+- **Razão:** dar ao app a marca oficial sem segunda fonte de verdade: o pacote continua sendo o único lugar onde ela muda, e o teste barra a cópia defasada.
+- **O que ficou rejeitado:**
+  - Copiar só os logos usados hoje: obrigaria a revisitar o script a cada tela nova.
+  - Importar os SVGs do pacote direto em `src/`: o app passaria a depender de um caminho em `docs/` para renderizar.
+  - Criar o manifesto e o `Logo` agora: dependem de decisões do PWA e da casca.

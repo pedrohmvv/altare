@@ -272,7 +272,7 @@ Racional: no celular o casal consulta próximo passo, compara opções, abre Wha
 | **Testes** | Vitest + Testing Library para comportamento (variantes, estados, teclado onde houver lógica) e para a navegação da casca. **Sem *snapshots* visuais e sem `axe` no CI** |
 | **Acessibilidade** | Verificação **manual** (teclado, foco, contraste) + regras de acessibilidade do Biome no lint (§7) |
 | **Dados de exemplo** | Claramente fictícios e rotulados ("Espaço Exemplo"); nunca dados do casamento (`AGENTS.md`) |
-| **Ativos de marca** | `apps/web/public/brand/`, **copiados** de `docs/design/identidade-visual/` (logos-mestre de `fonte/`, favicon de `componentes/favicon/`, ícones de `componentes/app-icon/`, ornamentos de `fonte/ornamentos/`); nada é redesenhado no app (ver `identity.md` §2.6) |
+| **Ativos de marca** | `apps/web/public/brand/`, **copiados** de `docs/design/identidade-visual/` (logos-mestre de `fonte/`, favicon de `componentes/favicon/`, ícones de `componentes/app-icon/`, ornamentos de `fonte/ornamentos/`); nada é redesenhado no app (ver `identity.md` §2.6). A cópia é gerada por `make brand` (`D-045`) e um teste falha se divergir do pacote |
 
 ---
 
