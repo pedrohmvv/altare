@@ -1,12 +1,30 @@
-import { Plus, Save } from 'lucide-react'
+import { BadgeCheck, CircleAlert, HeartHandshake, Plus, Save } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
+import { Money } from '@/components/ui/money'
 import { Select } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 
 const VARIANTS = ['primary', 'secondary', 'ghost', 'soft-destructive', 'link'] as const
 const SIZES = ['sm', 'md', 'lg'] as const
+const ESPACOS = [
+  { nome: 'Espaço Exemplo A', capa: 1_000_000, extras: 248_000 },
+  { nome: 'Espaço Exemplo B', capa: 850_000, extras: 145_050 },
+  { nome: 'Espaço Exemplo C', capa: 1_200_000, extras: 0 },
+]
 const CATEGORIAS = [
   { value: 'espaco', label: 'Espaço' },
   { value: 'buffet', label: 'Buffet' },
@@ -74,6 +92,138 @@ export function Conferencia() {
           <Checkbox label="Todos os convidados" checked="indeterminate" />
           <Checkbox label="Desabilitado" disabled />
         </div>
+      </section>
+
+      <section aria-labelledby="conf-dinheiro" className="flex flex-col gap-4">
+        <h2 id="conf-dinheiro" className="text-heading">
+          Dinheiro
+        </h2>
+        <ul className="flex flex-col gap-1 text-num">
+          <li>
+            Resumo (auto): <Money cents={2_800_000} />
+          </li>
+          <li>
+            Com centavos (auto): <Money cents={123_456} />
+          </li>
+          <li>
+            Parcela (always): <Money cents={2_800_000} precision="always" />
+          </li>
+          <li>
+            Custo real comparável: <Money cents={1_248_000} tone="comparable" />
+          </li>
+          <li>
+            Dentro do teto: <Money cents={-310_000} signed tone="positive" />
+          </li>
+          <li>
+            Acima do teto: <Money cents={145_050} signed precision="always" tone="attention" />
+          </li>
+          <li>
+            Apoio: <Money cents={9_950_00} tone="muted" />
+          </li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="conf-selos" className="flex flex-col gap-4">
+        <h2 id="conf-selos" className="text-heading">
+          Selos e cartões
+        </h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge>Neutro</Badge>
+          <Badge variant="primary">Primário</Badge>
+          <Badge variant="outline">Contorno</Badge>
+          <Badge variant="consensus" icon={<HeartHandshake />}>
+            Consenso favorito
+          </Badge>
+          <Badge variant="attention" icon={<CircleAlert />}>
+            1 extra pendente
+          </Badge>
+          <Badge variant="consensus" icon={<BadgeCheck />}>
+            Oficial
+          </Badge>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <h3 className="text-name">Espaço Exemplo A</h3>
+            <p className="text-body-sm text-ink-muted">Cartão padrão, plano e sem sombra</p>
+          </Card>
+          <Card variant="interactive" asChild>
+            <a href="#conf-selos">
+              <h3 className="text-name">Espaço Exemplo B</h3>
+              <p className="text-body-sm text-ink-muted">Interativo: passe o mouse ou use Tab</p>
+            </a>
+          </Card>
+          <Card variant="muted">
+            <h3 className="text-name">Espaço Exemplo C</h3>
+            <p className="text-body-sm text-ink-muted">Cartão suave, para blocos de apoio</p>
+          </Card>
+        </div>
+      </section>
+
+      <section aria-labelledby="conf-tabelas" className="flex flex-col gap-6">
+        <h2 id="conf-tabelas" className="text-heading">
+          Tabelas
+        </h2>
+        {(['comfortable', 'compact'] as const).map((density) => (
+          <Table
+            key={density}
+            label={`Comparativo de espaços, densidade ${density}`}
+            density={density}
+            stickyFirstColumn
+            className="min-w-[36rem]"
+          >
+            <TableCaption>Comparativo de espaços (exemplo), densidade {density}</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Espaço</TableHead>
+                <TableHead numeric>Preço de capa</TableHead>
+                <TableHead numeric>Extras</TableHead>
+                <TableHead numeric>Custo real comparável</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {ESPACOS.map((espaco) => (
+                <TableRow key={espaco.nome}>
+                  <TableHead scope="row">{espaco.nome}</TableHead>
+                  <TableCell numeric>
+                    <Money cents={espaco.capa} precision="always" />
+                  </TableCell>
+                  <TableCell numeric>
+                    <Money cents={espaco.extras} precision="always" signed />
+                  </TableCell>
+                  <TableCell numeric>
+                    <Money
+                      cents={espaco.capa + espaco.extras}
+                      precision="always"
+                      tone="comparable"
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ))}
+      </section>
+
+      <section aria-labelledby="conf-vazios" className="grid gap-4 md:grid-cols-2">
+        <h2 id="conf-vazios" className="text-heading md:col-span-2">
+          Estados vazios
+        </h2>
+        <Card>
+          <EmptyState
+            headingLevel={3}
+            title="Ainda sem fornecedores nesta categoria"
+            description="Que tal adicionar o primeiro contato?"
+            action={<Button>Adicionar contato</Button>}
+          />
+        </Card>
+        <Card>
+          <EmptyState
+            headingLevel={3}
+            illustration="arco"
+            title="Nada por aqui ainda"
+            description="Quando houver possibilidades, elas aparecem aqui."
+          />
+        </Card>
       </section>
     </div>
   )
