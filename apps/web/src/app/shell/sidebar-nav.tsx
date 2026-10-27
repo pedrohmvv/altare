@@ -17,8 +17,8 @@ function SidebarLink({ item, withTooltip }: { item: NavItem; withTooltip: boolea
       search={keepLens}
       activeOptions={{ exact: item.to === '/' }}
       className={cn(
-        'group flex h-10 items-center justify-center gap-2.5 rounded-control px-3.5 pointer-coarse:min-h-11 lg:justify-start',
-        'text-eyebrow font-medium normal-case tracking-normal text-ink-muted transition-colors duration-fast ease-standard',
+        'group flex h-10 items-center justify-center gap-2.5 rounded-control px-3.5 pointer-coarse:min-h-11 lg:justify-start lg:pr-1.5',
+        'text-eyebrow font-medium whitespace-nowrap normal-case tracking-normal text-ink-muted transition-colors duration-fast ease-standard',
         'hover:bg-surface-muted hover:text-ink',
         'data-[status=active]:bg-surface-muted data-[status=active]:font-semibold data-[status=active]:text-ink',
       )}
@@ -44,17 +44,21 @@ export function SidebarNav() {
   const isWide = useMediaQuery('(min-width: 1024px)')
 
   return (
-    <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-surface px-4 pt-9 pb-6 md:flex">
+    <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-surface px-4 pt-8.25 pb-6 md:flex">
       <Link
         to="/"
         search={keepLens}
         aria-label="Altare, ir para a Visão Geral"
         className="flex items-center justify-center rounded-control lg:justify-start lg:px-3"
       >
-        <img src="/brand/logo/altare-wordmark-oliva.svg" alt="" className="hidden h-6.5 lg:block" />
+        <img
+          src="/brand/logo/altare-wordmark-oliva.svg"
+          alt=""
+          className="hidden h-7.25 lg:block"
+        />
         <img src="/brand/logo/altare-simbolo-oliva.svg" alt="" className="h-7 lg:hidden" />
       </Link>
-      <nav aria-label="Navegação principal" className="mt-9 flex flex-1 flex-col">
+      <nav aria-label="Navegação principal" className="mt-9.5 flex flex-1 flex-col">
         <ul className="flex flex-col gap-1.5">
           {AREAS.map((item) => (
             <li key={item.to}>

@@ -18,7 +18,7 @@ export function TopBar() {
           aria-label="Altare, ir para a Visão Geral"
           className="md:hidden"
         >
-          <img src="/brand/logo/altare-simbolo-oliva.svg" alt="" className="h-6" />
+          <img src="/brand/logo/altare-simbolo-oliva.svg" alt="" className="h-6.75" />
         </Link>
         <p className="truncate text-body font-semibold text-ink">{title}</p>
       </div>
