@@ -25,6 +25,7 @@ const tokens: Tokens = {
   forma: {
     raios: { control: 6, pill: 9999 },
     sombras: { 'nivel-1': '0 4px 16px rgb(35 42 34 / .08)' },
+    textura_opacidade: 0.035,
   },
   movimento: {
     fast: '150ms cubic-bezier(.2,.8,.2,1)',
@@ -107,6 +108,14 @@ describe('buildTokensCss', () => {
     expect(css).toContain('--radius-control: 6px;')
     expect(css).toContain('--radius-pill: 9999px;')
     expect(css).toContain('--shadow-nivel-1: 0 4px 16px rgb(35 42 34 / .08);')
+  })
+
+  it('expõe a opacidade da textura de papel no :root', () => {
+    const root = css.slice(
+      css.indexOf(':root, [data-theme="light"] {'),
+      css.indexOf('@theme inline {'),
+    )
+    expect(root).toContain('--texture-opacity: 0.035;')
   })
 
   it('separa duração e curva do movimento, mesmo no texto irregular do json', () => {

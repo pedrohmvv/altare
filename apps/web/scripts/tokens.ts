@@ -14,7 +14,11 @@ export interface Tokens {
       peso: number
     }[]
   }
-  forma: { raios: Record<string, number>; sombras: Record<string, string> }
+  forma: {
+    raios: Record<string, number>
+    sombras: Record<string, string>
+    textura_opacidade: number
+  }
   movimento: { fast: string; base: string; delight: string }
 }
 
@@ -94,6 +98,7 @@ export function buildTokensCss(tokens: Tokens): string {
     `  --primary-ink: ${primaryInk};`,
     '  --focus-ring: var(--primary);',
     `  --scrim: ${SCRIM};`,
+    `  --texture-opacity: ${forma.textura_opacidade};`,
     '}',
   ].join('\n')
 

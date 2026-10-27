@@ -22,6 +22,7 @@
   --primary-ink: #FFFDF9;
   --focus-ring: var(--primary);
   --scrim: rgb(35 42 34 / .45);
+  --texture-opacity: 0.035;
 }
 
 @theme inline {
