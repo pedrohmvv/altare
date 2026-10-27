@@ -27,13 +27,13 @@ wedding-planner/
 └─ AGENTS.md · CLAUDE.md
 ```
 
-**Estado atual:** só o `apps/web` existe (Etapa 0 concluída, `D-043`); `apps/api` vem depois (`D-028`); os alvos do Makefile crescem junto, sem stub de alvo para app inexistente.
+**Estado atual:** `apps/web` e `apps/api` existem (esqueleto da API em `D-060`); os alvos do Makefile crescem junto, sem stub: `make api-types` só entra com o PR 2 do Bloco 0.1.
 
 ## Princípios
 
 1. **Sem git submodules** (`D-040`). Não proponha, não adicione e remova se aparecer.
 2. **Os apps só se falam pelo OpenAPI.** `apps/web` não importa código de `apps/api` e o contrário também não. Enum, nome de campo e formato de erro chegam ao web pelos tipos gerados; copiar a lista de valores de um enum para o TypeScript cria a segunda verdade que o contrato existe para evitar.
-3. **Tarefas na raiz via `make`:** `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` (`stack.md` §7). O Makefile só orquestra (`uv run`, `pnpm`); lógica não mora nele.
+3. **Tarefas na raiz via `make`:** `make dev`, `make lint`, `make typecheck`, `make test` (com variantes `-api` e `-web`), `make migrate` e, a partir do PR 2, `make api-types` (`stack.md` §7). O Makefile só orquestra (`uv run`, `pnpm`); lógica não mora nele.
 4. **`packages/` só nasce com o segundo consumidor real.** Hoje não há nenhum. O `tokens.json` fica em `docs/design/identidade-visual/` e um script gera o `tokens.css`; isso não é motivo para criar pacote.
 5. **Arquivo gerado nunca se edita à mão:** `apps/web/src/styles/tokens.css` (de `tokens.json`) e os tipos do OpenAPI. Mude a fonte e regenere; o CI falha se o gerado divergir.
 6. **Contrato e tipos andam no mesmo commit.** Quem altera uma rota ou schema regenera os tipos (`make api-types`) no commit que muda o contrato. A tela que consome vem no commit seguinte do **mesmo PR**.
@@ -52,6 +52,8 @@ wedding-planner/
 | `apps/api/**` | gates do backend **e a checagem de drift** |
 | `apps/web/**`, artefato do OpenAPI e `docs/design/identidade-visual/tokens.json` | gates do frontend |
 | `Makefile`, arquivos de CI, `pnpm-workspace.yaml` | tudo |
+
+O filtro vive em `scripts/ci-changes.sh` (shell, sem ação de terceiros) e o workflow em `.github/workflows/ci.yml` (`D-060`).
 
 **Ressalva:** uma mudança em `apps/api/**` que altera o contrato **também precisa rodar o web**, porque o tipo gerado mudou. O drift check no job da API pega o esquecimento de regenerar, e o artefato versionado dispara o job do web. Se o provedor tratar job pulado por filtro como pendente e travar o merge, use um job final agregador. O pipeline em si é de `altare-devops`.
 

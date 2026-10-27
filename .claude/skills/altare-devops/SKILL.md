@@ -33,7 +33,7 @@ O pipeline roda, nesta ordem lógica, com *path filters* conforme `altare-monore
 4. Antes do deploy: suíte de integração contra **PostgreSQL** em contêiner efêmero.
 5. E2E com Playwright (desktop e mobile), quando o login existir.
 
-O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`). O provedor é o GitHub Actions, e o workflow nasce no PR 1 do Bloco 0.1, parte 2 (`D-059`).
+O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`). O provedor é o GitHub Actions, e o workflow está em `.github/workflows/ci.yml` (`D-059`, `D-060`): jobs `changes`, `api`, `web` e o agregador `CI`, o único check a exigir na proteção das branches.
 
 ## Ambientes
 

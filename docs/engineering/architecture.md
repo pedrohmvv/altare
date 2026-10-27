@@ -190,7 +190,7 @@ Consequência: a decisão (`DecisionRecord`) **não precisa atualizar** orçamen
 | Domínio | Unitário puro + propriedades (invariantes numéricas de orçamento, contadores, parcelas) | pytest, Hypothesis |
 | Aplicação | Casos de uso com **fakes das portas** (sem banco, sem rede) | pytest |
 | Infraestrutura | Integração com SQLite real: repositórios, mapeamento, migrações Alembic (subir, descer, subir) | pytest |
-| Adaptadores HTTP | `TestClient` com a aplicação composta e SQLite temporário; *snapshot* do OpenAPI | pytest, httpx |
+| Adaptadores HTTP | `TestClient` com a aplicação composta e SQLite temporário; *snapshot* do OpenAPI | pytest, httpx2 |
 | Ponta a ponta | Fluxos críticos em *desktop* e *mobile* (`axe` automatizado adiado em `D-028`) | Playwright |
 | Portabilidade | Suíte de integração também contra PostgreSQL antes do primeiro deploy (`stack.md` §4) | Docker/testcontainers |
 

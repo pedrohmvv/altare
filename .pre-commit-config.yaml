@@ -1,0 +1,23 @@
+# Verificadores rápidos antes do commit (stack.md §7, D-059). Chamam os mesmos alvos do Makefile
+# que o CI usa; o que é lento ou depende de ambiente fica só no CI.
+repos:
+  - repo: local
+    hooks:
+      - id: api-lint
+        name: api · ruff e import-linter
+        entry: make lint-api
+        language: system
+        files: ^apps/api/
+        pass_filenames: false
+      - id: api-typecheck
+        name: api · pyright
+        entry: make typecheck-api
+        language: system
+        files: ^apps/api/.*\.py$
+        pass_filenames: false
+      - id: web-lint
+        name: web · biome
+        entry: make lint-web
+        language: system
+        files: ^(apps/web/|biome\.json$)
+        pass_filenames: false

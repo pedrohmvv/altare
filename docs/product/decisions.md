@@ -1204,3 +1204,37 @@
   | Suíte em PostgreSQL, `axe`, tema escuro, passkeys, backup | os gatilhos já registrados (`D-028`, `stack.md` §9 e §10) |
 - **Aprovado (2026-10-27):** o texto da decisão, incluindo os parâmetros de segurança do item 3 ("Aprovo").
 - **Pendente (do usuário):** criar a tag `v0.1.0` em `335c5a3` e empurrá-la; decidir, no PR 2 e pela pág. 38, se o bloco de sessão fica só no pé da barra lateral ou também no menu da barra superior (`D-028` e `D-052` divergem); exigir os *status checks* na proteção de `develop` e `main` quando o CI do PR 1 existir (`D-041`, item 6); a passada manual de acessibilidade do Nível 0.
+
+---
+
+## D-060 — Bloco 0.1, PR 1: esqueleto da API, contratos de camada, Makefile, pre-commit e CI
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 1 de 4)
+- **Pedido do usuário:** executar o plano da `D-059`, em blocos, começando pelo PR 1 (`feat/api-esqueleto`). Aprovou o plano de cada bloco e dos commits antes da execução.
+- **Decisão:**
+  1. **Projeto:** `apps/api` com `uv`, Python 3.13 (`.python-version` e `requires-python >=3.13`), FastAPI, Pydantic v2, SQLAlchemy 2 síncrono, Alembic e Typer; em desenvolvimento, pytest, Hypothesis, `httpx2`, Ruff, Pyright em `standard` e `import-linter`. Ruff com linha de 100 e as regras `E F I UP B SIM N C4 PT RUF`; N818 é ignorado porque os nomes dos erros (`NotFound`, `Conflict`) são os de `architecture.md` §8.
+  2. **Sete contratos do `import-linter`**, os 6 de `architecture.md` §9 e mais um (`shared_kernel` não depende de `platform` nem dos módulos), verificados contra violações plantadas e não só contra o pacote vazio. **Dois desvios:** (a) o domínio puro é uma **lista de proibidos** (`sqlalchemy`, `alembic`, `fastapi`, `starlette`, `pydantic`, `typer` e as outras camadas), porque a ferramenta não expressa "só a biblioteca padrão"; (b) o contrato 6 proíbe `platform.db`, `http`, `events`, `config` e o `shared_kernel` de importar adaptadores e infraestrutura dos módulos, em vez de "só o `bootstrap` importa todas as camadas", para o `platform/http` poder ler `identity.application.public` no PR 2 (`D-059`, item 6). A independência entre módulos usa `**` na origem e `unmatched_ignore_imports_alerting = "none"`.
+  3. **`shared_kernel/`:** `Money` em centavos inteiros (recusa `float`, `bool` e texto) com `split` que arredonda para baixo e leva o resto à última parcela (`contratos-e-parcelas.md`, F-CTR); `ProfileKind` com os valores `Noivo`, `Noiva` e `Ambos`, iguais aos da spec; `Actor` (recusa `Ambos`); IDs UUID v7 quando o Python o oferece, senão v4 (no 3.13, v4); `Clock`; erros base com `code` estável.
+  4. **`platform/`:** `Settings` só com `database_url` (padrão `sqlite:///data/altare.db`); engine SQLite com `foreign_keys`, WAL e `busy_timeout` de 5000 ms, que cria a pasta do arquivo; convenção de nomes de constraints no `MetaData`; `UtcDateTime`; *app factory* em `platform/http` sob `/api/v1` (documentação em `/api/v1/docs`) e composição em `platform/bootstrap`; `problem+json` com mapa único de mensagens em `platform/http/messages.py` (**textos propostos pelo agente, a revisar**) para erro de domínio, validação (campo e mensagem), 404, 405 e falha inesperada (500 sem vazar detalhe); `GET /api/v1/health` com `operationId` `health_check`.
+  5. **Contrato:** `wedding export-openapi` grava `apps/api/openapi.json` e um teste exige o arquivo em dia.
+  6. **Alembic** em `apps/api/migrations`, com `render_as_batch`, URL do `alembic.ini` ou de `DATABASE_URL` e a migração `0001` vazia (*baseline*). Os testes sobem, descem e sobem de novo, exigem uma cabeça só, `downgrade` em todo arquivo e banco migrado sem diferença para o `MetaData`.
+  7. **Makefile:** `dev` (Uvicorn em `127.0.0.1:8000` com *reload* e Vite, por `make -j2`), `build`, `lint`, `typecheck` e `test` (cada um com variantes `-api` e `-web`), `migrate`, `tokens`, `brand` e `cursor-rules`; `DATABASE_URL` padrão em `data/altare.db`, caminho absoluto. O Vite faz proxy de `/api` para `http://127.0.0.1:8000`. **`make api-types` só nasce no PR 2**, sem alvo de enfeite.
+  8. **`pre-commit`:** três hooks locais que chamam `make lint-api` (Ruff e `import-linter`), `make typecheck-api` (Pyright) e `make lint-web` (Biome), a mesma fonte que o CI usa. Fecha a lista de hooks adiada em `D-043`. `pre-commit install` é por clone e não foi executado.
+  9. **CI** em `.github/workflows/ci.yml`: jobs `changes`, `api` e `web`, mais o agregador `CI`, que é o **único check a exigir** na proteção das branches (job pulado pelo filtro conta como verde). O filtro é `scripts/ci-changes.sh`, em shell, com a tabela de `altare-monorepo`, e na dúvida roda tudo. API: `uv sync` com lock travado, `make lint-api`, `typecheck-api` e `test-api`. Web: Node 22, `pnpm install --frozen-lockfile`, `make lint-web`, `typecheck-web`, `test-web` e `build`. As ações estão fixadas por SHA de releases com 14 dias ou mais: `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0, `pnpm/action-setup` v6.1.0 e `astral-sh/setup-uv` v10.3.0.
+  10. **Fica para o PR 2, por não ter consumidor agora:** *mixin* de histórico, `UnitOfWork`, dispatcher de eventos, `security/`, `storage/`, `make api-types` e os tipos no web.
+- **Ajustes em arquivos aprovados:** `stack.md` §7 (`httpx2`, hooks e comandos); `architecture.md` §9 (`httpx2`); `AGENTS.md` §1; `roadmap.md` (Bloco 0.1); skills `altare-testes-qa` (`httpx2` e a lista de hooks fechada), `altare-devops` (o workflow existe) e `altare-monorepo` (estado e o filtro do CI).
+- **Razão:** o PR 1 deixa o terreno pronto para o login sem decidir no meio dele: as camadas já são barradas por máquina, o contrato OpenAPI já tem dono, e os mesmos alvos rodam no terminal, no hook e no CI.
+- **O que ficou rejeitado:**
+  - Ação de terceiros para filtrar caminhos (`dorny/paths-filter`): uma dependência de cadeia de suprimentos para umas 15 linhas de shell que se testam localmente.
+  - `on.pull_request.paths` do próprio GitHub: pula o workflow inteiro e deixaria o check obrigatório pendente num PR só de docs.
+  - Tags móveis nas ações (`@v4`): o SHA fixa o que roda e a anotação com a versão mantém a leitura.
+  - Hooks do `pre-commit` com repositórios externos de Ruff e Biome: duas versões de cada ferramenta, a do hook e a do projeto.
+  - Mixin, `UnitOfWork` e dispatcher agora: sem consumidor, envelhecem sem uso (`altare-banco-de-dados`, princípio 11).
+  - `fileConfig` de logging no `env.py` do Alembic: reconfigura o log de quem importa o módulo, inclusive os testes.
+- **Riscos conhecidos, com onde se resolvem:**
+  - O `env.py` usa o engine com `foreign_keys` ligado, e migração em *batch* no SQLite costuma exigir desligá-lo; trata-se na primeira migração real, no PR 2, com teste.
+  - O erro (`ProblemDetails`) ainda não está no OpenAPI; decide-se junto do `make api-types`, no PR 2.
+  - `/api/v1/docs` fica aberto sem autenticação, inclusive em produção; decide-se no deploy.
+  - O CI usa Node 22 e a máquina local só tem o 25; o workflow só foi validado por leitura do YAML e pela execução local dos mesmos alvos, e a prova é a primeira execução no GitHub, neste PR.
+  - Dois testes de migração só passam a ter peso quando houver tabela (banco migrado sem diferença e `downgrade` em todo arquivo).
+- **Pendente (do usuário):** revisar os textos de `messages.py`; exigir o check `CI` na proteção de `develop` e `main` depois da primeira execução (`D-041`, item 6); rodar `pre-commit install` se quiser os hooks neste clone; a passada manual de acessibilidade do Nível 0, que segue pendente.
