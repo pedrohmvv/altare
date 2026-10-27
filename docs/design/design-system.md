@@ -286,7 +286,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 1. **Tokens e fontes:** `tokens.css` gerado do `tokens.json` (tema claro), mapeado em `@theme`; fontes autohospedadas (Fontsource); `cn()` e `cva`.
 2. **Ativos de marca:** copiar do pacote `docs/design/identidade-visual/` para `public/brand/`; favicon e ícones no `index.html`.
 3. **Primitivos (15), concluída em 2026-10-27 (`D-049`):** `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money` (mono tabular).
-4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as 7 áreas como páginas-esqueleto com `EmptyState`.
+4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as **8 áreas** (as 7 de `D-025` e o Assistente, `D-050`) como páginas-esqueleto com `EmptyState`. **Lote 1 (casca, rotas e seletor de lente) feito em `D-051`; o ícone flutuante do assistente é o lote 2.**
 5. **Vitrine `/design-system`:** tokens, tipografia e cada primitivo com variantes e estados.
 
 **Adiado, com gatilho para retomar:**

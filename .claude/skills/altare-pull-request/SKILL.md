@@ -36,7 +36,7 @@ O PR é onde a intenção, as decisões e a prova de que funciona ficam juntas. 
 1. <passo>  2. <passo>  <resultado esperado>
 
 ## Checklist
-- [ ] Gates verdes (`altare-testes-qa`): Ruff, Pyright, import-linter, pytest, Biome, tsc, dependency-cruiser, Vitest
+- [ ] Gates verdes (`altare-testes-qa`): Ruff, Pyright, import-linter, pytest, Biome, tsc, Vitest (inclui o gate de limites do frontend)
 - [ ] Contrato OpenAPI e tipos regenerados, sem drift (se tocou a API)
 - [ ] Docs vivas atualizadas: `decisions.md`, doc de feature, `AGENTS.md` se a fase mudou (`altare-docs-vivas`)
 - [ ] `CLAUDE.md` criado ou atualizado, se há módulo novo

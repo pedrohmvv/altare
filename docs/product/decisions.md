@@ -958,3 +958,32 @@
   - Manter a `OQ-IA-001` inteira em aberto e construir só as 7 áreas (recomendação do agente): o usuário preferiu decidir agora.
   - Só o ícone flutuante, sem área própria: não dá lugar ao histórico e à tela do módulo de chat de `D-042`.
   - Só a 8ª área, sem o ícone: perde o acesso ao assistente com o contexto da tela atual.
+
+---
+
+## D-051 — Etapa (d), Lote 1: Roteador, Casca de Navegação e Seletor de Lente
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** plano e execução da etapa (d) do Bloco 0.2, em 2 lotes (`D-028`, `D-050`).
+- **Decisão:**
+  1. **TanStack Router em modo *code-based*** (árvore escrita à mão em `src/routes/router.tsx`, sem plugin nem arquivo gerado), com rotas tipadas, página carregada sob demanda por rota (cada área vira um *chunk*) e `defaultPreload: 'intent'`. O modo por arquivos exigiria o plugin e um `routeTree.gen.ts` conferido contra defasagem, cerimônia desproporcional para 10 rotas (`stack.md` §2, princípio 5); migrar depois é mecânico.
+  2. **URLs em pt-BR:** `/`, `/planejamento`, `/cronograma`, `/possibilidades`, `/orcamento`, `/contatos`, `/convidados`, `/assistente`, mais `/design-system`, que mantém a página de conferência provisória **fora da navegação** até a etapa (e). Uma rota desconhecida mostra "Não encontramos esta página" com a saída para a Visão Geral.
+  3. **A lente fica na URL:** `?lente=minha` (ausente é `Casal`), validada na rota raiz (qualquer outro valor vira `Casal`) e preservada pelos links da navegação. Sem `localStorage`: a preferência por usuário vem com o login. **O efeito real de "Minha visão" depende do login e das features**; hoje só o estado e o seletor existem.
+  4. **Casca em `src/app/shell/`:** `nav-config.ts` é a fonte única das 8 áreas (ordem, nome, ícone, posição na barra inferior). Responsivo por **CSS**: ≥ 1024 barra lateral de 256 px; 768 a 1023 trilho de 72 px (o nome fica `sr-only`); < 768 barra superior compacta e barra inferior com 4 destinos mais "Mais", cuja folha é o `Dialog` abaixo de `md`. O conteúdo tem no máximo 1200 px. O hook `useMediaQuery` só decide se as dicas do trilho aparecem (na barra larga o nome já está visível).
+  5. **Espaço da barra inferior:** a variável `--shell-bottom-offset` (4 rem mais a *safe area* no celular, 0 acima de `md`) fica em `:root`, em `index.css`, para o `Toast` (fora da casca) e o conteúdo a lerem.
+  6. **Novo primitivo `SegmentedControl`** (Radix `ToggleGroup`, `radiogroup` com itens `radio`): sempre com uma opção marcada, Tab entra na selecionada, setas movem o foco e Espaço escolhe. É o primeiro dos "demais primitivos" de `design-system.md` §8 a ser pedido por uma tela (`D-028`).
+  7. **Nome curto "Opções" na barra inferior do celular** para a área Possibilidades & Decisões: "Possibilidades" não cabe em ~70 px por destino (5 colunas em 390 px) em nenhum tamanho legível. Na barra lateral e na folha "Mais" vale o nome completo. **Desvio consciente de `design-system.md` §10.1 ("Possibilidades")**, reversível trocando uma linha de `nav-config.ts`.
+  8. **Acessibilidade da casca:** link "Ir para o conteúdo" como primeiro foco; `header`, dois `nav` com nomes distintos ("Navegação principal" e "(celular)"), `aside` e `main#conteudo`; `aria-current="page"` na área ativa, mais uma faixa no destino atual da barra inferior (a cor não é o único sinal). **Ao trocar de área**, o título do documento vira "Área · Altare" e o foco vai ao `h1`, que ganhou `tabIndex={-1}`; a primeira página e a troca só da lente não movem o foco.
+  9. **Textos dos esqueletos** em `features/<módulo>/copy.ts`, no tom de `altare-conteudo-copy`, tirados de `experience.md` §3.1, **sem botão de ação** (nada funciona ainda): exceção consciente à regra "estado vazio com uma ação". A revisão do texto é do usuário no PR.
+  10. **Gate de limites próprio no lugar do `dependency-cruiser`:** o gatilho de `D-043` (a primeira `feature`) ocorreu, mas o `dependency-cruiser` **não suporta o Node 25** em uso (só as versões LTS: 22, 24 e 26 em diante). As mesmas regras viraram `apps/web/scripts/architecture.ts`, testado em `src/architecture.test.ts` e rodado pelo `make test`: `components/ui` não importa `features` nem `lib/api`; uma feature só importa outra pelo `index.ts`; features não importam `app` nem `routes`; sem ciclos (imports só de tipo não contam). Conferido com violações reais, depois removidas. **Reavaliar ao adotar um Node LTS.**
+  11. **Ícones de navegação** (Lucide, 24 px, traço 1,5): `house`, `compass`, `calendar-days`, `columns-3`, `wallet`, `contact`, `users` e `message-square-text` (Assistente), em `design-system.md` §10.1.
+  12. **Acessibilidade e layout:** teclado, nomes, `aria-current`, lente e navegação cobertos por teste; **pendentes da passada manual do usuário** (`altare-acessibilidade`): os 3 tamanhos de tela, o trilho e a barra inferior reais, 320 px e zoom de 200%, leitor de tela e "reduzir movimento". O jsdom não carrega o CSS, então não prova nenhum *breakpoint*.
+  13. **Próximo:** lote 2, o ícone flutuante do assistente (`D-050`), e depois a etapa (e), a vitrine.
+- **Ajustes em arquivos aprovados:** `stack.md` §7 e `architecture.md` §9, §13 e §14 (o gate de limites no lugar do `dependency-cruiser`); `design-system.md` §13; skills `altare-testes-qa`, `altare-frontend`, `altare-devops`, `altare-pull-request` e `altare-escrita-de-codigo` (referência ao gate).
+- **Razão:** dar ao `apps/web` a estrutura que as áreas vão ocupar, com a navegação e a lente prontas e acessíveis, e manter os limites entre camadas verificados por máquina desde a primeira `feature`.
+- **O que ficou rejeitado:**
+  - Roteamento por arquivos com plugin e `routeTree.gen.ts`: cerimônia sem ganho para 10 rotas.
+  - `localStorage` para a lente: o estado vai na URL, compartilhável, e a preferência por usuário vem com o login.
+  - Truncar "Possibilidades" na barra inferior: rótulo cortado deixaria o destino ilegível.
+  - Instalar outro Node só para rodar o `dependency-cruiser`: mudaria o ambiente do usuário sem ele pedir.
+  - Esperar o Bloco 1.1 para ter limites verificados: a primeira feature já chegou.

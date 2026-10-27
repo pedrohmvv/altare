@@ -1,7 +1,7 @@
 ---
 name: altare-testes-qa
 description: >-
-  Estratégia de testes e qualidade automatizada do Altare, em Python e TypeScript. Cobre a pirâmide por camada, TDD (RED antes de GREEN), Hypothesis para invariantes numéricas, Vitest com Testing Library, Playwright desktop e mobile, SQLite temporário, o portão em PostgreSQL antes do primeiro deploy e a configuração e os gates de Ruff, Pyright, Biome, tsc, import-linter, dependency-cruiser e pre-commit. Use sempre que for implementar feature, regra de negócio, correção de bug ou refatoração (o teste vem primeiro), ao decidir que teste escrever, ao configurar linter, formatter, tipos ou quality gate, mesmo que o usuário só diga implemente isso. NÃO use para rodar ou manter o pipeline no CI (use altare-devops), para o checklist manual de acessibilidade (use altare-acessibilidade) nem para revisar um diff (use altare-code-review).
+  Estratégia de testes e qualidade automatizada do Altare, em Python e TypeScript. Cobre a pirâmide por camada, TDD (RED antes de GREEN), Hypothesis para invariantes numéricas, Vitest com Testing Library, Playwright desktop e mobile, SQLite temporário, o portão em PostgreSQL antes do primeiro deploy e a configuração e os gates de Ruff, Pyright, Biome, tsc, import-linter, o gate de limites do frontend e pre-commit. Use sempre que for implementar feature, regra de negócio, correção de bug ou refatoração (o teste vem primeiro), ao decidir que teste escrever, ao configurar linter, formatter, tipos ou quality gate, mesmo que o usuário só diga implemente isso. NÃO use para rodar ou manter o pipeline no CI (use altare-devops), para o checklist manual de acessibilidade (use altare-acessibilidade) nem para revisar um diff (use altare-code-review).
 ---
 
 # Testes e qualidade
@@ -48,7 +48,7 @@ Hypothesis serve onde há **propriedade**, não exemplo: soma das parcelas fecha
 | Testes Python | pytest | `apps/api` | Sim |
 | Lint e formato web | **Biome** (inclui regras de acessibilidade); Ruff não se aplica | `apps/web` | Sim |
 | Tipos web | `tsc` (`strict`) | `apps/web` | Sim |
-| Limites entre `features` | **dependency-cruiser** | `apps/web` | Sim |
+| Limites entre `features` | **Gate de limites** (`architecture.test.ts`, `D-051`) | `apps/web` | Sim |
 | Testes web | Vitest, inclusive o que falha se `tokens.css` estiver defasado | `apps/web` | Sim |
 | Build do web e drift do OpenAPI | `make api-types` sem diff | monorepo | Sim |
 | E2E | Playwright desktop e mobile | após o login | Sim, quando existir |
@@ -96,4 +96,4 @@ def test_parcelas_somam_o_total(parts):
 
 ## Em aberto
 
-- **Hooks do `pre-commit`:** `stack.md` §7 lista Ruff, Pyright e Biome; `architecture.md` §2 e §14 acrescentam `import-linter` e `dependency-cruiser`. Decidido na `D-043`: o `pre-commit` e o `dependency-cruiser` ficam adiados (o primeiro, até o `apps/api`; o segundo, até a primeira `feature`). Ao criá-los, fechar a lista de hooks e registrar.
+- **Hooks do `pre-commit`:** `stack.md` §7 lista Ruff, Pyright e Biome; `architecture.md` §2 e §14 acrescentam `import-linter` e o gate de limites do frontend. Decidido na `D-043`: o `pre-commit` e a verificação de limites do frontend ficam adiados (o primeiro, até o `apps/api`; o segundo, até a primeira `feature`). **A verificação de limites chegou com a primeira `feature` (`D-051`), como o gate próprio `apps/web/src/architecture.test.ts`**, porque o `dependency-cruiser` não suporta o Node 25. Ao criá-los, fechar a lista de hooks e registrar.

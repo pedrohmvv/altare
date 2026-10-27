@@ -34,7 +34,7 @@ Código que o casal e o próprio autor vão ler daqui a seis meses, sozinhos, se
 | Abstração para um caso só (`BaseRepository`, `StrategyFactory`) | Indireção sem variação (`architecture.md` §3, item 4) | Função ou classe direta; porta só onde há variação ou E/S externa |
 | `try/except Exception` com `log` e retorno silencioso | Engole o erro e esconde bug | Deixe o erro de domínio subir ao adaptador; capture só o que sabe tratar |
 | Validação repetida em toda camada | Regra duplicada | Valide na borda (Pydantic) e no domínio |
-| Arquivo solto fora de `modules/<m>/<camada>/` ou de `features/<m>/` | Quebra `import-linter` e `dependency-cruiser` | Mova para a camada certa |
+| Arquivo solto fora de `modules/<m>/<camada>/` ou de `features/<m>/` | Quebra o `import-linter` e o gate de limites do frontend | Mova para a camada certa |
 | Nome genérico (`data`, `result`, `manager`, `handle`) | Não diz o que contém | `installments_due`, `ScenarioCostSummary` |
 | Parâmetro ou flag que ninguém usa | Superfície inventada | Remova; reintroduza quando houver o segundo uso |
 | Texto de interface espalhado no JSX | Tom e vocabulário divergem | Constante por feature (`design-system.md` §11) |

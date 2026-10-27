@@ -7,7 +7,7 @@ description: >-
 # Frontend do Altare
 
 ## Docs a consultar
-- `docs/engineering/architecture.md` §11 (estrutura e regras do frontend) e §9 (`dependency-cruiser`).
+- `docs/engineering/architecture.md` §11 (estrutura e regras do frontend) e §9 (gate de limites, `D-051`).
 - `docs/engineering/stack.md` §5 (escolhas), §5.1 (onde mora cada cálculo), §6 (sessão e lente), §7 (testes).
 - `docs/design/design-system.md` §9 (props dos componentes de domínio), §10 (padrões de interface), §12.
 - O doc da área em `docs/product/features/` para a tela em construção: os critérios de aceite viram testes.
@@ -15,7 +15,7 @@ description: >-
 
 ## Princípios
 1. **Rotas finas.** Arquivo em `routes/` só monta a página de `features/<modulo>/pages`. Assim a tela se testa sem o router.
-2. **Feature se importa só pelo `index.ts`.** `components/ui` não importa de `features` nem de `lib/api`, para a vitrine `/design-system` funcionar sem backend. O `dependency-cruiser` cobra isso: corrija o import, não a regra.
+2. **Feature se importa só pelo `index.ts`.** `components/ui` não importa de `features` nem de `lib/api`, para a vitrine `/design-system` funcionar sem backend. O gate de limites (`apps/web/src/architecture.test.ts`) cobra isso: corrija o import, não a regra.
 3. **`components/domain` nasce no bloco que usa** (`D-028`), com as props puras de `design-system.md` §9. Enquanto só uma feature usa o componente, ele fica em `features/<m>/components`; sobe para `domain` quando a segunda precisar.
 4. **Cada estado no seu lugar:**
 
@@ -45,7 +45,7 @@ description: >-
 
 ## Checklist (tela ou componente novo)
 - [ ] Li o doc de feature e os critérios de aceite viraram testes.
-- [ ] Imports respeitam a regra de camadas (`dependency-cruiser` verde).
+- [ ] Imports respeitam a regra de camadas (gate de limites verde).
 - [ ] Nenhum cálculo de negócio no cliente; nenhum `float` em valor.
 - [ ] Formulário: React Hook Form + Zod para UX, erro `422` mapeado para o campo, botão com `loading`.
 - [ ] Desktop e mobile definidos (`altare-ui-ux`); estados vazio, carregando e erro existem.
