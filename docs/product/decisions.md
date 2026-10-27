@@ -916,3 +916,26 @@
   - `none` arredondando ao real mais próximo: risco de total divergente das parcelas.
   - `none` truncando: subestima valores e também diverge da soma.
   - Variantes `group-data` para a densidade da `Table`: sobrescreviam o estilo do cabeçalho e o mono das células.
+
+---
+
+## D-049 — Etapa (c) Concluída: Lote 3 (Sobreposições) e Balanço dos 15 Primitivos
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** plano e execução do lote 3 da etapa (c) (`D-028`, `D-046`).
+- **Decisão:**
+  1. **Etapa (c) concluída:** os 15 primitivos de `components/ui` existem: `Button`, `Input`, `Textarea`, `Select`, `Checkbox` (lote 1, `D-046`, `D-047`), `Badge`, `Card`, `Table`, `Money`, `PageHeader`, `EmptyState` (lote 2, `D-048`) e `Dialog`, `Tabs`, `Tooltip`, `Toast` (lote 3), mais o `Field` interno e o formatador `lib/money.ts`.
+  2. **Desvios da especificação de referência (§8 e §9), todos registrados:** `Select` com a lista do próprio app em vez do `<select>` nativo (`D-047`, revisa `D-046`); `Money` sem o modo `none` (`D-048`).
+  3. **`Dialog`:** exige `title` no tipo (nome acessível) e tem o botão "Fechar" sempre; é centralizado a partir de `md` e **folha inferior** abaixo disso. `AlertDialog`, `Sheet`/gaveta lateral e `Popover` seguem adiados.
+  4. **Movimento:** `@keyframes` e `@utility` em `src/styles/index.css` (`animate-overlay-*`, `animate-sheet-*`, `animate-dialog-*`, `animate-toast-*`), com `--duration-base` e as curvas `--ease-standard` (entrada) e `--ease-exit` (saída); `prefers-reduced-motion` segue zerando tudo em `tokens.css`. Sem *bounce*, *parallax* nem animação em *loop* (exceto o indicador de carregamento do `Button`).
+  5. **`Tooltip`** inclui o provedor, atraso de 300 ms, aparece em hover e foco, some com Esc e ao afastar o ponteiro; o gatilho precisa ter nome acessível.
+  6. **`Toast`:** `ToastProvider` e `useToast()`; 4 s; anúncio `aria-live="polite"` (o Radix o renderiza num `<span role="status">` oculto, fora da região visível); pausa ao passar o mouse ou focar; **`action.altText` obrigatório no tipo**; tons `success`, `attention` e `info` com cor, ícone e texto; topo à direita no desktop e base no celular, com a variável `--shell-bottom-offset` para a futura barra inferior. O `ToastProvider` envolve o `App`.
+  7. **`Tabs`:** ativação por setas, `Home` e `End`, lista rolável no celular e anel de foco **interno** (o contêiner rolável cortaria o externo).
+  8. **Acessibilidade:** cobertos por teste teclado, nomes, papéis e `aria-*` de todos os primitivos; **pendentes da passada manual do usuário** (`altare-acessibilidade`): 320 px e zoom de 200%, leitor de tela, "reduzir movimento" e alvo de 44 px em tela de toque, em cada lote. O que depende de layout e de animação reais fica fora do alcance do jsdom.
+  9. **Próximo:** etapa (d), casca de navegação com seletor de lente e as 7 áreas-esqueleto; depois a (e), vitrine `/design-system`, que apaga a página de conferência provisória.
+- **Ajustes em arquivos aprovados:** `design-system.md` §13 (etapa (c) marcada como concluída).
+- **Razão:** fechar a etapa com o registro dos desvios e das pendências manuais, para a casca e a vitrine partirem de um conjunto completo e conhecido.
+- **O que ficou rejeitado:**
+  - Antecipar `AlertDialog`, `Sheet` e `Popover`: nenhuma tela do Nível 0 os usa (`D-028`).
+  - `sonner` para as notificações: segunda biblioteca de acessibilidade a conferir, sem ganho sobre o Radix Toast.
+  - Limite de fila de notificações: sem caso real ainda.

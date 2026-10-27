@@ -1,8 +1,15 @@
-import { BadgeCheck, CircleAlert, HeartHandshake, Plus, Save } from 'lucide-react'
+import { BadgeCheck, CircleAlert, HeartHandshake, Plus, Save, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Money } from '@/components/ui/money'
@@ -16,7 +23,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/toast'
+import { Tooltip } from '@/components/ui/tooltip'
 
 const VARIANTS = ['primary', 'secondary', 'ghost', 'soft-destructive', 'link'] as const
 const SIZES = ['sm', 'md', 'lg'] as const
@@ -33,6 +43,8 @@ const CATEGORIAS = [
 
 // Conferência visual dos primitivos (etapa (c)); a vitrine /design-system a substitui na etapa (e).
 export function Conferencia() {
+  const { toast } = useToast()
+
   return (
     <div className="mt-12 flex flex-col gap-12">
       <section aria-labelledby="conf-botoes" className="flex flex-col gap-4">
@@ -224,6 +236,115 @@ export function Conferencia() {
             description="Quando houver possibilidades, elas aparecem aqui."
           />
         </Card>
+      </section>
+
+      <section aria-labelledby="conf-sobreposicoes" className="flex flex-col gap-6">
+        <h2 id="conf-sobreposicoes" className="text-heading">
+          Diálogo, abas, dica e notificações
+        </h2>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Registrar decisão</Button>
+            </DialogTrigger>
+            <DialogContent
+              title="Registrar decisão"
+              description="Confirmem o Espaço Exemplo A como a escolha do casal."
+            >
+              <Input
+                label="Observação"
+                hint="Opcional"
+                placeholder="Por que escolhemos este espaço"
+              />
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="secondary">Cancelar</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button
+                    onClick={() =>
+                      toast({
+                        title: 'Decisão registrada',
+                        description: 'Espaço Exemplo A.',
+                        tone: 'success',
+                      })
+                    }
+                  >
+                    Confirmar
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Tooltip content="Mover para a lixeira">
+            <Button variant="secondary" size="icon" aria-label="Excluir fornecedor">
+              <Trash2 aria-hidden />
+            </Button>
+          </Tooltip>
+        </div>
+
+        <Tabs defaultValue="ativo">
+          <TabsList aria-label="Orçamento (exemplo)">
+            <TabsTrigger value="ativo">Orçamento ativo</TabsTrigger>
+            <TabsTrigger value="simulador">Simulador</TabsTrigger>
+            <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
+            <TabsTrigger value="historico">Histórico de decisões</TabsTrigger>
+            <TabsTrigger value="anexos">Anexos</TabsTrigger>
+          </TabsList>
+          <TabsContent value="ativo">
+            Total estimado: <Money cents={12_480_000} precision="always" />
+          </TabsContent>
+          <TabsContent value="simulador">Painel do simulador (exemplo)</TabsContent>
+          <TabsContent value="pagamentos">Painel de pagamentos (exemplo)</TabsContent>
+          <TabsContent value="historico">Painel do histórico (exemplo)</TabsContent>
+          <TabsContent value="anexos">Painel de anexos (exemplo)</TabsContent>
+        </Tabs>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast({ title: 'Salvo', description: 'Espaço Exemplo A.', tone: 'success' })
+            }
+          >
+            Notificar sucesso
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast({
+                title: 'Falta um extra',
+                description: 'Informem o valor do transporte.',
+                tone: 'attention',
+              })
+            }
+          >
+            Notificar atenção
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => toast({ title: 'Lista atualizada', tone: 'info' })}
+          >
+            Notificar informação
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast({
+                title: 'Contato arquivado',
+                tone: 'info',
+                action: {
+                  label: 'Desfazer',
+                  altText: 'Desfazer pelo histórico do contato',
+                  onClick: () => toast({ title: 'Contato restaurado', tone: 'success' }),
+                },
+              })
+            }
+          >
+            Notificar com Desfazer
+          </Button>
+        </div>
       </section>
     </div>
   )
