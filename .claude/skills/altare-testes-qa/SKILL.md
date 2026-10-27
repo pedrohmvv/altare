@@ -1,7 +1,10 @@
 ---
 name: altare-testes-qa
 description: >-
-  Estratégia de testes e qualidade automatizada do Altare, em Python e TypeScript. Cobre a pirâmide por camada, TDD (RED antes de GREEN), Hypothesis para invariantes numéricas, Vitest com Testing Library, Playwright desktop e mobile, SQLite temporário, o portão em PostgreSQL antes do primeiro deploy e a configuração e os gates de Ruff, Pyright, Biome, tsc, import-linter, o gate de limites do frontend e pre-commit. Use sempre que for implementar feature, regra de negócio, correção de bug ou refatoração (o teste vem primeiro), ao decidir que teste escrever, ao configurar linter, formatter, tipos ou quality gate, mesmo que o usuário só diga implemente isso. NÃO use para rodar ou manter o pipeline no CI (use altare-devops), para o checklist manual de acessibilidade (use altare-acessibilidade) nem para revisar um diff (use altare-code-review).
+  Testes e qualidade do Altare em Python e TypeScript: pirâmide, TDD (RED antes de GREEN), Hypothesis,
+  Vitest, Playwright, SQLite temporário, gates Ruff, Pyright, Biome, tsc e import-linter. Use ao
+  implementar feature, regra de negócio, bugfix ou refatoração (o teste vem primeiro), ao decidir que
+  teste escrever ou ao configurar linter e gates.
 ---
 
 # Testes e qualidade

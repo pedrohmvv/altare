@@ -1,7 +1,9 @@
 ---
 name: altare-code-review
 description: >-
-  Checklist de revisão de diff ou PR do Altare, por severidade (bloqueia, corrija, sugestão), com formato de saída fixo, incluindo a conferência de UI contra a página do guia de identidade quando o diff toca o apps/web. Aponta para as skills da área em vez de repetir regras, e trata nada a corrigir como resultado válido. É somente leitura por padrão. Use quando o usuário pedir para revisar, olhar, dar parecer ou conferir um diff, uma branch ou um PR, e antes de sugerir o merge de qualquer mudança, mesmo que ele não diga review. NÃO use para escrever ou corrigir código (use altare-escrita-de-codigo), para decidir a arquitetura de um módulo novo (use altare-arquitetura) nem para executar o pipeline de gates (use altare-testes-qa e altare-devops).
+  Checklist de revisão de diff ou PR do Altare, por severidade (bloqueia, corrija, sugestão), somente
+  leitura. Use ao revisar, dar parecer ou conferir um diff, branch ou PR, e antes de sugerir o merge
+  de qualquer mudança.
 ---
 
 # Code review

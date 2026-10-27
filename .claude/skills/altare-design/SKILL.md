@@ -1,7 +1,10 @@
 ---
 name: altare-design
 description: >-
-  Identidade visual e design system do Altare, com o guia de identidade como fonte visual (mapa guia → componente em design-system.md §15): tokens (tokens.json é a fonte única, tokens.css é gerado), tipografia, cor semântica, ornamento sutil, ícones, movimento, os 15 primitivos do escopo enxuto (D-028) e a regra de sacralidade discreta e não confessional. Use sempre que for criar, alterar, conferir ou comparar a aparência de qualquer componente, tela, página, estado vazio, barra, cartão, botão, campo, selo ou ícone no apps/web, escolher cor, fonte, tamanho, espaçamento, ícone ou ilustração, adicionar primitivo, mexer em marca ou logo, ou quando aparecer um valor de cor ou fonte escrito à mão, mesmo que o pedido seja só 'deixa isso mais bonito', 'ajusta o espaçamento', 'cria a tela de X' ou 'muda a cor do botão', sem citar o guia. NÃO use para estrutura de código e estado (use altare-frontend), fluxos e estados de tela (use altare-ui-ux), checklist de acessibilidade (use altare-acessibilidade) ou texto da interface (use altare-conteudo-copy).
+  Identidade visual e design system do Altare: tokens (tokens.json), tipografia, cor, ícones,
+  movimento, os 15 primitivos e o guia de identidade (design-system.md §15). Use ao criar, alterar ou
+  conferir a aparência de qualquer componente, tela, estado vazio, cor, fonte, espaçamento, ícone ou
+  marca no apps/web, mesmo que o pedido seja só 'deixa mais bonito'.
 ---
 
 # Design do Altare

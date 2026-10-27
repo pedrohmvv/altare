@@ -1,5 +1,5 @@
 ---
-description: "UI/UX do Altare: fluxos do casal, heurísticas de usabilidade aplicadas ao produto, postura desktop (planejar junto) versus mobile (consultar e capturar), navegação das 8 áreas, onboarding do casamento novo, estados vazio, carregando, erro e desabilitado, confirmações destrutivas e a estrutura que cada mensagem deve ter, sempre conferidos contra as páginas de aplicação do guia de identidade (mapa em design-system.md §15). Use sempre que for desenhar, montar ou revisar uma tela, página, fluxo, formulário, navegação, estado de interface ou o ícone flutuante do assistente, e ao detalhar uma feature nova, mesmo que o pedido seja só 'como essa tela deveria funcionar', 'monta a tela de X' ou 'o que mostrar quando não tem dado'. NÃO use para tokens, cor e primitivos (use altare-design), estrutura de código (use altare-frontend), checklist de acessibilidade (use altare-acessibilidade) nem para escrever as palavras (use altare-conteudo-copy: aqui só se define o que a mensagem precisa dizer)."
+description: "UI/UX do Altare: fluxos do casal, heurísticas, desktop (planejar) versus mobile (consultar), navegação das 8 áreas, estados vazio, carregando, erro e confirmações destrutivas. Use ao desenhar, montar ou revisar tela, fluxo, formulário, navegação ou estado de interface, e ao detalhar uma feature nova."
 alwaysApply: false
 ---
 

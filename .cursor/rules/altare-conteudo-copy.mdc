@@ -1,5 +1,5 @@
 ---
-description: "Tom de voz e textos em pt-BR do Altare: voz calma, direta e que fala com vocês, vocabulário do casamento brasileiro, nomes fixos dos conceitos do produto, formatos de valores, datas e notas, rótulos de botão com verbo, mensagens de erro e de estado vazio, texto neutro quanto à religião e onde guardar as strings. Use sempre que for escrever ou revisar qualquer texto que o casal lê: rótulo, botão, mensagem, estado vazio, toast, e-mail, lista exportada, nome de seção ou resposta do assistente, mesmo que o pedido seja só 'coloca um texto aí' ou 'qual nome damos pra isso'. NÃO use para decidir onde a mensagem aparece e o que ela precisa dizer (use altare-ui-ux), para cor, fonte e ícone (use altare-design) nem para o prompt do assistente (use altare-engenharia-de-ia)."
+description: "Tom de voz e textos em pt-BR do Altare: calmo, direto, fala com vocês, nomes fixos dos conceitos, formatos de valor e data, erros e estados vazios. Use ao escrever ou revisar qualquer texto que o casal lê: rótulo, botão, mensagem, estado vazio, toast, e-mail, resposta do assistente."
 globs: apps/web/src/**/copy.ts
 alwaysApply: false
 ---

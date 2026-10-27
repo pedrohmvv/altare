@@ -1,7 +1,9 @@
 ---
 name: altare-analytics-metricas
 description: >-
-  Define como medir o Altare sem rastreador de terceiros: North Star candidata, funil do marco zero ao Dossiê entregue, métricas de saúde (próximos passos vencidos, parcelas atrasadas, uso dos dois perfis), anti-métricas, e como derivar tudo do próprio banco em vez de criar pipeline de eventos. Use quando alguém falar em métricas, KPI, North Star, funil, retenção, eventos, tracking, analytics, relatório de uso, quanto estamos usando, ou propuser Google Analytics, Mixpanel, PostHog, pixel, session replay ou qualquer SDK que envie dados de uso para fora, mesmo sem a palavra analytics. NÃO use para decidir o que priorizar ou se o produto é bom (use `altare-produto`), para a política de dados pessoais (use `altare-seguranca-privacidade`), para custo e latência do agente de IA (use `altare-engenharia-de-ia`) nem para preço e aquisição (use `altare-gtm-pricing`).
+  Como medir o Altare sem rastreador de terceiros: North Star, funil, métricas derivadas do próprio
+  banco. Use quando falarem de métricas, KPI, funil, retenção, tracking ou analytics, ou propuserem
+  Google Analytics, Mixpanel, PostHog ou qualquer SDK de uso.
 ---
 
 # Analytics e métricas

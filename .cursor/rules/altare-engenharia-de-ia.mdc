@@ -1,5 +1,5 @@
 ---
-description: "Engenharia de IA do Altare (Nível 5): arquitetura de agentes, desenho de prompts e de descrições de tool (dizendo quando NÃO usar), saída estruturada validada, evals com golden sets fictícios e testes de recusa e de escrita sem confirmação, custo e latência com AgentRun, guardrails de D-008 (mutação só com confirmação humana, revisão e notificação somente-leitura), observabilidade e integração com o produto. Use ao projetar ou alterar agente, prompt, tool, workflow de LLM, extrator de PDF ou WhatsApp, entrevista guiada, Revisor Geral ou avaliação de qualidade, mesmo que o pedido seja só melhorar uma resposta do assistente. NÃO use para a superfície de tools, ChangeProposal, schema legível e canais (use altare-agente-dados), camadas (use altare-arquitetura), política de privacidade (use altare-seguranca-privacidade) ou texto da interface (use altare-conteudo-copy)."
+description: "Engenharia de IA do Altare (Nível 5): agentes, prompts, descrições de tool, evals, custo e latência, guardrails de D-008, observabilidade. Use ao projetar ou alterar agente, prompt, tool, workflow de LLM, extrator de PDF, integração de WhatsApp ou avaliação de qualidade do assistente."
 alwaysApply: false
 ---
 

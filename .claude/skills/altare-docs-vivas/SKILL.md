@@ -1,7 +1,10 @@
 ---
 name: altare-docs-vivas
 description: >-
-  Mantém a documentação viva do Altare em dia: como registrar uma decisão D-xxx, escrever a especificação de uma feature F-XXX-NN, abrir e resolver perguntas em open-questions.md, atualizar a fase em AGENTS.md ao fim do turno, avisar o que mudou ao reescrever um doc estável, e criar o CLAUDE.md curto de cada módulo novo. Use quando uma decisão for tomada ou revista, uma feature for detalhada ou aprovada, um módulo for criado, a fase do projeto avançar, ou o usuário disser registra isso, documenta, aprovado, atualiza os docs, mesmo que ele não peça para atualizar a documentação. NÃO use para decidir o conteúdo técnico de uma decisão (use a skill da área, como `altare-arquitetura` ou `altare-banco-de-dados`), nem para commit e PR (use `altare-commit` e `altare-pull-request`).
+  Mantém a documentação viva do Altare: decisões D-xxx, features F-XXX-NN, open-questions, fase no
+  AGENTS.md, CLAUDE.md de módulo. Use quando uma decisão for tomada ou revista, uma feature detalhada
+  ou aprovada, um módulo criado, a fase avançar, ou ao ouvir 'registra', 'documenta', 'aprovado' ou
+  'atualiza os docs'.
 ---
 
 # Documentação viva

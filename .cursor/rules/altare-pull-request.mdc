@@ -1,5 +1,5 @@
 ---
-description: "Como abrir e descrever um pull request no Altare com gh: base develop (ou main em hotfix e release), título no padrão de commit, corpo em pt-BR com o que muda e por quê, decisões D-xxx, como testar e um checklist de gates, docs vivas, CLAUDE.md de módulo, acessibilidade e conferência com o guia de identidade (captura quando houver mudança visual), merge commit sem squash e o PR de volta para a develop quando for hotfix. Use quando o usuário pedir para abrir, criar ou subir um PR, fechar a branch, ou preparar a descrição de uma mudança para integração, mesmo que ele não diga pull request. NÃO use para decidir o nome da branch ou o fluxo de release (use altare-git-fluxo), para commitar (use altare-commit) nem para revisar o diff (use altare-code-review)."
+description: "Como abrir e descrever PR no Altare com gh: base develop (main em hotfix e release), título no padrão de commit, corpo em pt-BR com o que muda e por quê, D-xxx, como testar, checklist de gates. Use quando pedirem para abrir, criar ou subir um PR, fechar a branch ou preparar a descrição de uma mudança."
 alwaysApply: false
 ---
 
