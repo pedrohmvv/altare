@@ -274,14 +274,14 @@
   3. **Marca paramétrica:** nome de trabalho neutro e monograma do casal por configuração futura (nenhum nome/iniciais inventados). *(Nome de trabalho `Wedding Planner` e símbolo "&" substituídos por `D-023`.)*
   4. **Ornamento sutil:** textura de papel quase imperceptível, hairlines e ilustração botânica em linha apenas em login, estados vazios e Dossiê.
   5. **Linguagem de forma:** cantos moderados (6–10 px), cartões planos com hairline, sem sombras em cartões.
-  6. **Tema claro + escuro ("Noite Oliva")** já no Nível 0, com `claro / escuro / sistema`. Refina `D-015`, que rejeitou apenas o *dark-mode estrito* (único tema escuro).
+  6. **Tema claro + escuro ("Noite Oliva")** já no Nível 0, com `claro / escuro / sistema`. Refina `D-015`, que rejeitou apenas o *dark-mode estrito* (único tema escuro). *(Construção do tema escuro adiada em `D-028`; a paleta continua aprovada.)*
 - **Razão:** Os agentes de IA aumentam a complexidade (propostas, confirmação, somente-leitura, múltiplos canais e provedores), e isso justifica portas e casos de uso explícitos; o histórico básico basta para dois usuários; as escolhas visuais mantêm a atmosfera editorial sem cair em ornamento kitsch (`D-016`).
 - **O que ficou rejeitado:**
   - Monólito modular sem separação de domínio/infraestrutura (recomendação inicial do agente; o usuário preferiu Clean por causa dos agentes).
   - Trilha de auditoria completa e histórico mínimo sem autoria.
   - Ornamento nulo ou rico; cantos retos ou muito arredondados; tema exclusivamente claro.
 - **Ajustes colaterais:** `stack.md` §3.1 substituída por `architecture.md`; eventos de domínio síncronos em processo passam a existir (antes "sem barramento de eventos"); `Profile` vira enum de domínio (não tabela); `import-linter` e `dependency-cruiser` entram no CI.
-- **Pendente:** aprovação do detalhamento em `architecture.md` (`OQ-ENG-005`), `identity.md` e `design-system.md` (`OQ-DS-001`).
+- **Pendente:** *(resolvido em `D-025` e `D-027`)* aprovação do detalhamento em `architecture.md` (`OQ-ENG-005`), `identity.md` e `design-system.md` (`OQ-DS-001`).
 
 ---
 
@@ -380,3 +380,335 @@
   - Seletor de "religião do casal" com fluxos diferentes por tradição, porque adiciona complexidade sem necessidade na v1.
   - Trocar o nome. "Altar" funciona fora do contexto católico ("subir ao altar").
 - **Premissas mantidas:** uso inicial pessoal do Noivo e da Noiva (`D-002`); expansão para outros casais segue como hipótese futura.
+
+---
+
+## D-027 — Aprovação da Arquitetura; Início da Implementação Adiado por Escolha do Usuário
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Pronto para Implementação)
+- **Decisão:**
+  1. O usuário aprovou `docs/engineering/architecture.md` como está ("Eu aprovo"). Fica resolvida a `OQ-ENG-005`, com todos os itens na proposta padrão:
+     - limites pragmáticos de §3;
+     - eventos síncronos em processo;
+     - agentes como adaptador de entrada + `ChangeProposal`;
+     - "derivar, não duplicar";
+     - convenções de API e erros;
+     - contratos `import-linter`/`dependency-cruiser`;
+     - `Profile` como enum.
+  2. **Nenhum arquivo de implementação será criado por enquanto** ("mas não quero criar nada de arquivos ainda"). O Nível 0 (Bloco 0.1) está **desbloqueado, mas só começa quando o usuário pedir explicitamente**.
+- **Razão:** aprovação explícita do usuário. O momento de começar a construir é escolha dele.
+- **O que ficou rejeitado:** iniciar o Bloco 0.1 automaticamente após a última aprovação.
+
+---
+
+## D-028 — Design System Enxuto, Proporcional a um App Pessoal de Duas Pessoas; Início da Implementação
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** "Autorizo o início da implementação (D-027). Quero construir o Design System do Altare em versão enxuta, proporcional a um app pessoal de duas pessoas (D-002), e não a um produto com times e governança."
+- **Motivação:** o Altare é de uso pessoal, para duas pessoas (`D-002`). A especificação aprovada em `D-025` (`design-system.md` §12 e §13) previa governança de design system completo: ~45 componentes antes da primeira tela, `axe` e *snapshots* visuais no CI, script anti-*hex* e tema escuro e impressão já no Nível 0. Para dois usuários, isso é custo de manutenção sem retorno.
+- **Decisão:**
+  1. **Implementação autorizada.** Esta sessão cobre o Bloco 0.1 **só no necessário para o `apps/web` existir** (monorepo, pnpm, Vite + React + TypeScript, Tailwind v4, Vitest, lint e *typecheck* com Biome e `tsc`) e o Bloco 0.2 enxuto. API, banco, login e PWA ficam para outra sessão.
+  2. **O Design System continua sendo o lugar único** que centraliza e padroniza os componentes: cada tela importa o que já existe (ex.: `<Button variant="primary">`) em vez de recriar estilos. O que ele contém no Nível 0:
+     - **Tokens:** `tokens.json` → `tokens.css` **gerado** (nunca editado à mão), mapeado no Tailwind v4 (`@theme`). **Só o tema claro**, com nomes semânticos (`canvas`, `surface`, `ink`, `primary`…) e `data-theme="light"` no `<html>`, para o escuro entrar depois sem retrabalho. Fontes autohospedadas (Fontsource).
+     - **15 primitivos** em `components/ui` (shadcn/Radix re-estilizados, nenhum "de fábrica"): `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader` e `Money`.
+     - **Casca de navegação** desktop e mobile, com o seletor de lente (`Casal` / `Minha visão`) e as 7 áreas como páginas-esqueleto com `EmptyState`.
+     - **Vitrine mínima** em `/design-system`: tokens, tipografia e cada primitivo com variantes e estados.
+     - **Ativos de marca** copiados de `docs/design/identidade-visual/` para `apps/web/public/brand/`, sem redesenho.
+  3. **`Money` passa a ser primitivo** (`components/ui`), e não componente de domínio como em `design-system.md` §9: é um formatador puro de centavos em pt-BR, sem conhecimento do casamento.
+  4. **Nenhum componente de domínio agora.** `ConsensusBadge`, `ProfileChip`, `ComparisonTable`, `NextStepCard` e os demais nascem no bloco que os usa, com as *props* puras de `design-system.md` §9.
+  5. **Regras:** componentes só recebem *props* (sem regra de negócio nem chamada de API); sem *hex* em componentes, como **convenção documentada** e sem script; dados de exemplo claramente fictícios ("Espaço Exemplo"); acessibilidade verificada **manualmente** (teclado, foco, contraste), com as regras de acessibilidade do Biome ligadas no lint, que já é a ferramenta da stack.
+  6. **Critério de pronto do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos listados com variantes e estados, no tema claro, em desktop e mobile; as 7 áreas são navegáveis como esqueletos; o app segue a identidade do Altare.
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | Tema escuro "Noite Oliva", alternador `claro / escuro / sistema` e script anti-*flash* (paleta continua aprovada no `tokens.json`) | Quando o usuário pedir |
+  | Testes de regressão visual (*snapshots*) | Se houver regressões visuais recorrentes |
+  | `axe` automatizado (E2E ou vitrine) | Se houver regressões de acessibilidade recorrentes ou o produto se abrir a outros casais (`D-002`) |
+  | Script de CI/`pre-commit` contra *hex* fora de `tokens.css` | Se aparecer *hex* em componente mais de uma vez na revisão |
+  | Impressão (`@media print` e tokens de papel) | Bloco 4.2 (Dossiê do Dia D) |
+  | Demais primitivos (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`/gaveta, `Popover`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`, `MoneyInput`) | Quando a primeira tela que o usa for construída |
+  | Componentes de domínio (`design-system.md` §9) | No bloco que os usa |
+  | Botão flutuante "+ Registrar Rápido" (`QuickAddFab`) | No primeiro bloco com algo para registrar rápido (Bloco 3.1) |
+  | Menu do usuário na barra superior | Com o login (restante do Bloco 0.1) |
+  | E2E de navegação com Playwright (desktop e mobile) | Com o login (restante do Bloco 0.1). Até lá, a navegação é testada com Vitest e Testing Library |
+
+- **O que ficou rejeitado:**
+  - Manter o escopo integral do Bloco 0.2 (~45 componentes, `axe` e *snapshots* visuais no CI, script anti-*hex* no CI, tema escuro e impressão no Nível 0).
+  - Eliminar o Design System e usar shadcn "de fábrica": perde a identidade e a consistência.
+  - Figma, Storybook e pacote npm privado (`D-020`; a distribuição é dentro do repositório).
+  - `eslint-plugin-jsx-a11y` (citado num rascunho anterior desta decisão): a stack usa Biome, que já traz regras de acessibilidade.
+- **Inalterado:** identidade, paleta clara e escura, tipografia, tokens e o inventário de componentes **como especificação de referência** (`design-system.md` §8 e §9). Mudou só **quando** cada coisa é construída e **quanto** de verificação a acompanha.
+- **Aprovado (2026-10-27):** o Passo 0 (registro desta decisão e das docs) e o **plano das etapas 0, (a) a (e)**, com "Ok" do usuário. **Implementação pausada** a pedido do usuário, para retomar em outro dia, a partir da **Etapa 0** (base do `apps/web`). Nenhum código foi gerado até aqui.
+
+---
+
+## D-029 — Definição Detalhada de Features, Área por Área; Revisão do Escopo do Bloco 1.1
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto, em paralelo ao Passo 0 de `D-028`)
+- **Pedido do usuário:** "Eu quero definir detalhadamente quais features o projeto terá." Respostas: **revisar o escopo** (adicionar, cortar ou mover features, e não só detalhar), **um arquivo por área** e **ordem da pirâmide** do roadmap.
+- **Decisão:**
+  1. **Formato:** o detalhamento vive em `docs/product/features/`, **um arquivo por área** (as 7 áreas de `experience.md` §3.1). Cada feature tem ID (`F-<ÁREA>-xx`), campos, regras, estados e critérios de aceite, e indica o bloco do roadmap. Cada feature só é considerada definitiva quando o usuário aprova o arquivo da área.
+  2. **Ordem:** a da pirâmide (`roadmap.md`). Primeira área em detalhamento: **Planejamento & Caminhos, Bloco 1.1** (`features/planejamento-e-caminhos.md`).
+  3. **Itens adicionados à v1 no Bloco 1.1** (escopo revisado em `scope.md` §1):
+     - **Tipo de cerimônia** como campo das Definições Base (religiosa, civil, simbólica ou mais de uma), concretizando `D-026`.
+     - **Referências e inspirações por categoria** (links e imagens), sem leitura automática de páginas.
+     - **Estimativa inicial de valor por categoria** no Mapa de Escopo, lida depois pelo orçamento (coluna *Estimado*) sem cópia.
+     - **Nota livre por categoria**, por perfil.
+  4. **Quem muda o status conjunto de uma categoria:** **qualquer um dos dois**, com a mudança registrada no histórico com autor, data e status anterior. Confirmação conjunta foi rejeitada por atrito, dado que são duas pessoas que conversam.
+  5. **Escala de prioridade individual:** três níveis (`Quero muito`, `Se couber`, `Dispenso`). A prioridade informa a conversa e não altera o status conjunto.
+- **Razão:** o escopo aprovado em `D-008` a `D-011` já cobria os territórios, mas só em nível de capacidade. O detalhamento por feature permite revisar o escopo com precisão antes de construir cada bloco, e o usuário preferiu rever por área e na ordem em que o produto será construído.
+- **O que ficou rejeitado:**
+  - Catálogo único de features: arquivo grande demais para revisar de uma vez.
+  - Só histórias de usuário, sem campos: não fecha as regras que o banco e a API precisam.
+  - Aprovação conjunta para mudar o status de categoria: mais atrito sem ganho para duas pessoas.
+  - Escala de prioridade igual aos quatro status do Mapa: confunde voto individual com decisão conjunta.
+- **Aprovado:** `features/planejamento-e-caminhos.md` (Bloco 1.1), aprovado pelo usuário em 2026-10-27 ("Aprovo."), incluindo as escolhas feitas sem pergunta (data em três níveis, catálogo inicial, referências sem leitura automática, estimativa lida pelo orçamento).
+- **Pendente:** detalhamento da próxima área na pirâmide, **Convidados (Bloco 1.2)**.
+
+---
+
+## D-030 — Detalhamento de Convidados (Bloco 1.2); Exportação em Excel com CSV como Opção
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §6, Convidados; detalhamento em `features/convidados-enxoval-e-dia-d.md`):**
+  1. **Estimado Ponderado por pesos:** três percentuais editáveis por probabilidade (`Certeza`, `Provável`, `Fase 2`), **vazios até o casal definir** (nenhum peso presumido). Confirmado conta 100%. Crianças isentas e `Não irá` ficam fora da base de custo.
+  2. **Campos extras do convidado:** restrição alimentar e observação; telefone/WhatsApp e e-mail; **acompanhante (+1)** como pessoa a confirmar, sem nome; **idade da criança**. No núcleo: **endereço postal** para convite impresso.
+  3. **Idade da criança sugere a faixa, sem alterá-la sozinha.** Os limites de idade são definidos pelo casal e começam vazios, porque a cobrança depende de cada fornecedor.
+  4. **Convite enviado por núcleo** (data e canal), com oferta, nunca automática, de mover `Rascunho` para `Convidado`.
+  5. **Motivo ou anotação opcional** ao marcar `Não irá`.
+  6. **Exportação da lista em Excel (`.xlsx`) como padrão e CSV como opção** (CSV com UTF-8 BOM e `;`, para o Excel pt-BR). O mesmo padrão vale para a exportação do Enxoval e da Lista de Presentes (`D-006`).
+  7. **Importação de planilha não entra na v1** (permanece em v1.1+).
+- **Desvio da stack (registrado, `stack.md` §3 e §12):** `stack.md` previa exportações "CSV via stdlib, sem dependência extra". Gerar `.xlsx` exige uma biblioteca; adota-se **`openpyxl`** no backend (Python, madura, só escrita). Custo: uma dependência a mais em `apps/api`; o CSV continua na stdlib. Reavaliar apenas se a manutenção pesar.
+- **Razão:** o usuário usa Excel no dia a dia; CSV exige passos extras de importação e problemas de acentuação. Os pesos editáveis e vazios evitam inventar uma regra que só o casal conhece.
+- **O que ficou rejeitado:**
+  - Apenas CSV, como previa a stack.
+  - Pesos fixos pré-definidos (ex.: 100/70/30): presumiriam uma regra do casal.
+  - Mudar a faixa automaticamente pela idade: errada para fornecedores com regras diferentes.
+  - Convite enviado por pessoa: mais trabalho para um ato que é por família.
+  - Importação de planilha na v1: não solicitada.
+- **Aprovado:** `features/convidados-enxoval-e-dia-d.md`, parte Convidados, pelo usuário em 2026-10-27 ("aprovo"), incluindo `openpyxl` e as escolhas feitas sem pergunta (Confirmado conta 100%, idade só sugere a faixa, convite oferece mover status, lente `Minha visão` mostra o meu lado mais `Comum`).
+- **Pendente:** detalhamento do **Cronograma (Bloco 1.3)**.
+
+---
+
+## D-031 — Detalhamento do Cronograma (Bloco 1.3); Catálogo Inicial Editável, Janelas Sugeridas e Extras
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §2; detalhamento em `features/cronograma.md`):**
+  1. **Catálogo inicial de 29 marcos** nas 5 fases, ligado às categorias do Mapa de Escopo e já com as dependências, com **nomes neutros** (`D-026`). É uma semente: depois de criado, tudo é dado do casal.
+  2. **Edição total:** o casal cria, renomeia, move e exclui marcos e fases e altera dependências (o sistema impede ciclos; exclusão lógica).
+  3. **Janelas sugeridas** relativas à data do casamento ("N meses ou semanas antes"), como valores iniciais **editáveis e rotulados "sugestão genérica"**. Não são dados do casamento. O prazo-alvo padrão é o fim da janela, e um prazo manual prevalece.
+  4. **Extras na v1:** **tarefas avulsas** (sem fase, categoria nem dependência), **checklist de subtarefas**, **anexos e links** (reaproveitando o `FileStorage` e o padrão de `F-PLN-06`) e **calendário mensal** como segunda visão.
+  5. **Estados:** `Bloqueado` e `Destravado` derivados; `Em andamento` e `Concluído` marcados pelo casal; `Atrasado` como sinalizador derivado. Marcar andamento ou conclusão em item bloqueado é permitido com confirmação, e fica registrado.
+  6. **Resolução de dependência:** concluído, **arquivado** (categoria `Fica de fora`) ou **opcional** (`Talvez`) não bloqueiam.
+  7. **Refinamento de `F-PLN-07` (aprovado):** categoria `Em discussão` passa a **bloquear** seus marcos com o motivo "Aguardando classificar a categoria no Mapa de Escopo", em vez de não ter efeito. Sem isso, nada ficaria bloqueado no início e o cronograma perderia o sentido. `features/planejamento-e-caminhos.md` foi ajustado.
+  8. **Conclusão por decisão** (Bloco 3.2): o marco "Fechar …" será concluído automaticamente quando houver o Registro de Decisão; até lá é manual.
+  9. **Só data, sem horário**, em prazos e tarefas.
+- **Razão:** o escopo aprovado definia fases, dependências e modos, mas não o modelo de marcos nem a edição. Partir de um catálogo editável reduz o trabalho inicial sem impor um roteiro, e as janelas sugeridas evitam um cronograma vazio quando a data for definida.
+- **O que ficou rejeitado:**
+  - Cronograma vazio ou só com marcos âncora: transfere ao casal o trabalho de montar do zero.
+  - Estrutura fixa: não acompanha a realidade de cada casamento.
+  - Janelas vazias: o modo com data perderia valor.
+  - Horário em tarefas e recorrência: não pedidos, e aproximam do Gantt que `scope.md` exclui.
+  - Marco com categoria `Em discussão` sem efeito: tira o sentido do bloqueio.
+- **Aprovado:** `features/cronograma.md` pelo usuário em 2026-10-27 ("Aprovo"), incluindo o refinamento de `F-PLN-07` (`Em discussão` bloqueia) e as janelas sugeridas do catálogo.
+- **Pendente:** detalhamento de **Orçamento & Simulador (Bloco 2.1)**.
+
+---
+
+## D-032 — Detalhamento do Orçamento e do Simulador (Bloco 2.1)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §3; detalhamento em `features/orcamento-e-simulador.md`):**
+  1. **Base de convidados por cenário**, com quatro opções: Estimado Ponderado, Total Nominal sem isentos, só Certeza e Confirmados, ou número manual. **Isentos e `Não irá` ficam sempre fora da base de custo.**
+  2. **Arredondamento para cima** da quantidade usada em custos por pessoa (`quantidade = ⌈adultos + crianças pagantes × fator⌉`), de modo que a contagem fracionária nunca subestima o custo. Resolve o ponto pendente de `F-CNV-06`.
+  3. **Fator da criança pagante por linha** (percentual, vazio conta 100%), porque cada fornecedor cobra de um jeito.
+  4. **Linhas derivadas do Mapa de Escopo** (derivar, não duplicar): `Entra` sempre incluída; `Talvez` ligada ou desligada por cenário (nasce desligada); `Em discussão` fora dos totais; `Fica de fora` oculta, com valores guardados para uma eventual reabertura.
+  5. **Estimado:** em linhas `Fixo`, lê a estimativa da categoria (`F-PLN-05`) e pode ser **sobrescrito por cenário** (com "voltar ao valor da categoria"); em linhas `Por pessoa`, é preço por pessoa × quantidade, e a estimativa da categoria só aparece como referência. Vazio não é zero e é sinalizado. Resolve o ponto pendente de `F-PLN-05`.
+  6. **Contratado e Realizado são fatos do casamento, não do cenário:** só aparecem no cenário **ativo**, derivados de contratos e parcelas (Blocos 3.2 e 3.3), com "—" até lá. Cenários em simulação têm só Planejado e Estimado.
+  7. **Cenário ativo:** o primeiro criado vira ativo; no máximo um; o ativo não pode ser excluído enquanto houver outros; promover pede confirmação e é registrado.
+  8. **Extras na v1:** **reserva para imprevistos** (percentual por cenário, vazio até definir, mostrada à parte), **indicador visual de uso do teto** por categoria (sálvia dentro, argila acima, sempre com ícone e texto) e **exportação em Excel com CSV como opção** (padrão de `D-030`).
+  9. **Comparativo** de 2 a 4 cenários, somente leitura, com seleção na URL e selo "Menor total com reserva" apenas entre cenários completos.
+- **Razão:** o escopo aprovado definia as quatro colunas e o simulador, mas não onde moram os fatos financeiros, como se contam as pessoas nem como se arredonda. Separar fatos (contratado e pago) de hipóteses (cenários) evita que simular altere o que realmente foi gasto, e as sobrescritas explícitas mantêm a regra "derivar, não duplicar".
+- **O que ficou rejeitado:**
+  - Número manual como única base de convidados: desliga o orçamento da lista.
+  - Arredondamento exato da contagem ponderada: pode subestimar o custo.
+  - Criança pagante sempre como pessoa inteira: não representa os fornecedores que cobram metade.
+  - Contratado e Realizado por cenário: duplicaria fatos e confundiria simulação com realidade.
+  - Linhas copiadas para cada cenário: ficariam desatualizadas quando o escopo mudasse.
+  - Nota por linha de categoria: não solicitada.
+- **Aprovado:** `features/orcamento-e-simulador.md` pelo usuário em 2026-10-27 ("Aprovo"), incluindo as escolhas feitas sem pergunta (Contratado e Realizado só no ativo, primeiro cenário vira ativo, `Talvez` nasce desligada, comparativo somente leitura).
+- **Pendente:** detalhamento de **Possibilidades (Bloco 2.2)**.
+
+---
+
+## D-033 — Detalhamento de Possibilidades Macro, Avaliação Dupla e Decisão (Bloco 2.2)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §5; detalhamento em `features/possibilidades-e-decisoes.md`):**
+  1. **Modelo compartilhado** entre os Blocos 2.2 e 3.2: `Possibilidade` (tipo `Macro` agora, `Proposta` depois), `Avaliação` (um perfil × uma possibilidade), **selo de consenso derivado** e `Decisão registrada`.
+  2. **Os Caminhos Macro aparecem na aba "Definições Base & Caminhos Macro" da área Planejamento** (`experience.md` §3.1); a área Possibilidades & Decisões recebe as propostas no Bloco 3.2.
+  3. **Custo do caminho derivado do cenário vinculado** (um cenário por caminho, no máximo), sem digitação. Sem vínculo, não há valor monetário; há ações para vincular ou criar um cenário.
+  4. **Registro de decisão com efeitos sugeridos e confirmados campo a campo:** preencher Formato, Região e Porte nas Definições Base como `Definido` (marcados só os campos ainda `Em definição`); **oferecer** promover o cenário vinculado a Ativo (desmarcado por padrão); concluir o marco "Escolher o caminho macro" automaticamente.
+  5. **Selo de consenso:** `Consenso Favorito` quando os dois avaliam `Favorito` ou `Gostei`; `Ambos descartariam` quando os dois avaliam `Descartaria`; `Aguardando avaliação` quando falta uma; qualquer outra combinação é `Conversar juntos`. **A nota de 1 a 5 só informa** e não entra na regra. A classificação é obrigatória; nota e comentário são opcionais.
+  6. **Decisão reversível:** reabrir volta todos a `Em análise`, mantém os motivos no histórico e reabre o marco; valores já aplicados não são revertidos sozinhos. Motivo da escolha e de cada descarte são obrigatórios.
+  7. **Campos do caminho:** nome, descrição, formato, região, porte, prós e contras em listas, **logística como texto livre** e **referências** (links e imagens, como `F-PLN-06`). Sem campos estruturados de logística, época nem anexos (a seleção do usuário combinou "Nenhum" e "Referências"; interpretada como só referências).
+  8. **Comparação** de 2 a 5 caminhos, com seleção na URL.
+- **Ajuste em arquivo aprovado:** `features/cronograma.md` (`F-CRN-03`, regra 6) passa a prever a conclusão automática do marco "Escolher o caminho macro" pela decisão macro do Bloco 2.2, e não só dos marcos "Fechar …" pelo Bloco 3.2.
+- **Razão:** o escopo definia os dois níveis de possibilidades, mas não como o consenso é calculado nem o que a decisão altera. Derivar custo e selo evita duplicar dado, e os efeitos confirmados mantêm o controle com o casal sem remover o trabalho de repetir a digitação.
+- **O que ficou rejeitado:**
+  - Registrar a decisão sem nenhum efeito (obrigaria a repetir tudo à mão).
+  - Aplicar os efeitos sem confirmação (poderia sobrescrever Definições Base já decididas).
+  - Consenso só com `Favorito` dos dois: rigidez que esconderia alinhamentos positivos.
+  - Nota 1 a 5 na regra do selo: mistura duas escalas.
+  - Votação cega: contraria `D-021`.
+  - Custo digitado no caminho: duplicaria o cenário.
+- **Aprovado:** `features/possibilidades-e-decisoes.md` pelo usuário em 2026-10-27 ("Aprovo."), incluindo a interpretação de "Nenhum" + "Referências" como só referências, o ajuste em `F-CRN-03` e as escolhas feitas sem pergunta (promover cenário desmarcado por padrão, avaliação editável após a decisão, um cenário por caminho).
+- **Pendente:** detalhamento de **Contatos (Bloco 3.1)**.
+
+---
+
+## D-034 — Detalhamento de Contatos, Visitas e Busca Global (Bloco 3.1)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §4; detalhamento em `features/contatos.md`):**
+  1. **Dois tipos de contato:** `Fornecedor` (com funil, Próximo Passo, interações e visitas) e `Pessoa` (indicação, familiar, contato do local; sem funil, Próximo Passo, interações nem visitas). Ambos aceitam arquivos e links e aparecem na mesma lista, com filtro por tipo.
+  2. **Funil de 6 estados**, confirmado: `Para contatar` → `Aguardando orçamento` → `Orçamento recebido` → `Em negociação / Visita` → `Contratado` · `Descartado`. Transição livre entre quaisquer estados. Cada mudança gera entrada do sistema na linha do tempo. **Motivo do descarte opcional**; descartar remove o Próximo Passo e reativar é permitido.
+  3. **`Contratado` manual até o Bloco 3.2** e **derivado da decisão por categoria** depois disso. O caso de fornecedor com várias categorias fica para o Bloco 3.2.
+  4. **Próximo Passo Único** (ação, data-alvo, responsável): concluir cria uma interação e pede o próximo passo. `Atrasado` é derivado.
+  5. **Visitas agendadas com data e hora** (estados `Agendada`, `Realizada`, `Cancelada`), aparecendo no calendário do Cronograma como itens somente leitura. **Marcar `Realizada` cria a interação `Visita`.** A hora é exclusiva da visita: marcos e tarefas continuam só com data (`D-031`).
+  6. **Aviso de duplicidade** por telefone, e-mail e Instagram normalizados, **sem bloquear** ("Salvar mesmo assim"). Sem comparação por nome.
+  7. **Busca global do app** no cabeçalho: contatos, arquivos (por nome ou título), categorias, convidados, marcos, caminhos macro e cenários, e cresce com as áreas seguintes. Busca por trecho, sem acento nem caixa, sem busca no conteúdo de PDFs, ignora a lente.
+  8. **Captura rápida:** nome e categoria bastam para criar um fornecedor. **"Quem atende"** é um campo de texto livre.
+  9. **Lista** em tabela (desktop) e cartões (celular), visão **Por status** sem arrastar, filtros na URL e ordenação com o Próximo Passo atrasado no topo.
+- **Ajuste em arquivo aprovado:** `features/cronograma.md` (`F-CRN-10` e "Fora desta área") passa a prever as visitas a fornecedores no calendário, como a única exceção ao "só data".
+- **Ajuste em `architecture.md`:** o estado do funil de `Contact` deixa de ser "a confirmar".
+- **Razão:** o escopo definia os campos e o funil, mas deixava aberto o conjunto de estados, o que acontece ao concluir um passo e como a visita (que tem hora) convive com um calendário só de datas. A busca global estava registrada como lacuna transversal e o Bloco 3.1 é o primeiro com volume de itens que a justifique.
+- **O que ficou rejeitado:**
+  - Funil de 4 estados e funil editável: o de 6 do escopo já cobre a conversa real, e a edição de etapas aumenta a configuração sem ganho para duas pessoas.
+  - Várias pessoas de contato por fornecedor: um campo de texto livre atende ao caso sem uma segunda entidade.
+  - Indicador de "parado há N dias": o Próximo Passo e o filtro de atrasados cobrem o caso.
+  - Bloquear contatos duplicados: há fornecedores legítimos com o mesmo telefone.
+  - Motivo de descarte obrigatório: o contato é um registro de conversa, não uma decisão entre alternativas (que já exige motivo em `D-033`).
+  - Arrastar cartões entre colunas: pior em teclado e leitor de tela, e o menu resolve.
+  - Horário nas tarefas do cronograma: `D-031` mantém só data.
+- **Aprovado:** `features/contatos.md` pelo usuário em 2026-10-27 ("Aprovo, prossiga."), incluindo o ajuste em `F-CRN-10` e em `architecture.md`.
+- **Pendente:** detalhamento de **Possibilidades por Categoria (Bloco 3.2)**.
+
+---
+
+## D-035 — Detalhamento de Propostas por Categoria, Custo Comparável e Decisão (Bloco 3.2)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §5; detalhamento em `features/propostas-por-categoria.md`):**
+  1. **Proposta** é um pacote de um fornecedor para uma categoria, tipo `Proposta` do modelo compartilhado de `D-033`. Um fornecedor pode ter vários pacotes, e há "duplicar como novo pacote". Reaproveita **avaliação dupla, selo de consenso e registro de decisão** de `F-POS-03` a `F-POS-05`.
+  2. **Preço base em dois modos:** Valor total ou Preço por pessoa. No modo por pessoa, a quantidade é a do **cenário ativo** (`F-ORC-03`, arredondada para cima), lida sem cópia. A proposta pode ter fator próprio da criança pagante; vazio lê o da linha da categoria. Sem base, o total é "—" e nenhum número é presumido.
+  3. **Normalizador de Custo Comparável:** **Custo Total Real Comparável** = preço base + extras `Necessário`. Cada extra é `Fixo` ou `Por pessoa`, e os `Opcional` aparecem à parte. Exibe também o **custo por convidado equivalente**.
+  4. **Condições de pagamento em texto livre.** As parcelas só nascem no contrato (Bloco 3.3).
+  5. **Estimado não é alimentado por propostas.** O cenário ativo mostra só uma **faixa de referência** (menor a maior custo comparável em análise). Cada proposta exibe a **situação frente ao teto** da categoria (`F-ORC-07`).
+  6. **Quadro lado a lado** de 2 a 5 propostas da mesma categoria, **sem eleger a "melhor"**, com painel lateral de PDF no desktop e cartões com abas no celular.
+  7. **Uma decisão por categoria** (sem várias vencedoras). Pode-se decidir com **uma única proposta**. Motivos obrigatórios para a escolha e para cada descarte, com avisos de avaliação faltando, acima do teto e total sem valor.
+  8. **Efeitos da decisão:** **Contratado** derivado no Orçamento Ativo (recalculado até haver contrato; o contrato do Bloco 3.3 prevalecerá); marco "Fechar …" concluído; fornecedor `Contratado` derivado (basta uma proposta escolhida, com chips por categoria); oferta **desmarcada** de descartar os fornecedores sem outra proposta ativa. O Estimado fica intacto.
+  9. **Reabrir a decisão:** descartadas pela decisão voltam a `Em análise`, marco reaberto, Contratado volta a "—", fornecedor volta ao status anterior e motivos ficam no histórico.
+  10. **Coerência:** categoria com decisão não vai para `Fica de fora` nem `Em discussão`, e não recebe propostas novas sem reabrir. Um fornecedor com propostas não é excluído antes disso. Descarte individual de proposta com motivo obrigatório.
+  11. **Transição:** na entrega do bloco, fornecedores marcados à mão como `Contratado` voltam a `Em negociação / Visita`, com nota na linha do tempo.
+- **Ajustes em arquivos aprovados:** `orcamento-e-simulador.md` (Estimado não alimentado por propostas, Contratado derivado de `F-PRP-08`, pontos a validar); `contatos.md` (`F-CTT-01`, `F-CTT-03`, `F-CTT-07`, pontos de atenção; nova aba Propostas); `planejamento-e-caminhos.md` (`F-PLN-07`, regra 3).
+- **Razão:** o escopo previa o Normalizador e a decisão por categoria, mas deixava abertas a quantidade dos custos por pessoa, a relação com o Estimado, o efeito sobre o fornecedor e o Contratado, e a reabertura. Derivar totais e Contratado evita duplicar dado e mantém o controle com o casal.
+- **O que ficou rejeitado:**
+  - Alimentar o Estimado com as propostas (mistura valor planejado com cotação e sobrescreveria um valor do casal).
+  - Botão "usar como Estimado" por proposta: duas fontes para o mesmo número.
+  - Várias propostas vencedoras por categoria: categorias separadas já resolvem e mantêm o Contratado simples.
+  - Condições de pagamento estruturadas na proposta: duplicariam as parcelas do contrato (Bloco 3.3).
+  - Destacar a "melhor" proposta automaticamente: tiraria a decisão do casal.
+  - Validade da proposta e histórico de revisões de preço: não solicitados.
+  - Aplicar o descarte de fornecedores sem confirmação: o fornecedor pode ter outras categorias ou voltar à conversa.
+- **Aprovado:** `features/propostas-por-categoria.md` pelo usuário em 2026-10-27 ("Aprovo"), incluindo os ajustes em `orcamento-e-simulador.md`, `contatos.md` e `planejamento-e-caminhos.md`.
+- **Pendente:** detalhamento de **Contratos & Parcelas (Bloco 3.3)**.
+
+---
+
+## D-036 — Detalhamento de Contratos, Parcelas e Fluxo de Pagamentos (Bloco 3.3)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §3; detalhamento em `features/contratos-e-parcelas.md`):**
+  1. **Contrato nasce de duas formas:** **por decisão** (criado automaticamente com a decisão da categoria, `Aguardando assinatura`) e **direto** (sem proposta, para alianças, roupas e compras em loja; fornecedor opcional, com "favorecido" em texto livre quando não há contato).
+  2. **Contratado conta desde a criação** (`Aguardando assinatura` e `Assinado` somam; `Cancelado` não). É a **soma** dos contratos da categoria e substitui o Contratado derivado da proposta de `D-035`.
+  3. **Valor fechado é fato:** copiado **uma vez** do custo comparável e editável; a tela mostra "difere do comparável em R$ X". Sem registro de aditivos e sem campo de política de cancelamento.
+  4. **Cancelar contrato por decisão é reabrir a decisão** (ação única). Contrato com parcela `Pago` não pode ser cancelado nem excluído. Reembolsos e multas ficam fora da v1.
+  5. **Dados do Dia D no contrato** (responsável no dia, itens contratados copiados da proposta, combinados críticos e PDF assinado). O Dossiê só lê esses campos. **Pendências do Dossiê** são derivadas e não bloqueiam.
+  6. **Parcela:** descrição, vencimento (**data** ou **"no dia do evento"**), valor previsto, meio, responsável. Ao pagar: data, **valor pago (pode diferir do previsto)**, quem pagou (`Noivo`, `Noiva` ou `Conta Conjunta`) e comprovante opcional. **`Atrasada` é derivada.**
+  7. **Assistente de plano de pagamento** (sinal, parcelas iguais e quitação), com pré-visualização, centavos residuais na **última** parcela e ajuste manual depois. Gerar de novo só substitui as `Pendente`.
+  8. **Fluxo de Pagamentos** (aba 3 do Orçamento): lista por mês e calendário, filtros e lente pelo responsável da parcela, marcar `Pago` direto da lista, **exportação em Excel com CSV como opção**. Projeção de poupança e alertas ficam em v1.1+.
+  9. **Orçamento Ativo:** **Realizado** = soma dos valores efetivamente pagos; indicador derivado **"A pagar"** (Contratado − Realizado); o **saldo da categoria não muda**. Contratado e Realizado de categoria `Talvez` com linha desligada aparecem e somam.
+  10. **Lista de Contratos** como aba da área Possibilidades & Decisões, com selo derivado `Quitado` e progresso de pagamento.
+  11. **Contrato direto com fornecedor** o marca `Contratado` (derivado) e conclui o marco "Fechar …" da categoria.
+- **Ajustes em arquivos aprovados:** `propostas-por-categoria.md` (`F-PRP-08`: decisão cria o contrato, reabrir cancela o contrato e é recusado com parcela paga; pontos de atenção resolvidos); `orcamento-e-simulador.md` (`F-ORC-06`, fora de escopo e pontos a validar); `contatos.md` (`F-CTT-01`, `F-CTT-03`); `planejamento-e-caminhos.md` (`F-PLN-07`, regra 3); `cronograma.md` (`F-CRN-03`, regra 6); `experience.md` (aba Contratos); `architecture.md` (estados de `Contract` e `PaymentInstallment`).
+- **Razão:** o escopo previa parcelas e a coluna Realizado, mas deixava abertos quando o contrato existe, quando conta no orçamento, como o pagamento real difere do previsto e como cobrir o que não passa por cotação. Tratar o contrato como fato e derivar Contratado, Realizado e "A pagar" evita duplicar dado.
+- **O que ficou rejeitado:**
+  - Exigir decisão para todo contrato: não cobriria compras sem fornecedor ou cotação.
+  - Contratado só depois da assinatura: esconderia compromissos já assumidos do orçamento.
+  - Valor pago sempre igual ao previsto: obrigaria a falsear juros, descontos e multas.
+  - Gerar parcelas só à mão: lento para contratos de muitas parcelas.
+  - Campo de política de cancelamento e registro de aditivos: não solicitados.
+  - Bloquear o contrato quando as parcelas não somam o valor: a vida real tem acertos futuros, então só avisa.
+  - Alterar o saldo da categoria com o que já foi pago: pago não muda quanto cabe no teto.
+  - Reembolso e multa na v1: o casal ajusta o valor do contrato ao que foi efetivamente devido.
+- **Aprovado:** `features/contratos-e-parcelas.md` pelo usuário em 2026-10-27 ("aprovo"), incluindo os ajustes nos arquivos já aprovados.
+- **Pendente:** detalhamento de **Enxoval e Lista de Presentes (Bloco 4.1)**.
+
+---
+
+## D-037 — Detalhamento de Enxoval e Lista de Presentes (Bloco 4.1)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (escopo revisado de `scope.md` §6, Enxoval; detalhamento na parte Enxoval de `features/convidados-enxoval-e-dia-d.md`):**
+  1. **Grupos** (cômodos e categorias) com **sugestões iniciais editáveis** (Cozinha, Quarto, Sala, Banheiro, Área de serviço, Eletros e eletrônicos, Lua de mel), arquiváveis, nunca excluídos com itens.
+  2. **Item (por unidade) e Cota (valor em dinheiro)** na mesma lista. Item com quantidade desejada, valor unitário opcional, link, loja, **imagem opcional** e prioridade `Essencial`, `Desejável` ou `Se sobrar`. Cota com valor-alvo e destino sempre `Pedir na lista`.
+  3. **Quantidade e recebimentos:** cada presente ou compra é um **registro** (origem, quantidade, data, valor opcional, quem presenteou). Cota recebe **contribuições** em dinheiro. **Excedentes** são permitidos e mostrados como "a mais".
+  4. **Status derivado:** `Precisamos` · `Na lista de presentes` · `Em andamento` · `Já ganhamos` · `Já compramos` · `Completo` (misto). Totais derivados: estimado da lista, ganho, gasto do casal, falta conseguir e progresso. Valor vazio nunca é zero.
+  5. **Quem presenteou:** convidado ou núcleo da lista (guardando o nome no momento, sem alterar a lista de convidados) ou texto livre.
+  6. **O enxoval é separado do Orçamento do casamento:** os totais da subárea **não alimentam** orçamento nem cenários. O que se paga a um fornecedor do casamento sem proposta continua no **Contrato direto** (`D-036`).
+  7. **Exportação para site externo** em **Excel (padrão) e CSV (opção)**, sobre os filtros, sem dados de convidados, com a visão pronta "Para a lista". Depois do download, o Altare **oferece** (desmarcado) marcar os itens exportados como "Na lista".
+  8. **Lista formatada para convidados** em **texto limpo para copiar e colar** (estilo WhatsApp) ou baixar em `.txt`, com mensagem inicial opcional e vazia, **valores desligados por padrão** e links ligados. Não inclui itens completos nem dados de quem presenteou.
+- **Razão:** o escopo previa os campos e a exportação, mas deixava abertos o que acontece com quantidades maiores que 1, o encaixe das cotas de lua de mel, a relação com o Orçamento e o formato da lista para convidados. Derivar status e totais dos registros evita um status editável que diverge da realidade.
+- **O que ficou rejeitado:**
+  - Item unitário com status único e campo "quem presenteou": não representa 12 pratos nem cotas com várias contribuições.
+  - Integrar o enxoval ao Orçamento do casamento por uma categoria "Enxoval": mistura a casa nova com o evento e distorce teto, cenários e comparações.
+  - Lista formatada em PDF ou página imprimível: a impressão depende do Bloco 4.2 (`design-system.md` §13).
+  - "Agradecimento enviado" por presente e visão "quem deu o quê": não solicitados.
+  - Leitura automática de preço e foto a partir do link: sem *scraping*.
+  - Escrever uma mensagem padrão na lista aos convidados: o texto é do casal.
+  - Responsável por item e lente por perfil: não solicitados.
+- **Aprovado:** parte Enxoval de `features/convidados-enxoval-e-dia-d.md` pelo usuário em 2026-10-27 ("aprovo"), incluindo o rótulo derivado `Completo` e o ajuste em `contratos-e-parcelas.md`.
+- **Pendente:** detalhamento de **Centro de Comando e Dossiê do Dia D (Bloco 4.2)**.
+
+---
+
+## D-038 — Detalhamento do Centro de Comando, Dossiê do Dia D e Exportação dos Dados (Bloco 4.2)
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Detalhamento de Produto)
+- **Decisão (detalhamento em `features/centro-de-comando.md` e na parte Dossiê de `features/convidados-enxoval-e-dia-d.md`):**
+  1. **Centro de Comando como visão derivada, sem dados próprios:** contagem regressiva e Definições Base, **"Atenção agora"**, meus próximos passos e destravados, agenda de 7 dias, termômetro do orçamento e convidados. A lente filtra os cartões pessoais.
+  2. **"Atenção agora" por 9 regras fixas e determinísticas** (parcela atrasada, passo e marco atrasados, avaliação que falta a mim, `Conversar juntos`, visita passada, categoria essencial sem teto, contrato com saldo a programar, contrato com pendências do Dossiê). **Sem IA e sem notificação ativa:** é uma lista na tela. Mostra 5 com "ver todas".
+  3. **"+ Registrar Rápido":** botão no celular e menu "Novo" no desktop, com ações que **reaproveitam os formulários das áreas**, no máximo 2 toques para abrir cada formulário. Nasce no Bloco 3.1 (`D-028`) e ganha ações conforme os blocos chegam.
+  4. **Exportar todos os dados do casal:** `.zip` com `dados.json` (versionado), `arquivos/` e `LEIA-ME.txt`, gerado sob demanda, sem senhas nem sessões, com a data da última exportação. **Importação de volta fica para v1.1+.** **Backup automático não entra como funcionalidade da v1:** é requisito de implantação a tratar com a hospedagem (`D-019`), e o risco enquanto isso fica registrado.
+  5. **Dossiê como visão viva, sem digitar de novo:** quadro do evento, fornecedores contratados (por contrato, com responsável no dia, itens, combinados e PDF), pagamentos (a pagar no dia e resumo das demais), convidados (contagens e restrições alimentares, sem contatos) e itens físicos.
+  6. **Dados novos do Dossiê:** **Local do evento** (texto), **horários-chave** (lista curta de até 12, não é o roteiro minuto a minuto), **checklist de itens físicos** (lista começa vazia) e **versões entregues**.
+  7. **Versões entregues:** cópia datada, imutável, com "o que mudou desde a última entrega" (antes → depois).
+  8. **Impressão pelo navegador** (A4 retrato, tokens de papel, sem controles, fichas sem quebra), **sem PDF gerado no servidor** e sem dependência nova. O valor dos contratos vem **desligado** por padrão no Dossiê.
+  9. **Pendências do Dossiê** só em tela, não bloqueiam e não saem na impressão.
+- **Ajustes em arquivos aprovados:** `architecture.md` (o módulo `dossier` deixa de ser "somente consultas" e ganha escrita pequena); `design-system.md` §13 (gatilho de impressão atingido); `convidados-enxoval-e-dia-d.md` (cabeçalho e fora de escopo).
+- **Razão:** o escopo previa a Home e o Dossiê como consolidações, mas deixava em aberto onde ficam o local e os horários do evento, o checklist de itens físicos (previsto só na experiência), a forma de saída do documento e a proteção dos dados do casal, que não aparecia em nenhum documento. Manter tudo derivado evita um segundo cadastro.
+- **O que ficou rejeitado:**
+  - Notificações ativas (in-app, push e WhatsApp) na v1: `D-013` as mantém em v1.1+.
+  - Roteiro minuto a minuto agora: v1.1+.
+  - PDF gerado no servidor: exigiria biblioteca nova sem ganho proporcional a um documento para duas pessoas.
+  - Backup automático como tela do produto: é infraestrutura, tratada na implantação.
+  - Observações gerais livres no Dossiê: os combinados por contrato cobrem o caso.
+  - Dossiê editável como documento próprio: duplicaria dados e ficaria desatualizado.
+  - Mostrar contatos de convidados no Dossiê: dados de terceiros desnecessários ao hand-off.
+  - Home configurável (ordem e esconder cartões): não solicitada.
+- **Aprovado:** `features/centro-de-comando.md` e a parte Dossiê de `features/convidados-enxoval-e-dia-d.md` pelo usuário em 2026-10-27 ("aprovo"). **O detalhamento da v1 manual (Níveis 1 a 4) está concluído.**
+- **Escolhido pelo usuário:** retomar a implementação do Nível 0 (`D-028`). O Passo 0 e o plano foram aprovados e a sessão foi **pausada** antes do primeiro código.
+- **Pendente (sem urgência):** detalhar a camada de IA do Nível 5 (v1.1+) e planejar implantação, hospedagem e backup automático.

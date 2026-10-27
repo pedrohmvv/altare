@@ -4,6 +4,8 @@
 >
 > **Status:** **Aprovado pelo usuário em 2026-10-27 (`D-025`)**. Linguagem de forma (cantos moderados) e tema claro + escuro em `D-022` (2026-10-26). Mudanças a partir daqui exigem nova decisão registrada.
 >
+> **Escopo enxuto (`D-028`, 2026-10-27):** design system proporcional a um app pessoal de duas pessoas. O Bloco 0.2 constrói **tema claro, 15 primitivos, casca de navegação e uma vitrine mínima** (§13). §8 e §9 continuam como **inventário de referência**: o restante nasce no bloco que o usa. Tema escuro, *snapshots* visuais, `axe` automatizado, script anti-*hex* e impressão foram **adiados com gatilho** (§13).
+>
 > Implementa `docs/design/visual-direction.md` e `docs/design/identity.md` (cores, fontes, marca, ornamento) em tokens, componentes e padrões. Este documento é a **especificação do Bloco 0.2** do roadmap.
 
 ---
@@ -11,7 +13,7 @@
 ## 1. Princípios do Design System
 
 1. **Tokens primeiro:** nenhum valor de cor, espaçamento, raio ou tipografia é escrito direto em componentes; tudo vem de tokens.
-2. **Primitivos neutros, componentes de domínio opinativos:** `components/ui` não conhece o produto; `components/domain` fala a língua do casal (`Money`, `RatingPair`, `ConsensusBadge`).
+2. **Primitivos neutros, componentes de domínio opinativos:** `components/ui` não conhece o produto (inclui `Money`, formatador puro, `D-028`); `components/domain` fala a língua do casal (`RatingPair`, `ConsensusBadge`).
 3. **Dupla postura nativa (`D-003`):** todo componente nasce com comportamento **desktop** e **mobile** definidos (alvos de toque ≥ 44 px, gaveta lateral vs. folha inferior).
 4. **Acessível por padrão:** WCAG 2.2 AA; foco visível; cor nunca é o único sinal.
 5. **Calma visual:** hairlines em vez de sombras; espaçamento generoso; sem ruído decorativo.
@@ -28,7 +30,7 @@ Tokens (CSS variables)  →  Primitivos UI (shadcn/Radix re-estilizados)  →  C
 
 - **Distribuição:** dentro do repositório (`apps/web/src/components`), **não** como pacote publicado (uso pessoal, `D-002`).
 - **Base:** shadcn/ui (código copiado) sobre Radix, **totalmente re-estilizado** com os tokens. Nenhum componente é usado "de fábrica".
-- **Vitrine:** rota interna `/design-system` (tokens, tipografia, componentes, estados, claro/escuro, *viewport* desktop/mobile).
+- **Vitrine:** rota interna `/design-system` **mínima** (tokens, tipografia e cada primitivo com variantes e estados, no tema claro). Cresce junto com os componentes (`D-028`).
 - **Dados de exemplo:** a vitrine e os testes usam **dados claramente fictícios e rotulados** ("Espaço Exemplo", "Fornecedor Exemplo"). Nunca dados reais ou inventados do casamento (`AGENTS.md`).
 
 ---
@@ -36,7 +38,9 @@ Tokens (CSS variables)  →  Primitivos UI (shadcn/Radix re-estilizados)  →  C
 ## 3. Tokens e Tema
 
 ### 3.1 Nomenclatura (semântica, não literal)
-Valores de cada papel (claro e escuro) estão em `docs/design/identity.md` §3.3. Os tokens são expostos como variáveis CSS e mapeados ao Tailwind v4:
+Valores de cada papel (claro e escuro) estão em `docs/design/identity.md` §3.3. Os tokens são expostos como variáveis CSS e mapeados ao Tailwind v4.
+
+> **Nível 0 (`D-028`):** o gerador emite **só o bloco claro** (`:root, [data-theme="light"]`). O bloco `[data-theme="dark"]` abaixo é a especificação para quando o tema escuro for pedido; como os componentes usam apenas nomes semânticos, ele entra sem retrabalho.
 
 ```css
 /* styles/tokens.css */
@@ -79,6 +83,8 @@ Valores de cada papel (claro e escuro) estão em `docs/design/identity.md` §3.3
 ```
 
 ### 3.2 Mecanismo de tema (claro / escuro / sistema)
+> **Adiado (`D-028`), gatilho: quando o usuário pedir.** No Nível 0 o `<html>` recebe `data-theme="light"` fixo e não há alternador. A especificação abaixo vale quando o escuro entrar.
+
 - Atributo **`data-theme`** no `<html>`; três modos do usuário: `claro`, `escuro`, `sistema` (padrão).
 - **Script inline mínimo no `index.html`** lê `localStorage.theme` e `prefers-color-scheme` **antes da primeira pintura** (evita *flash* de tema errado).
 - Alternador no **menu do usuário**; preferência salva **por dispositivo** (`localStorage`). Persistir por usuário no servidor fica como evolução.
@@ -156,13 +162,15 @@ Todo token mono aplica `font-variant-numeric: tabular-nums`. Largura máxima de 
 6. **Alvos de toque ≥ 44 × 44 px** no mobile; espaçamento mínimo de 8 px entre alvos.
 7. **Reflow:** sem rolagem horizontal até 320 px (exceto tabela comparativa, que rola dentro do próprio contêiner com primeira coluna fixa). Zoom de 200% sem perda.
 8. **Cor + ícone + texto** para qualquer estado semântico.
-9. **Teste automatizado:** `axe` no Playwright para cada rota da vitrine, nos dois temas e dois *viewports*.
+9. **Verificação (`D-028`):** **manual** (teclado, foco visível, contraste) a cada componente e tela, mais as regras de acessibilidade do **Biome** no lint. `axe` automatizado está adiado (gatilho em §13). Os requisitos acima continuam valendo como critério de revisão.
 
 ---
 
 ## 8. Inventário de Componentes Primitivos (`components/ui`)
 
 Estados mínimos de todo componente interativo: *default · hover · focus-visible · active · disabled · loading (quando aplicável) · error (campos)*.
+
+**Inventário de referência.** No Bloco 0.2 entram só `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader` e `Money` (§9) (`D-028`). Os demais nascem quando a primeira tela que os usa for construída.
 
 | Componente | Variantes / API | Notas |
 | :--- | :--- | :--- |
@@ -190,7 +198,7 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 
 ## 9. Componentes de Domínio (`components/domain`)
 
-Construídos no Bloco 0.2 como **apresentacionais com dados fictícios rotulados**; ligados a dados reais nos blocos que os usam.
+**Nenhum componente de domínio é construído no Bloco 0.2** (`D-028`). Esta tabela é a especificação de referência: cada componente **nasce no bloco que o usa**, como componente puro (só *props*, sem API nem regra de negócio). Duas exceções de lugar: **`Money` vive em `components/ui`** (formatador puro, construído no Bloco 0.2) e o **seletor de lente** faz parte da casca de navegação (§13).
 
 | Componente | Responsabilidade | Detalhes de especificação |
 | :--- | :--- | :--- |
@@ -251,33 +259,49 @@ Racional: no celular o casal consulta próximo passo, compara opções, abre Wha
 
 ---
 
-## 12. Implementação, Governança e Qualidade
+## 12. Implementação, Governança e Qualidade (enxuta, `D-028`)
 
 | Item | Regra |
 | :--- | :--- |
-| **Fonte única de tokens** | `docs/design/identidade-visual/tokens.json` (`D-024`); `apps/web/src/styles/tokens.css` é **gerado** a partir dele no Bloco 0.2. Mudar um token = editar o `tokens.json`, regenerar o guia e o `tokens.css` |
-| **Sem *hex* em componentes** | *Script* de verificação no CI/`pre-commit` falha se encontrar `#RRGGBB` fora de `tokens.css` e dos ativos SVG de marca |
+| **Fonte única de tokens** | `docs/design/identidade-visual/tokens.json` (`D-024`); `apps/web/src/styles/tokens.css` é **gerado** por script a partir dele e **nunca editado à mão**. Mudar um token = editar o `tokens.json`, regenerar o guia e o `tokens.css`. Um teste do Vitest falha se o `tokens.css` estiver desatualizado |
+| **Tema** | Só o **claro** no Nível 0, com nomes semânticos e `data-theme="light"` no `<html>`. Escuro adiado (§13) |
+| **Sem *hex* em componentes** | **Convenção documentada**: `#RRGGBB` só em `tokens.css` e nos SVGs de marca; componentes usam classes de token (`bg-surface`, `text-ink`). Sem script de CI por enquanto (gatilho em §13) |
+| **Componentes puros** | Só recebem *props*: sem regra de negócio, sem chamada de API, sem acesso a `features` (`architecture.md` §11) |
 | **Utilitário de classes** | `cn()` (`clsx` + `tailwind-merge`) e `cva` (`class-variance-authority`) para variantes |
-| **Vitrine `/design-system`** | Seções: Marca · Cores (com razão de contraste) · Tipografia · Espaço/Forma · Primitivos · Domínio · Padrões · Estados; alternador de tema e de *viewport* |
-| **Regressão visual** | Playwright com *snapshots* da vitrine em **claro/escuro × desktop/mobile** |
-| **Acessibilidade** | `axe` na vitrine e nas rotas principais, nos dois temas |
-| **Impressão** | `@media print` com tokens próprios (papel branco, sem textura, sem fundos); validado com a página-modelo do Dossiê |
-| **Ativos de marca** | `public/brand/`, **copiados** de `docs/design/identidade-visual/` (logos-mestre de `fonte/`, favicon e ícones de `componentes/aplicacoes/`, ornamentos de `fonte/ornamentos/`); nada é redesenhado no app (ver `identity.md` §2.6) |
+| **Vitrine `/design-system`** | **Mínima**: tokens (cores com função), tipografia e cada primitivo com variantes e estados, no tema claro, legível em desktop e mobile. Ganha seções conforme os componentes surgem |
+| **Testes** | Vitest + Testing Library para comportamento (variantes, estados, teclado onde houver lógica) e para a navegação da casca. **Sem *snapshots* visuais e sem `axe` no CI** |
+| **Acessibilidade** | Verificação **manual** (teclado, foco, contraste) + regras de acessibilidade do Biome no lint (§7) |
+| **Dados de exemplo** | Claramente fictícios e rotulados ("Espaço Exemplo"); nunca dados do casamento (`AGENTS.md`) |
+| **Ativos de marca** | `apps/web/public/brand/`, **copiados** de `docs/design/identidade-visual/` (logos-mestre de `fonte/`, favicon de `componentes/favicon/`, ícones de `componentes/app-icon/`, ornamentos de `fonte/ornamentos/`); nada é redesenhado no app (ver `identity.md` §2.6) |
 
 ---
 
-## 13. Ordem de Construção do Bloco 0.2
+## 13. Ordem de Construção do Bloco 0.2 (enxuta, `D-028`)
 
-1. **Tokens, fontes autohospedadas e mecanismo de tema** (claro/escuro/sistema, sem *flash*).
-2. **Ativos de marca do Altare:** copiar do pacote `docs/design/identidade-visual/` (já desenhados e revisados no guia, `D-024`) e expô-los na vitrine.
-3. **Primitivos A** (`Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Radio`, `Switch`, `SegmentedControl`, `Tabs`, `Badge`, `Tag`, `Avatar`, `Card`, `Separator`).
-4. **Primitivos B** (`Dialog`, `AlertDialog`, `Sheet`, `Popover`, `Tooltip`, `DropdownMenu`, `Toast`, `Skeleton`, `Progress`, `Accordion`, `EmptyState`, `PageHeader`).
-5. **Dados e tabelas** (`Table`, `StatBlock`, `Money`, `MoneyInput`).
-6. **Casca de navegação** desktop e mobile (barra lateral, barra superior com `ProfileLensSwitcher`, menu do usuário com tema, barra inferior, `QuickAddFab`) + 7 páginas-esqueleto com `EmptyState`.
-7. **Componentes de domínio apresentacionais** (`ProfileChip`, `ConsensusBadge`, `RatingPair`, `ComparableCostBreakdown`, `ComparisonTable`, `NextStepCard`, `DependencyStatus`, `ScenarioColumn`, `BudgetRow`, `GuestCounters`, `InstallmentRow`, `FileAttachment`, `WhatsAppButton`, `PhaseHeader`, `DecisionSeal`).
-8. **Vitrine `/design-system`**, testes de acessibilidade e *snapshots* visuais.
+Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm, Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`). Cada etapa só começa com lint, *typecheck* e testes passando na anterior.
 
-**Critério de conclusão do Bloco 0.2:** a vitrine renderiza todos os itens acima nos dois temas e *viewports* sem violações `axe`, e as 7 áreas navegáveis existem como esqueletos no padrão visual aprovado.
+1. **Tokens e fontes:** `tokens.css` gerado do `tokens.json` (tema claro), mapeado em `@theme`; fontes autohospedadas (Fontsource); `cn()` e `cva`.
+2. **Ativos de marca:** copiar do pacote `docs/design/identidade-visual/` para `public/brand/`; favicon e ícones no `index.html`.
+3. **Primitivos (15):** `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money` (mono tabular).
+4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as 7 áreas como páginas-esqueleto com `EmptyState`.
+5. **Vitrine `/design-system`:** tokens, tipografia e cada primitivo com variantes e estados.
+
+**Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Tema escuro "Noite Oliva" (§3.1), alternador `claro / escuro / sistema` e script anti-*flash* (§3.2) | Quando o usuário pedir |
+| Regressão visual por *snapshots* | Se houver regressões visuais recorrentes |
+| `axe` automatizado (E2E ou vitrine) | Se houver regressões de acessibilidade recorrentes ou o produto se abrir a outros casais (`D-002`) |
+| Script de CI/`pre-commit` contra *hex* | Se aparecer *hex* em componente mais de uma vez na revisão |
+| Impressão (`@media print`, tokens de papel) | Bloco 4.2 (Dossiê do Dia D): **gatilho atingido no detalhamento** (`D-038`, `F-DOS-08`); entra na construção do Bloco 4.2 |
+| Demais primitivos de §8 (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`, `Popover`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`) e `MoneyInput` | Quando a primeira tela que o usa for construída |
+| Componentes de domínio de §9 | No bloco que os usa |
+| `QuickAddFab` ("+ Registrar Rápido") | Primeiro bloco com algo para registrar rápido (Bloco 3.1) |
+| Menu do usuário | Com o login (restante do Bloco 0.1) |
+| E2E de navegação com Playwright | Com o login (restante do Bloco 0.1) |
+
+**Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos listados com variantes e estados, no tema claro, em desktop e mobile; as 7 áreas são navegáveis como esqueletos; o app segue a identidade do Altare.
 
 ---
 
@@ -286,5 +310,5 @@ Racional: no celular o casal consulta próximo passo, compara opções, abre Wha
 2. **Sem cor por perfil**; distinção por rótulo e inicial (§3.3, §9).
 3. Nota 1–5 como **botões numéricos em mono** (não estrelas) no `RatingPair`.
 4. Formatação monetária: sem centavos em resumos, com centavos em parcelas/pagamentos (§11).
-5. Tema escuro **Noite Oliva** e alternador `claro / escuro / sistema` por dispositivo (§3.2).
+5. Tema escuro **Noite Oliva** e alternador `claro / escuro / sistema` por dispositivo (§3.2). *(Construção adiada em `D-028` até o usuário pedir.)*
 6. Escala tipográfica (§4) e alturas de controle (§5).

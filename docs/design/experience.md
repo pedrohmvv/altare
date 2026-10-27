@@ -88,6 +88,7 @@ As **7 áreas principais** da aplicação são:
 4. **Possibilidades & Decisões (Por Categoria):**
    - Navegação por categoria ativa do casamento (Espaço, Buffet, Foto, etc.).
    - Dentro de cada categoria: quadro comparativo lado a lado das propostas, **Normalizador de Custo Comparável**, notas individuais do Noivo e da Noiva, PDFs anexados e registro da **Decisão Final**.
+   - **Aba "Contratos" (`D-036`):** lista de todos os contratos (por decisão ou diretos), com progresso de pagamento e acesso às parcelas.
 5. **Orçamento & Simulador:**
    - **Aba 1 — Orçamento Oficial Ativo:** tabela viva com as 4 colunas (*Planejado*, *Estimado*, *Contratado*, *Realizado/Pago*) por categoria.
    - **Aba 2 — Simulador de Orçamentos em Paralelo (`D-009`):** comparação lado a lado entre múltiplos cenários completos de orçamento, permitindo editar premissas (nº de convidados, teto, itens inclusos) e promover um cenário a oficial.

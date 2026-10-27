@@ -99,4 +99,5 @@ Resumo das decisões travadas em `D-020`:
 
 O cronograma lógico de construção (sem datas e prazos, organizado dos blocos mais básicos na base até os mais avançados no topo) está aprovado e documentado em **[`docs/engineering/roadmap.md`](./roadmap.md)**.
 
-- **Ponto de partida da próxima sessão de implementação:** `Nível 0 — Fundação Técnica, Identidade do Casal e Design System` (`Bloco 0.1` e `Bloco 0.2`).
+- **Implementação em andamento:** `Nível 0`. Primeiro o `apps/web` mínimo do `Bloco 0.1` e o `Bloco 0.2` **enxuto** (`D-028`: tema claro, 15 primitivos, casca de navegação e vitrine mínima); API, banco e login depois.
+- **Tokens:** os valores da §4 são referência histórica; a fonte única é `docs/design/identidade-visual/tokens.json`, e as fontes definitivas são Newsreader, Plus Jakarta Sans e JetBrains Mono (`D-025`). Tema escuro adiado até o usuário pedir (`D-028`).
