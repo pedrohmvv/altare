@@ -14,7 +14,7 @@ const primitives = readdirSync(uiDir)
   .map((file) => file.replace('.tsx', ''))
   .filter((name) => !INTERNAL.has(name))
 
-const vitrineSource = ['design-system-page.tsx', 'Conferencia.tsx', 'tokens-showcase.tsx']
+const vitrineSource = ['design-system-page.tsx', 'primitives-showcase.tsx', 'tokens-showcase.tsx']
   .map((file) => readFileSync(join(import.meta.dirname, file), 'utf-8'))
   .join('\n')
 
@@ -22,6 +22,15 @@ const vitrineSource = ['design-system-page.tsx', 'Conferencia.tsx', 'tokens-show
 describe('vitrine /design-system', () => {
   it.each(primitives)('mostra o primitivo %s', (name) => {
     expect(vitrineSource).toContain(`@/components/ui/${name}'`)
+  })
+
+  it('se apresenta como a vitrine, diz que os exemplos são fictícios e não guarda o rótulo provisório', async () => {
+    await renderRoute('/design-system')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Design System' })).toBeVisible()
+    expect(screen.getByText('Vitrine · dados de exemplo')).toBeVisible()
+    expect(screen.getByText(/exemplos são fictícios/i)).toBeVisible()
+    expect(screen.queryByText(/conferência/i)).not.toBeInTheDocument()
   })
 
   it('lista cada cor do tema claro com a sua função (guia, pág. 20)', async () => {

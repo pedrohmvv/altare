@@ -53,8 +53,9 @@ const ETAPAS = [
   { value: 'c', label: 'Indisponível', disabled: true },
 ]
 
-// Variantes e estados dos primitivos. Hover, ativo e foco são estados vivos: passe o mouse, clique e use Tab.
-export function Conferencia() {
+// Os 16 primitivos com variantes e estados (design-system.md §8). Hover, ativo e foco são estados vivos:
+// passe o mouse, clique e use Tab. Os exemplos são fictícios (AGENTS.md §2).
+export function PrimitivesShowcase() {
   const { toast } = useToast()
 
   return (

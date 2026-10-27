@@ -1,18 +1,18 @@
 import { PageHeader } from '@/components/ui/page-header'
-import { Conferencia } from './Conferencia'
+import { PrimitivesShowcase } from './primitives-showcase'
 import { TokensShowcase } from './tokens-showcase'
 
-// Vitrine em construção (etapa (e)): tokens, tipografia e os primitivos com variantes e estados.
+/** Vitrine do design system, só em desenvolvimento (D-053, D-057): tokens, tipografia e os primitivos. */
 export function DesignSystemPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Exemplo · conferência"
+        eyebrow="Vitrine · dados de exemplo"
         title="Design System"
-        description="Espaço Exemplo A · texto de interface"
+        description="Cores, tipografia e os componentes do Altare, com variantes e estados. Os exemplos são fictícios."
       />
       <TokensShowcase />
-      <Conferencia />
+      <PrimitivesShowcase />
     </>
   )
 }
