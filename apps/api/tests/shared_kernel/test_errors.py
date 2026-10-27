@@ -6,6 +6,7 @@ from wedding.shared_kernel.errors import (
     DomainRuleViolated,
     Forbidden,
     NotFound,
+    TooManyAttempts,
     Unauthenticated,
     VersionConflict,
 )
@@ -46,3 +47,10 @@ def test_todo_erro_de_dominio_herda_de_domain_error():
 
 def test_texto_do_erro_e_o_proprio_code():
     assert str(NotFound()) == "not_found"
+
+
+def test_excesso_de_tentativas_carrega_a_espera_em_segundos():
+    erro = TooManyAttempts(retry_after=300)
+    assert erro.code == "too_many_attempts"
+    assert erro.retry_after == 300
+    assert isinstance(erro, DomainError)
