@@ -202,7 +202,7 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 
 | Componente | Responsabilidade | Detalhes de especificação |
 | :--- | :--- | :--- |
-| **`Money`** | Exibir valores em centavos | Mono tabular, `R$` + U+00A0, vírgula decimal. `precision`: `auto` (sem centavos se inteiro, em cartões e resumos) · `always` (tabelas financeiras, parcelas) · `none`. `tone`: `default` · `comparable` (`accent-ink`, destaque do custo real) · `muted` · `positive` (dentro do teto) · `attention`. `signed` mostra `+`/`−` (extras e diferenças) |
+| **`Money`** | Exibir valores em centavos | Mono tabular, `R$` + U+00A0, vírgula decimal. `precision`: `auto` (sem centavos se inteiro, em cartões e resumos) · `always` (tabelas financeiras, parcelas) · ~~`none`~~ (não construído: nenhuma tela o pede e arredondar na exibição faria o total divergir das linhas, `D-048`). `tone`: `default` · `comparable` (`accent-ink`, destaque do custo real) · `muted` · `positive` (dentro do teto) · `attention`. `signed` mostra `+`/`−` (extras e diferenças) |
 | **`MoneyInput`** | Entrada de valor | Máscara pt-BR, armazena **centavos inteiros**, alinhado à direita, mono; nunca `float` |
 | **`ProfileChip`** | Mostrar autoria/responsável | Avatar com inicial + rótulo `Noivo`/`Noiva`; **`Ambos`** = dois avatares sobrepostos. Sem cor por perfil |
 | **`ProfileLensSwitcher`** | Alternar `Visão do Casal` / `Minha visão` | `SegmentedControl` na barra superior; estado persistido em URL/preferência |
