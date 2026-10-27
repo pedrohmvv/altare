@@ -1092,3 +1092,29 @@
   - Manter o script anti-*hex* adiado: o risco não é o *hex*, e o teste custa quase nada.
   - Proibir todo valor arbitrário, inclusive de layout: obrigaria tokens de espaço sem ganho para o casal.
 - **Pendente:** o mapa precisa de manutenção na mesma mudança que constrói um componente novo, e as linhas de `componentes.py` que ele cita acompanham o guia se ele for regenerado.
+
+---
+
+## D-056 — Etapa (d), Lote 2: Ícone Flutuante do Assistente, Cartão Provisório e o Primitivo `Popover` (Conclui o Item 11 de `D-054`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** construir o lote 2 da etapa (d), o ícone flutuante do Assistente (`D-050`), com o desenho de `D-054` (item 11). O guia não desenha esse elemento nem o seu painel; as duas escolhas abaixo foram feitas pelo usuário com recomendação do agente (`AGENTS.md` §3).
+- **Conferência com o guia (`AGENTS.md` §1, item 4):** pág. 39 (o "Registrar" flutuante: 144 × 48 px, 16 px da borda direita e 16 px acima da barra de 72 px, `build_mobile` `:963`) para posição e geometria; pág. 32 (`build_superficies` `:611-628`) para o raio `pill`, a borda `border-strong` do controle e a sombra de nível 1 (popover). Capturas do app em 1440, 768, 390 e 320 px comparadas com as duas páginas: a pílula mede 146 × 48 px (o texto "Assistente" é mais largo que "Registrar"), fica a 16 px da borda e da barra no celular e a 34 px da borda e 24 px do pé no desktop.
+- **Decisão:**
+  1. **Pílula secundária de 48 px** (o `Button` `secondary` `lg` com raio `pill` e sombra nível 1) com `message-square-text` e o texto "Assistente", em `features/assistant/components/assistant-launcher.tsx`. Monta na casca (`AppShell`), **oculta na própria área `/assistente`** e visível nas demais rotas, inclusive `/design-system` e a página não encontrada. **Nunca abre sozinha.** No celular fica a `--shell-bottom-offset` mais 1 rem do pé, ou seja, acima da barra inferior.
+  2. **Recolhe ao rolar para baixo e volta ao rolar para cima ou no topo** (escolha do usuário, para a pílula nunca cobrir o que se lê em tela curta). Hook `useHiddenOnScrollDown` em `lib/` (limite de 12 px contra tremida). O recolhimento é **só visual** (opacidade e 16 px de deslocamento em 220 ms, que o `prefers-reduced-motion` zera): a pílula continua na ordem de Tab e no leitor de tela, e **reaparece quando recebe foco** por teclado, para ninguém a perder. Com o cartão aberto ela fica à vista. Conferido no Chrome: opacidade 0, sem clique e deslocada ao rolar; opacidade 1 e clicável com foco.
+  3. **O conteúdo reserva 6 rem no fim** (`pb` de `--shell-bottom-offset` mais 6 rem, antes 2 rem) para o ícone nunca cobrir a última linha ao fim da rolagem (medido nos 4 tamanhos: sem sobreposição).
+  4. **Painel provisório como cartão ancorado no canto** (escolha do usuário, entre o diálogo central e o cartão): título "O assistente ainda não está disponível" e duas frases calmas, sem prometer prazo, que explicam que a inteligência chega depois das áreas manuais e que, até lá, tudo continua nas áreas do Altare. Textos em `features/assistant/copy.ts`. Sem campo de texto, sem botão de enviar e sem simular chat; o chat de verdade segue no Bloco 5.3 (`D-008`, `D-042`).
+  5. **Novo primitivo `Popover`** (`components/ui/popover.tsx`, Radix), o primeiro dos "demais primitivos" de §8 pedido por esta tela (`D-028`): cartão ancorado no gatilho, **nível 1 de profundidade da pág. 32** (Marfim, *hairline*, raio 10, sombra suave), **não modal** (não escurece nem trava a página), com título (`aria-labelledby`), descrição opcional (`aria-describedby`), botão Fechar com nome, Esc e clique fora para fechar, foco para dentro ao abrir e de volta ao gatilho ao fechar. Entra na vitrine (o teste de completude exige) e no mapa §15.
+  6. **A feature do assistente deixa de ser carregada sob demanda:** a casca já a importa, então o `chunk` próprio da página não existia mais e o build avisava `INEFFECTIVE_DYNAMIC_IMPORT`. A rota `/assistente` importa `AssistantPage` direto (a página tem 0,6 kB). As demais áreas seguem sob demanda.
+  7. **Desvios do guia, registrados:** a pílula é **secundária** (o "Registrar" da pág. 39 é primário), para ficar mais calma, e **se recolhe ao rolar** (o guia não mostra a flutuante em movimento). O cartão não tem página no guia: segue o nível 1 da pág. 32.
+  8. **Convivência com o "+ Registrar Rápido" segue a `OQ-IA-001`, item 5** (gatilho no Bloco 3.1): até lá o assistente é o dono do canto.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§8 `Popover`, §13 etapa (d) e lista de primitivos adiados, §15 linha do ícone e nova linha do `Popover`); `AGENTS.md` §1 e "Como Retomar"; `roadmap.md` (Bloco 0.2).
+- **Razão:** dar ao assistente o seu lugar na casca desde já (`D-050`), no espírito calmo do guia e sem cobrir o que o casal lê, e criar só o primitivo que a tela pede, com a conferência feita contra as páginas 32 e 39.
+- **O que ficou rejeitado:**
+  - Diálogo central como painel (recomendado pelo agente): o usuário preferiu o cartão no canto, mais próximo do chat futuro.
+  - Manter a pílula fixa mesmo cobrindo texto em tela curta (recomendado pelo agente): o usuário preferiu recolher ao rolar.
+  - Recolher com `visibility: hidden` ou `tabindex="-1"`: tiraria o assistente do teclado e do leitor de tela enquanto a página está rolada.
+  - Pílula primária como o "Registrar" do guia: disputaria a atenção com a ação principal do Bloco 3.1.
+  - Esconder a pílula também na vitrine e na página não encontrada: não há razão, e a vitrine é onde ela se confere.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` no ícone e no cartão (Tab até a pílula com a página rolada, Esc, VoiceOver, zoom de 200%, "reduzir movimento"); o jsdom não prova layout nem animação. **Pendente de desenho:** o `Toast` no celular ocupa a mesma faixa do pé e pode cobrir a pílula por 4 s; revisar quando a primeira notificação real existir.
