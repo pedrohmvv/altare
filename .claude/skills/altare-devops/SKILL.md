@@ -33,7 +33,7 @@ O pipeline roda, nesta ordem lógica, com *path filters* conforme `altare-monore
 4. Antes do deploy: suíte de integração contra **PostgreSQL** em contêiner efêmero.
 5. E2E com Playwright (desktop e mobile), quando o login existir.
 
-O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`).
+O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`). O provedor é o GitHub Actions, e o workflow nasce no PR 1 do Bloco 0.1, parte 2 (`D-059`).
 
 ## Ambientes
 
@@ -78,6 +78,5 @@ Script único (SQLAlchemy lê um e escreve no outro), executado só depois do po
 ## Em aberto
 
 - **Provedor de aplicação** (Fly.io, Render ou Railway), **Postgres gerenciado** (Neon, Supabase só como Postgres, ou o do provedor) e **storage S3-compatível** (Cloudflare R2, Backblaze B2 ou Supabase Storage): não decididos (`stack.md` §9). Decidir quando o Nível 1 estiver utilizável.
-- **Provedor de CI:** os docs não nomeiam um. O repositório está no GitHub, mas a escolha deve ser registrada.
 - **Observabilidade de erros (Sentry, plano gratuito)** antes do deploy; **jobs agendados**, **Web Push** e **WhatsApp** (`stack.md` §10).
 - **Estratégia de backup e retenção:** depende da hospedagem (D-038).
