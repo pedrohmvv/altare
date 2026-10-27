@@ -15,3 +15,87 @@
       0 0 0 4px var(--focus-ring);
   }
 }
+
+/* Movimento calmo (identity.md §8): 220 ms, entrada com --ease-standard e saída com --ease-exit.
+   O prefers-reduced-motion já zera as durações em tokens.css. */
+@keyframes altare-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes altare-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes altare-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes altare-sheet-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes altare-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes altare-dialog-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@utility animate-overlay-in {
+  animation: altare-fade-in var(--duration-base) var(--ease-standard) both;
+}
+
+@utility animate-overlay-out {
+  animation: altare-fade-out var(--duration-base) var(--ease-exit) both;
+}
+
+@utility animate-sheet-in {
+  animation: altare-sheet-in var(--duration-base) var(--ease-standard) both;
+}
+
+@utility animate-sheet-out {
+  animation: altare-sheet-out var(--duration-base) var(--ease-exit) both;
+}
+
+@utility animate-dialog-in {
+  animation: altare-dialog-in var(--duration-base) var(--ease-standard) both;
+}
+
+@utility animate-dialog-out {
+  animation: altare-dialog-out var(--duration-base) var(--ease-exit) both;
+}
