@@ -43,6 +43,7 @@ wedding-planner/
 1. O backend exporta o OpenAPI (`wedding export-openapi`, CLI Typer, `stack.md` §3), com `operationId` estável por rota.
 2. `openapi-typescript` gera os tipos; `openapi-fetch` e `openapi-react-query` os consomem no web.
 3. **Checagem de drift:** o CI roda `make api-types` e falha se `git diff` não estiver vazio. Um teste de adaptador também guarda o *snapshot* do OpenAPI (`architecture.md` §9).
+4. **Caminhos (`D-059`):** o artefato versionado é `apps/api/openapi.json` e os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`.
 
 ## CI com *path filters*
 
@@ -72,5 +73,4 @@ wedding-planner/
 
 ## Em aberto
 
-- **Caminho do artefato OpenAPI versionado e dos tipos gerados:** os docs não fixam. Defina na criação do `apps/api` e registre em `stack.md`.
-- **Provedor de CI** e sintaxe dos *path filters* dependem dele (`altare-devops`).
+- Nada em aberto: o caminho do OpenAPI e o provedor de CI (GitHub Actions) foram definidos em `D-059`.
