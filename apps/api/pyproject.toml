@@ -1,0 +1,124 @@
+[project]
+name = "wedding"
+version = "0.1.0"
+description = "API do Altare (FastAPI, SQLAlchemy síncrono, SQLite)"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.20.1",
+    "fastapi>=0.162.0",
+    "pydantic>=2.14.1",
+    "pydantic-settings>=2.16.1",
+    "sqlalchemy>=2",
+    "typer>=0.27.3",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "hypothesis>=6.170.12",
+    "import-linter>=2.15",
+    "pyright>=1.1.414",
+    "pytest>=9.1.1",
+    "ruff>=0.17.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "N", "C4", "PT", "RUF"]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "standard"
+pythonVersion = "3.13"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.importlinter]
+root_package = "wedding"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Domínio puro: só biblioteca padrão e shared_kernel"
+type = "forbidden"
+source_modules = ["wedding.modules.*.domain"]
+forbidden_modules = [
+    "wedding.platform",
+    "wedding.modules.*.application",
+    "wedding.modules.*.adapters",
+    "wedding.modules.*.infrastructure",
+    "sqlalchemy",
+    "alembic",
+    "fastapi",
+    "starlette",
+    "pydantic",
+    "typer",
+]
+
+[[tool.importlinter.contracts]]
+name = "Aplicação isolada de adaptadores, infraestrutura e platform"
+type = "forbidden"
+source_modules = ["wedding.modules.*.application"]
+forbidden_modules = [
+    "wedding.platform",
+    "wedding.modules.*.adapters",
+    "wedding.modules.*.infrastructure",
+    "sqlalchemy",
+    "fastapi",
+    "starlette",
+]
+
+[[tool.importlinter.contracts]]
+name = "Adaptadores não conhecem a infraestrutura"
+type = "forbidden"
+source_modules = ["wedding.modules.*.adapters"]
+forbidden_modules = ["wedding.modules.*.infrastructure"]
+
+[[tool.importlinter.contracts]]
+name = "Infraestrutura não conhece os adaptadores"
+type = "forbidden"
+source_modules = ["wedding.modules.*.infrastructure"]
+forbidden_modules = ["wedding.modules.*.adapters"]
+
+[[tool.importlinter.contracts]]
+name = "shared_kernel não depende de platform nem dos módulos"
+type = "forbidden"
+source_modules = ["wedding.shared_kernel"]
+forbidden_modules = ["wedding.platform", "wedding.modules"]
+
+[[tool.importlinter.contracts]]
+name = "Módulos independentes: só application.public e domain.events entre eles"
+type = "independence"
+modules = ["wedding.modules.*"]
+ignore_imports = [
+    "wedding.modules.** -> wedding.modules.*.application.public",
+    "wedding.modules.** -> wedding.modules.*.domain.events",
+]
+unmatched_ignore_imports_alerting = "none"
+
+[[tool.importlinter.contracts]]
+name = "Só platform.bootstrap importa adaptadores e infraestrutura dos módulos"
+type = "forbidden"
+source_modules = [
+    "wedding.platform.db",
+    "wedding.platform.http",
+    "wedding.platform.events",
+    "wedding.platform.config",
+    "wedding.shared_kernel",
+]
+forbidden_modules = [
+    "wedding.modules.*.adapters",
+    "wedding.modules.*.infrastructure",
+]
