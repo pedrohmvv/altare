@@ -3,6 +3,7 @@ import {
   createRoute,
   createRouter,
   lazyRouteComponent,
+  notFound,
   type RouterHistory,
 } from '@tanstack/react-router'
 import { AppShell } from '@/app/shell/app-shell'
@@ -22,7 +23,7 @@ const rootRoute = createRootRoute({
   notFoundComponent: NotFoundPage,
 })
 
-const area = (path: string, title: string) => ({
+const area = (path: string, title: string | undefined) => ({
   getParentRoute: () => rootRoute,
   path,
   staticData: { title },
@@ -63,8 +64,15 @@ const routeTree = rootRoute.addChildren([
     component: AssistantPage,
   }),
   createRoute({
-    ...area('/design-system', 'Design System'),
-    component: lazyRouteComponent(() => import('@/app/design-system-page'), 'DesignSystemPage'),
+    // Vitrine só em desenvolvimento (D-053, D-057). Na versão publicada a rota cai na página não
+    // encontrada, e o Vite troca `import.meta.env.DEV` por `false` e descarta a vitrine do pacote.
+    ...area('/design-system', import.meta.env.DEV ? 'Design System' : undefined),
+    beforeLoad: () => {
+      if (!import.meta.env.DEV) throw notFound()
+    },
+    component: import.meta.env.DEV
+      ? lazyRouteComponent(() => import('@/app/design-system-page'), 'DesignSystemPage')
+      : undefined,
   }),
 ])
 

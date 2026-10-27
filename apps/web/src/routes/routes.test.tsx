@@ -1,5 +1,5 @@
 import { screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderRoute } from '@/test/render-route'
 
 const AREAS = [
@@ -37,10 +37,28 @@ describe('rotas das áreas', () => {
     expect(screen.getByRole('link', { name: 'Ir para a Visão Geral' })).toHaveAttribute('href', '/')
   })
 
-  it('a rota /design-system abre a conferência provisória, fora da navegação', async () => {
+  it('em desenvolvimento a rota /design-system abre a vitrine, fora da navegação', async () => {
     await renderRoute('/design-system')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Design System' })).toBeVisible()
+  })
+})
+
+describe('vitrine só em desenvolvimento (D-053, D-057)', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('em produção a rota /design-system não existe: cai na página não encontrada', async () => {
+    vi.stubEnv('DEV', false)
+    await renderRoute('/design-system')
+
+    expect(
+      await screen.findByRole('heading', { name: 'Não encontramos esta página' }),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('heading', { level: 1, name: 'Design System' }),
+    ).not.toBeInTheDocument()
   })
 })
 

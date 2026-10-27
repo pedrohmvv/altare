@@ -44,10 +44,10 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
   - **Marca Altare** (wordmark, símbolo "A sobre a mensa", favicon e ícones, `D-023`), copiada de `docs/design/identidade-visual/` para `public/brand/`, sem redesenho.
   - **15 primitivos** re-estilizados: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader` e `Money`.
   - **Casca de navegação** desktop e mobile, com seletor de lente (`Casal` / `Minha visão`) e as **8 áreas** (as 7 de `D-025` e o **Assistente**, `D-050`) como páginas-esqueleto, mais o ícone flutuante do assistente.
-  - **Vitrine `/design-system` mínima**: tokens, tipografia e cada primitivo com variantes e estados. Acessibilidade verificada manualmente.
-  - **Teste de regras de design** (`D-055`): barra cor, fonte e traço soltos em `src`; o mapa guia → componente (`design-system.md` §15) orientou as etapas (d), com o lote 2 feito em `D-056`, e orienta a (e).
+  - **Vitrine `/design-system`**: tokens, tipografia e cada primitivo com variantes e estados, só em desenvolvimento (`D-057`). Acessibilidade verificada manualmente.
+  - **Teste de regras de design** (`D-055`): barra cor, fonte e traço soltos em `src`; o mapa guia → componente (`design-system.md` §15) orientou as etapas (d), com o lote 2 feito em `D-056`, e (e).
   - **Não entram agora:** componentes de domínio (nascem no bloco que os usa), tema escuro, *snapshots* visuais, `axe` automatizado e impressão. Cada item tem gatilho registrado em `D-028`.
-- **Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos com variantes e estados, no tema claro, em desktop e mobile; as 8 áreas são navegáveis como esqueletos; o app segue a identidade do Altare.
+- **Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos com variantes e estados, no tema claro, em desktop e mobile; as 8 áreas são navegáveis como esqueletos; o app segue a identidade do Altare. **Cumprido em `D-057` (2026-10-27): o Bloco 0.2 está concluído.**
 - **Critério de conclusão do Nível 0:** Você e sua noiva conseguem abrir o app no computador e no celular, entrar com o próprio login, alternar a lente (`Casal` / `Minha visão`) e navegar pela estrutura visual pronta. *(O alternador de tema saiu do critério em `D-028`; volta quando o tema escuro for pedido.)*
 
 ---
