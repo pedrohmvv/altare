@@ -38,6 +38,16 @@ describe('EmptyState', () => {
     )
   })
 
+  // Guia, pág. 31: o ramo grande é o da tela de login e do 404.
+  it('usa o ramo grande quando pedido, para a página não encontrada', () => {
+    const { container } = render(<EmptyState title="Nada por aqui" illustration="ramo-grande" />)
+
+    expect(container.querySelector('img')).toHaveAttribute(
+      'src',
+      '/brand/ornamentos/ramo-grande.svg',
+    )
+  })
+
   it('não expõe o ornamento como imagem ao leitor de tela', () => {
     render(<EmptyState title="Nada por aqui" />)
 

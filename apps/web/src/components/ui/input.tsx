@@ -47,8 +47,8 @@ export function Input({
         return (
           <div
             className={cn(
-              'flex min-h-10 items-center gap-2 rounded-control border bg-surface px-3',
-              'transition-colors duration-fast ease-standard max-md:min-h-12 pointer-coarse:min-h-11',
+              'flex min-h-11 items-center gap-2 rounded-control border bg-surface px-3',
+              'transition-colors duration-fast ease-standard',
               error ? 'border-attention-ink' : 'border-border-strong',
               'has-[input:focus-visible]:shadow-[0_0_0_2px_var(--focus-gap,var(--canvas)),0_0_0_4px_var(--focus-ring)]',
               'has-[input:disabled]:opacity-40',

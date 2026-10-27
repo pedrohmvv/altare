@@ -41,7 +41,8 @@ export function Table({
         // biome-ignore lint/a11y/noNoninteractiveTabindex: região rolável precisa de foco para rolar por teclado (design-system.md §7)
         tabIndex={0}
         className={cn(
-          'overflow-auto rounded-card border border-border bg-surface [--focus-gap:var(--surface)]',
+          // `isolate` prende os z-index internos (cabeçalho 10, canto 20) dentro da tabela: sem ele o canto passa por cima da barra superior.
+          'isolate overflow-auto rounded-card border border-border bg-surface [--focus-gap:var(--surface)]',
           containerClassName,
         )}
       >

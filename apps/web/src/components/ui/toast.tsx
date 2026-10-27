@@ -114,7 +114,7 @@ export function ToastProvider({ children }: { children?: ReactNode }) {
             >
               <Icon aria-hidden className="mt-0.5 size-5 shrink-0" />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <RadixToast.Title className="text-body font-medium">{item.title}</RadixToast.Title>
+                <RadixToast.Title className="text-ui font-semibold">{item.title}</RadixToast.Title>
                 {item.description && (
                   <RadixToast.Description className="text-body-sm">
                     {item.description}

@@ -55,7 +55,7 @@ export function SegmentedControl({
           disabled={option.disabled}
           className={cn(
             'inline-flex h-7 items-center justify-center rounded-control border border-transparent px-4',
-            'text-body-sm font-medium whitespace-nowrap text-ink-muted transition-colors duration-fast ease-standard',
+            'text-ui-sm font-medium whitespace-nowrap text-ink-muted transition-colors duration-fast ease-standard',
             'pointer-coarse:min-h-11 hover:text-ink disabled:cursor-default disabled:opacity-40',
             'data-[state=on]:border-border data-[state=on]:bg-surface data-[state=on]:font-semibold data-[state=on]:text-ink',
           )}

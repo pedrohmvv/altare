@@ -30,7 +30,7 @@ export function Field({ label, hint, error, required, id, className, children }:
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={controlId} className="text-body-sm font-medium text-ink">
+      <label htmlFor={controlId} className="text-body-sm font-semibold text-ink">
         {label}
         {required && ' '}
         {required && <span className="font-normal text-ink-muted">(obrigatório)</span>}

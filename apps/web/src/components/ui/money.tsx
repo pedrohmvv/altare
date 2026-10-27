@@ -20,7 +20,7 @@ export type MoneyProps = Omit<ComponentProps<'span'>, 'children'> &
   FormatMoneyOptions & {
     /** Valor em centavos inteiros (nunca `float`). */
     cents: number
-    /** `comparable` destaca o custo real comparável; `positive` e `attention` marcam teto e estouro. */
+    /** `comparable` destaca os custos extras (terracota); `positive` e `attention` marcam teto e estouro. */
     tone?: 'default' | 'comparable' | 'muted' | 'positive' | 'attention'
   }
 

@@ -6,8 +6,8 @@ import { cn } from '@/lib/cn'
 
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center gap-2 rounded-control font-medium whitespace-nowrap',
-    'text-body transition-colors duration-fast ease-standard',
+    'inline-flex items-center justify-center gap-2 rounded-control font-semibold whitespace-nowrap',
+    'text-ui transition-colors duration-fast ease-standard',
     'pointer-coarse:min-h-11 pointer-coarse:min-w-11',
     'disabled:cursor-default disabled:opacity-40 [&_svg]:size-5 [&_svg]:shrink-0',
   ],
@@ -17,16 +17,16 @@ const buttonVariants = cva(
         primary: 'bg-primary text-primary-ink hover:bg-primary-hover active:bg-primary-hover',
         secondary:
           'border border-border-strong bg-surface text-ink hover:bg-surface-muted active:bg-surface-sunken',
-        ghost: 'text-ink hover:bg-surface-muted active:bg-surface-sunken',
+        ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink active:bg-surface-sunken',
         'soft-destructive':
           'bg-attention-bg text-attention-ink hover:brightness-95 active:brightness-90',
         link: 'text-primary underline underline-offset-4 hover:text-primary-hover',
       },
       size: {
         sm: 'h-8 px-3 text-body-sm',
-        md: 'h-10 px-4 max-md:h-12',
+        md: 'h-10 px-4 max-md:h-11',
         lg: 'h-12 px-5',
-        icon: 'size-10 max-md:size-12',
+        icon: 'size-10 max-md:size-11',
       },
     },
     compoundVariants: [

@@ -36,15 +36,18 @@ describe('formatMoney', () => {
     expect(formatMoney(100_000_000, { precision: 'always' })).toBe(`R$${NBSP}1.000.000,00`)
   })
 
-  it('escreve o negativo com o sinal de menos tipográfico antes do R$', () => {
-    expect(formatMoney(-125_000, { precision: 'always' })).toBe(`${MINUS}R$${NBSP}1.250,00`)
-    expect(formatMoney(-150)).toBe(`${MINUS}R$${NBSP}1,50`)
+  it('escreve o negativo com o sinal de menos tipográfico, afastado do R$', () => {
+    expect(formatMoney(-125_000, { precision: 'always' })).toBe(`${MINUS}${NBSP}R$${NBSP}1.250,00`)
+    expect(formatMoney(-150)).toBe(`${MINUS}${NBSP}R$${NBSP}1,50`)
   })
 
+  // Guia, págs. 28 e 34 (identity.md §1.4): "+ R$ 1.200,00", com espaço depois do sinal.
   it('com signed mostra + e − e deixa o zero sem sinal', () => {
-    expect(formatMoney(125_000, { signed: true, precision: 'always' })).toBe(`+R$${NBSP}1.250,00`)
+    expect(formatMoney(125_000, { signed: true, precision: 'always' })).toBe(
+      `+${NBSP}R$${NBSP}1.250,00`,
+    )
     expect(formatMoney(-125_000, { signed: true, precision: 'always' })).toBe(
-      `${MINUS}R$${NBSP}1.250,00`,
+      `${MINUS}${NBSP}R$${NBSP}1.250,00`,
     )
     expect(formatMoney(0, { signed: true })).toBe(`R$${NBSP}0`)
     expect(formatMoney(-0, { signed: true })).toBe(`R$${NBSP}0`)
