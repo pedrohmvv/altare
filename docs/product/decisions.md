@@ -987,3 +987,24 @@
   - Truncar "Possibilidades" na barra inferior: rótulo cortado deixaria o destino ilegível.
   - Instalar outro Node só para rodar o `dependency-cruiser`: mudaria o ambiente do usuário sem ele pedir.
   - Esperar o Bloco 1.1 para ter limites verificados: a primeira feature já chegou.
+
+---
+
+## D-052 — Casca de Navegação Alinhada ao Guia de Identidade (Revisa os Itens 7 e 11 de `D-051`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** ao comparar a casca com a aplicação "Visão Geral no desktop" do guia (`altare-identidade-visual.pdf`, gerada por `build/componentes.py`), apontou que o espaçamento e as opções do canto superior direito estavam diferentes.
+- **Decisão:**
+  1. **O guia é a referência visual da casca** (aprovado em `D-025`), com as medidas lidas do próprio gerador: barra lateral com itens de 40 px a cada 46 px, ícone de 20 px, rótulo de 12 px, ativo em `surface-muted` com ícone `primary` e rótulo em seminegrito; marca de 26 px; barra superior de 72 px com o título em `ink` seminegrito; conteúdo com recuo de 34 px.
+  2. **Ícones das áreas voltam aos do guia:** `layout-dashboard`, `map`, `calendar`, `scale`, `wallet`, `users` e `gift`; no celular, `house`, `scale`, `wallet`, `users` e `ellipsis`. Os ícones escolhidos em `D-050`/`D-051` (`house`, `compass`, `calendar-days`, `columns-3`, `contact`) foram um erro do agente, que não conferiu o guia. O Assistente, ausente do guia, segue com `message-square-text`.
+  3. **Seletor de lente como no guia:** trilho `surface-sunken` com a opção ativa em `surface`, contornada por *hairline* e em seminegrito (não mais oliva cheio), com os rótulos **"Visão do Casal"** e "Minha visão". É o novo visual do primitivo `SegmentedControl`.
+  4. **Celular como no guia:** barra de 72 px, ícone de 22 px, rótulo de 12 px, ativo em `primary` e seminegrito (sem a faixa superior), **rótulos abreviados "Possib." e "Orçam."** (o leitor de tela lê "Possibilidades" e "Orçamento", que contêm o texto visível) e a **ordem do guia: Início, Possib., Orçam., Contatos, Mais**. Isso substitui o nome "Opções" de `D-051` (item 7) e diverge da ordem de `design-system.md` §10.1, que foi atualizado. O guia não mostra a lente no celular, então ela vai para o topo da folha "Mais".
+  5. **Textura de papel** sobre o canvas no tema claro (`identity.md` §6), com a opacidade do `tokens.json` (`--texture-opacity`, gerada), num pseudo-elemento fixo abaixo do conteúdo, desligada em impressão e com transparência reduzida.
+  6. **Tamanhos fora da escala:** o guia usa 15 px no título da barra superior, 13 px no seletor e 11 px nos rótulos do celular; o app usa os tokens mais próximos (16, 14 e 12 px), porque só classes de token entram nos componentes.
+  7. **Fica para o login:** o bloco "Noivo · sessão individual" no pé da barra lateral. O selo "conteúdo ilustrativo" é marcação do guia, não da interface.
+- **Ajustes em arquivos aprovados:** `design-system.md` §10.1 (tabela com os ícones e o celular do guia e as medidas).
+- **Razão:** a casca é a primeira tela que o casal vê, e o guia aprovado já define como ela deve parecer; divergir dele sem decisão contraria `AGENTS.md` §1.
+- **O que ficou rejeitado:**
+  - Manter os ícones e o nome "Opções" escolhidos pelo agente: contrariam o guia aprovado.
+  - Manter a ordem de §10.1 no celular (Contatos antes de Orçamento): o usuário pediu fidelidade ao guia.
+  - Valores de 15, 13 e 11 px escritos à mão: quebrariam a regra de só usar tokens; se a diferença incomodar, o caminho é acrescentar o tamanho ao `tokens.json`.

@@ -235,19 +235,19 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 7. **Estados vazios, carregando e erro:** conforme `identity.md` §9.
 8. **Atalhos de teclado (desktop):** `g` + letra navega às áreas, `n` novo item, `/` busca (documentados na vitrine; opcionais na v1).
 
-### 10.1 Navegação (aprovada em `D-025`, §14 item 1; Assistente acrescentado em `D-050`)
-| Posição | Desktop (barra lateral) | Ícone (Lucide) | Mobile (barra inferior) |
-| :--- | :--- | :--- | :--- |
-| 1 | Visão Geral | `house` | **Início** (Visão Geral) |
-| 2 | Planejamento & Caminhos | `compass` | **Possibilidades** |
-| 3 | Cronograma & Dependências | `calendar-days` | **Contatos** |
-| 4 | Possibilidades & Decisões | `columns-3` | **Orçamento** |
-| 5 | Orçamento & Simulador | `wallet` | **Mais** → folha com Planejamento, Cronograma, Convidados/Enxoval/Dia D e Assistente |
-| 6 | Contatos & Fornecedores | `contact` | — |
-| 7 | Convidados, Enxoval & Dia D | `users` | — |
-| 8 | **Assistente** (separado por hairline; `D-050`) | `message-square-text` | Dentro de "Mais" |
+### 10.1 Navegação (aprovada em `D-025`, §14 item 1; Assistente acrescentado em `D-050`; ícones e celular conforme o guia em `D-052`)
+| Posição | Desktop (barra lateral) | Ícone (Lucide) | Mobile (barra inferior) | Ícone no mobile |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Visão Geral | `layout-dashboard` | **Início** | `house` |
+| 2 | Planejamento & Caminhos | `map` | **Possib.** (Possibilidades) | `scale` |
+| 3 | Cronograma & Dependências | `calendar` | **Orçam.** (Orçamento) | `wallet` |
+| 4 | Possibilidades & Decisões | `scale` | **Contatos** | `users` |
+| 5 | Orçamento & Simulador | `wallet` | **Mais** → folha com a lente de visão, Planejamento, Cronograma, Convidados/Enxoval/Dia D e Assistente | `ellipsis` |
+| 6 | Contatos & Fornecedores | `users` | — | — |
+| 7 | Convidados, Enxoval & Dia D | `gift` | — | — |
+| 8 | **Assistente** (separado por hairline; `D-050`) | `message-square-text` | Dentro de "Mais" | — |
 
-Os ícones de navegação têm 24 px e traço de 1,5 px (`identity.md` §7), sempre com rótulo. O ícone do Assistente evita `message-circle` (reservado ao WhatsApp) e `messages-square` (reservado à divergência).
+Medidas do guia de identidade (aplicação "Visão Geral no desktop" e "Mobile"): barra lateral com itens de 40 px a cada 46 px, ícone de 20 px e rótulo de 12 px, ativo com fundo `surface-muted`, ícone `primary` e rótulo em seminegrito; barra superior de 72 px; barra inferior de 72 px, ícone de 22 px e rótulo de 12 px, ativo em `primary` e seminegrito. Os rótulos abreviados ("Possib.", "Orçam.") têm o nome completo para o leitor de tela. O ícone do Assistente, que não existe no guia, evita `message-circle` (WhatsApp) e `messages-square` (divergência).
 
 Racional: no celular o casal consulta próximo passo, compara opções, abre WhatsApp e confere saldo (`D-003`); áreas de planejamento profundo ficam em "Mais" e continuam completas no desktop.
 
