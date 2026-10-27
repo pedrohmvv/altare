@@ -10,3 +10,8 @@ venv/
 # Dados locais e dependências (stack.md §8)
 data/
 node_modules/
+
+# Artefatos de build e testes
+dist/
+coverage/
+*.tsbuildinfo
