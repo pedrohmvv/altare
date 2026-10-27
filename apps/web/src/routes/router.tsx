@@ -6,6 +6,7 @@ import {
   type RouterHistory,
 } from '@tanstack/react-router'
 import { AppShell } from '@/app/shell/app-shell'
+import { AssistantPage } from '@/features/assistant'
 import { NotFoundPage } from './not-found'
 
 /** A lente fica na URL: ausente é `Casal`, `minha` é `Minha visão` (D-021). Qualquer outro valor vira `Casal`. */
@@ -58,7 +59,8 @@ const routeTree = rootRoute.addChildren([
   }),
   createRoute({
     ...area('/assistente', 'Assistente'),
-    component: lazyRouteComponent(() => import('@/features/assistant'), 'AssistantPage'),
+    // Sem carregamento sob demanda: o ícone flutuante, na casca, já traz esta feature para o pacote principal.
+    component: AssistantPage,
   }),
   createRoute({
     ...area('/design-system', 'Design System'),

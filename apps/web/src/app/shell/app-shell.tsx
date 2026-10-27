@@ -1,11 +1,21 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useRouterState } from '@tanstack/react-router'
+import { AssistantLauncher } from '@/features/assistant'
 import { BottomNav } from './bottom-nav'
 import { RouteAnnouncer } from './route-announcer'
 import { SidebarNav } from './sidebar-nav'
 import { TopBar } from './top-bar'
 
-/** Casca do app: barra lateral (desktop) ou trilho (tablet), barra superior, conteúdo e barra inferior (celular). */
+/**
+ * Casca do app: barra lateral (desktop) ou trilho (tablet), barra superior, conteúdo, barra inferior
+ * (celular) e o ícone flutuante do Assistente. O conteúdo reserva 6 rem no fim (48 px do ícone mais
+ * respiro) para o ícone nunca cobrir a última linha.
+ */
 export function AppShell() {
+  // Na própria área Assistente o ícone seria redundante (D-050).
+  const inAssistantArea = useRouterState({
+    select: (state) => state.location.pathname === '/assistente',
+  })
+
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[4.5rem_minmax(0,1fr)] lg:grid-cols-[16rem_minmax(0,1fr)]">
       <a
@@ -20,12 +30,13 @@ export function AppShell() {
         <TopBar />
         <main
           id="conteudo"
-          className="mx-auto w-full max-w-[75rem] flex-1 px-4 pt-6 pb-[calc(var(--shell-bottom-offset)+2rem)] md:px-8.5 md:pt-9"
+          className="mx-auto w-full max-w-[75rem] flex-1 px-4 pt-6 pb-[calc(var(--shell-bottom-offset)+6rem)] md:px-8.5 md:pt-9"
         >
           <Outlet />
         </main>
       </div>
       <BottomNav />
+      {!inAssistantArea && <AssistantLauncher />}
     </div>
   )
 }
