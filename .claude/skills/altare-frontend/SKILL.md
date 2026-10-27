@@ -1,12 +1,13 @@
 ---
 name: altare-frontend
 description: >-
-  Convenções do frontend do Altare (apps/web: React 19, TypeScript, Vite, TanStack Router/Query/Table, React Hook Form + Zod, Tailwind v4): estrutura de pastas e limites (routes, features, components/ui, components/domain), onde mora cada tipo de estado, formulários com erro 422, atualização otimista, dinheiro em centavos, performance e testes com Vitest. Use sempre que for criar ou alterar tela, rota, componente, hook, formulário ou chamada de API no apps/web, mesmo que o pedido seja só 'adiciona uma tela de X' ou 'conecta isso na API'. Inclui o padrão do widget de chat flutuante (Bloco 5.3). NÃO use para aparência, tokens e primitivos (use altare-design), fluxos e heurísticas (use altare-ui-ux), checklist de acessibilidade (use altare-acessibilidade), textos (use altare-conteudo-copy) ou rotas e contratos do backend (use altare-backend-api).
+  Convenções do frontend do Altare (apps/web: React 19, TypeScript, Vite, TanStack Router/Query/Table, React Hook Form + Zod, Tailwind v4): estrutura de pastas e limites (routes, features, components/ui, components/domain), onde mora cada tipo de estado, formulários com erro 422, atualização otimista, dinheiro em centavos, performance e testes com Vitest. Use sempre que for criar ou alterar tela, rota, componente, hook, formulário, estilo ou chamada de API no apps/web, mesmo que o pedido seja só 'adiciona uma tela de X', 'ajusta esse espaçamento', 'monta essa página' ou 'conecta isso na API'; toda UI parte da página correspondente do guia de identidade (mapa em design-system.md §15). Inclui o padrão do widget de chat flutuante (Bloco 5.3). NÃO use para aparência, tokens e primitivos (use altare-design), fluxos e heurísticas (use altare-ui-ux), checklist de acessibilidade (use altare-acessibilidade), textos (use altare-conteudo-copy) ou rotas e contratos do backend (use altare-backend-api).
 ---
 
 # Frontend do Altare
 
 ## Docs a consultar
+- **`docs/design/design-system.md` §15 (mapa guia → componente)** e o guia em `docs/design/identidade-visual/`: toda tela e todo componente começam na página do guia.
 - `docs/engineering/architecture.md` §11 (estrutura e regras do frontend) e §9 (gate de limites, `D-051`).
 - `docs/engineering/stack.md` §5 (escolhas), §5.1 (onde mora cada cálculo), §6 (sessão e lente), §7 (testes).
 - `docs/design/design-system.md` §9 (props dos componentes de domínio), §10 (padrões de interface), §12.
@@ -43,7 +44,11 @@ description: >-
 11. **Performance proporcional a 2 usuários.** Sem virtualização nem `memo` preventivo antes de medir. O que vale: *debounce* no simulador, tabela comparativa (TanStack Table) com rolagem contida no próprio contêiner, rotas carregadas sob demanda (*code splitting* por rota) para o PWA abrir rápido no celular e fontes autohospedadas.
 12. **PDF começa nativo** (`<object>` ou nova aba). `react-pdf` só quando o painel lateral pedir (`stack.md` §5).
 
+## UI vem do guia
+Tela ou componente novo não nasce só do texto de `design-system.md`: foi assim que a casca divergiu do guia (`D-052`). Antes de escrever o JSX, siga o fluxo de **`altare-design`, "Fonte visual: o guia"**: achar a linha no mapa (§15), abrir o PNG da página e ler a medida em `build/componentes.py`. Divergir exige decisão registrada (`AGENTS.md` §2, regra 6).
+
 ## Checklist (tela ou componente novo)
+- [ ] Conferi com a página do guia pelo mapa (§15) e os desvios estão registrados.
 - [ ] Li o doc de feature e os critérios de aceite viraram testes.
 - [ ] Imports respeitam a regra de camadas (gate de limites verde).
 - [ ] Nenhum cálculo de negócio no cliente; nenhum `float` em valor.

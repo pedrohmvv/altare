@@ -49,13 +49,14 @@ Hypothesis serve onde há **propriedade**, não exemplo: soma das parcelas fecha
 | Lint e formato web | **Biome** (inclui regras de acessibilidade); Ruff não se aplica | `apps/web` | Sim |
 | Tipos web | `tsc` (`strict`) | `apps/web` | Sim |
 | Limites entre `features` | **Gate de limites** (`architecture.test.ts`, `D-051`) | `apps/web` | Sim |
+| Regras de design | **Teste de regras** (`design-rules.test.ts`, `D-055`): cor, fonte e traço só por token | `apps/web` | Sim |
 | Testes web | Vitest, inclusive o que falha se `tokens.css` estiver defasado | `apps/web` | Sim |
 | Build do web e drift do OpenAPI | `make api-types` sem diff | monorepo | Sim |
 | E2E | Playwright desktop e mobile | após o login | Sim, quando existir |
 | Suíte em PostgreSQL | pytest contra Postgres | `apps/api` | Bloqueia o **deploy** |
 | Acessibilidade | verificação manual (`altare-acessibilidade`) | PR que toca UI | Sim, via checklist do PR |
 
-Adiados por `D-028`, com gatilho: `axe` automatizado, *snapshots* visuais e script contra `hex` em componente. Não os reintroduza sem o gatilho.
+Adiados por `D-028`, com gatilho: `axe` automatizado e *snapshots* visuais. Não os reintroduza sem o gatilho. O script contra `hex` em componente saiu da lista: virou o teste de regras de design (`D-055`).
 
 `pre-commit` roda localmente os verificadores rápidos para o erro aparecer antes do commit. O que roda só no CI fica fora do hook para não travar o commit atômico.
 
