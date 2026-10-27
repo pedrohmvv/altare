@@ -4,7 +4,7 @@
 @layer base {
   /* Espaço que a barra inferior do celular ocupa; o Toast e o conteúdo o respeitam (design-system.md §5). */
   :root {
-    --shell-bottom-offset: calc(4rem + env(safe-area-inset-bottom));
+    --shell-bottom-offset: calc(4.5rem + env(safe-area-inset-bottom));
   }
 
   @media (min-width: 48rem) {

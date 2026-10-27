@@ -103,7 +103,7 @@ describe('seletor de lente', () => {
     const group = within(screen.getAllByRole('banner')[0] as HTMLElement).getByRole('radiogroup', {
       name: 'Lente de visão',
     })
-    expect(within(group).getByRole('radio', { name: 'Casal' })).toBeChecked()
+    expect(within(group).getByRole('radio', { name: 'Visão do Casal' })).toBeChecked()
     expect(within(group).getByRole('radio', { name: 'Minha visão' })).not.toBeChecked()
   })
 
@@ -122,7 +122,7 @@ describe('seletor de lente', () => {
     await waitFor(() => expect(router.state.location.search).toMatchObject({ lente: 'minha' }))
     expect(screen.getByRole('radio', { name: 'Minha visão' })).toBeChecked()
 
-    await userEvent.click(screen.getByRole('radio', { name: 'Casal' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Visão do Casal' }))
     await waitFor(() => expect(router.state.location.search.lente).toBeUndefined())
     expect(router.state.location.href).not.toContain('lente')
   })
@@ -140,18 +140,38 @@ describe('seletor de lente', () => {
 })
 
 describe('barra inferior do celular', () => {
-  it('tem 4 destinos mais o botão Mais', async () => {
+  it('tem 4 destinos mais o botão Mais, com os rótulos curtos do guia', async () => {
     await renderRoute('/')
     await screen.findByRole('heading', { level: 1 })
 
     const bar = within(bottomBar())
-    expect(
-      bar
-        .getAllByRole('link')
-        .map((link) => link.textContent)
-        .sort(),
-    ).toEqual(['Contatos', 'Início', 'Opções', 'Orçamento'])
+    // Ordem do guia de identidade (Visão Geral no celular), a mesma da barra lateral.
+    expect(bar.getAllByRole('link').map((link) => link.textContent)).toEqual([
+      'Início',
+      'Possib.',
+      'Orçam.',
+      'Contatos',
+    ])
     expect(bar.getByRole('button', { name: 'Mais' })).toBeInTheDocument()
+  })
+
+  it('os rótulos abreviados têm o nome completo para o leitor de tela', async () => {
+    await renderRoute('/')
+    await screen.findByRole('heading', { level: 1 })
+
+    const bar = within(bottomBar())
+    expect(bar.getByRole('link', { name: 'Possibilidades' })).toHaveTextContent('Possib.')
+    expect(bar.getByRole('link', { name: 'Orçamento' })).toHaveTextContent('Orçam.')
+  })
+
+  it('no celular a lente fica na folha Mais', async () => {
+    await renderRoute('/')
+    await screen.findByRole('heading', { level: 1 })
+
+    await userEvent.click(within(bottomBar()).getByRole('button', { name: 'Mais' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Mais áreas' })
+    expect(within(dialog).getByRole('radiogroup', { name: 'Lente de visão' })).toBeInTheDocument()
   })
 
   it('o Mais abre uma folha com as demais áreas, inclusive o Assistente', async () => {
@@ -185,11 +205,11 @@ describe('barra inferior do celular', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
-  it('marca o destino atual e usa o nome curto Opções para Possibilidades & Decisões', async () => {
+  it('marca o destino atual da barra inferior', async () => {
     await renderRoute('/possibilidades')
     await screen.findByRole('heading', { level: 1 })
 
-    expect(within(bottomBar()).getByRole('link', { name: 'Opções' })).toHaveAttribute(
+    expect(within(bottomBar()).getByRole('link', { name: 'Possibilidades' })).toHaveAttribute(
       'aria-current',
       'page',
     )

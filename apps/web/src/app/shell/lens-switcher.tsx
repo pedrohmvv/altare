@@ -3,7 +3,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import type { RootSearch } from '@/routes/router'
 
 const OPTIONS = [
-  { value: 'casal', label: 'Casal' },
+  { value: 'casal', label: 'Visão do Casal' },
   { value: 'minha', label: 'Minha visão' },
 ]
 

@@ -20,7 +20,7 @@ export function AppShell() {
         <TopBar />
         <main
           id="conteudo"
-          className="mx-auto w-full max-w-[75rem] flex-1 px-4 py-8 pb-[calc(var(--shell-bottom-offset)+2rem)] md:px-8"
+          className="mx-auto w-full max-w-[75rem] flex-1 px-4 pt-6 pb-[calc(var(--shell-bottom-offset)+2rem)] md:px-8.5 md:pt-9"
         >
           <Outlet />
         </main>
