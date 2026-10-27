@@ -7,6 +7,11 @@ import { Textarea } from '@/components/ui/textarea'
 
 const VARIANTS = ['primary', 'secondary', 'ghost', 'soft-destructive', 'link'] as const
 const SIZES = ['sm', 'md', 'lg'] as const
+const CATEGORIAS = [
+  { value: 'espaco', label: 'Espaço' },
+  { value: 'buffet', label: 'Buffet' },
+  { value: 'foto', label: 'Fotografia (indisponível)', disabled: true },
+]
 
 // Conferência visual dos primitivos (etapa (c)); a vitrine /design-system a substitui na etapa (e).
 export function Conferencia() {
@@ -56,13 +61,13 @@ export function Conferencia() {
         <Input label="Campo desabilitado" disabled defaultValue="Espaço Exemplo B" />
         <Textarea label="Observações" hint="Só vocês dois veem isto" />
         <Textarea label="Observações com erro" error="Escreva ao menos uma frase." />
-        <Select label="Categoria" placeholder="Escolha uma categoria">
-          <option value="espaco">Espaço</option>
-          <option value="buffet">Buffet</option>
-        </Select>
-        <Select label="Categoria com erro" error="Escolha uma categoria." placeholder="Escolha">
-          <option value="espaco">Espaço</option>
-        </Select>
+        <Select label="Categoria" placeholder="Escolha uma categoria" options={CATEGORIAS} />
+        <Select
+          label="Categoria com erro"
+          error="Escolha uma categoria."
+          placeholder="Escolha"
+          options={CATEGORIAS}
+        />
         <div className="flex flex-col">
           <Checkbox label="Incluir bebidas" />
           <Checkbox label="Marcado" defaultChecked />
