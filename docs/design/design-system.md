@@ -30,6 +30,7 @@ Tokens (CSS variables)  →  Primitivos UI (shadcn/Radix re-estilizados)  →  C
 
 - **Distribuição:** dentro do repositório (`apps/web/src/components`), **não** como pacote publicado (uso pessoal, `D-002`).
 - **Base:** shadcn/ui (código copiado) sobre Radix, **totalmente re-estilizado** com os tokens. Nenhum componente é usado "de fábrica".
+- **Acesso à vitrine:** `/design-system` não está no menu aprovado; em desenvolvimento há um link discreto no pé da barra lateral, ausente na versão publicada (`D-053`).
 - **Vitrine:** rota interna `/design-system` **mínima** (tokens, tipografia e cada primitivo com variantes e estados, no tema claro). Cresce junto com os componentes (`D-028`).
 - **Dados de exemplo:** a vitrine e os testes usam **dados claramente fictícios e rotulados** ("Espaço Exemplo", "Fornecedor Exemplo"). Nunca dados reais ou inventados do casamento (`AGENTS.md`).
 

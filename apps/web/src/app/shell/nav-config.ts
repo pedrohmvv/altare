@@ -6,6 +6,7 @@ import {
   type LucideIcon,
   Map as MapIcon,
   MessageSquareText,
+  Palette,
   Scale,
   Users,
   Wallet,
@@ -22,7 +23,7 @@ export type AreaPath =
   | '/assistente'
 
 export interface NavItem {
-  to: AreaPath
+  to: AreaPath | '/design-system'
   /** Nome da área na barra lateral e na folha "Mais". Igual ao título da página. */
   label: string
   /** Ícone da barra lateral e da folha "Mais" (guia de identidade, Visão Geral no desktop). */
@@ -74,3 +75,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/convidados', label: 'Convidados, Enxoval & Dia D', icon: Gift, group: 'areas' },
   { to: '/assistente', label: 'Assistente', icon: MessageSquareText, group: 'assistant' },
 ]
+
+/**
+ * Atalho para a conferência dos primitivos, só em desenvolvimento (D-053). Fica fora de `NAV_ITEMS`:
+ * não é uma das 8 áreas aprovadas e nunca aparece na versão publicada.
+ */
+export const DESIGN_SYSTEM_ITEM: NavItem = {
+  to: '/design-system',
+  label: 'Design system',
+  icon: Palette,
+  group: 'assistant',
+}

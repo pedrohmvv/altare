@@ -1008,3 +1008,20 @@
   - Manter os ícones e o nome "Opções" escolhidos pelo agente: contrariam o guia aprovado.
   - Manter a ordem de §10.1 no celular (Contatos antes de Orçamento): o usuário pediu fidelidade ao guia.
   - Valores de 15, 13 e 11 px escritos à mão: quebrariam a regra de só usar tokens; se a diferença incomodar, o caminho é acrescentar o tamanho ao `tokens.json`.
+
+---
+
+## D-053 — Atalho Discreto para o Design System, só em Desenvolvimento
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** "Inclua uma forma não tão invasiva de visualizar o design system", depois de a página de conferência sair da raiz para `/design-system` e ficar sem link.
+- **Decisão:**
+  1. **Um link "Design system" no pé da barra lateral**, separado do menu por uma *hairline*, **visível só com `import.meta.env.DEV`** (`make dev`). O Vite o remove do *build* de produção, conferido no pacote gerado. Vale também para o trilho do tablet, onde mostra só o ícone (`palette`) com dica.
+  2. **Não faz parte das 8 áreas** (`NAV_ITEMS`) nem do `nav` principal; é um item à parte, `DESIGN_SYSTEM_ITEM`. A navegação aprovada (`D-025`, `D-050`) fica intacta na versão publicada, e o celular não ganha o atalho.
+  3. **Etapa (e):** a vitrine definitiva herda a rota e o atalho; se o casal precisar vê-la na versão publicada, é decisão nova.
+- **Ajustes em arquivos aprovados:** `design-system.md` §2 (nota sobre o acesso à vitrine).
+- **Razão:** o catálogo é ferramenta de quem desenvolve; um link só em desenvolvimento o deixa a um clique sem poluir a navegação do casal nem exigir mudança de produto.
+- **O que ficou rejeitado:**
+  - Link permanente no menu: altera a navegação aprovada e mostra ao casal uma ferramenta de desenvolvimento.
+  - Atalho de teclado escondido: ninguém o descobre, e um atalho global precisaria de decisão sobre conflitos (`design-system.md` §10, item 8).
+  - Item na folha "Mais" do celular: o desenvolvimento dos primitivos é feito no desktop.

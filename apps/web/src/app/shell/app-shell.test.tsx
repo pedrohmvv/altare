@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderRoute } from '@/test/render-route'
 
 const AREA_NAMES = [
@@ -213,5 +213,44 @@ describe('barra inferior do celular', () => {
       'aria-current',
       'page',
     )
+  })
+})
+
+describe('acesso ao design system', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('em desenvolvimento há um link discreto no pé da barra lateral, fora do menu das áreas', async () => {
+    await renderRoute('/')
+    await screen.findByRole('heading', { level: 1 })
+
+    const link = within(screen.getByRole('complementary')).getByRole('link', {
+      name: 'Design system',
+    })
+    expect(link).toHaveAttribute('href', '/design-system')
+    expect(within(sidebar()).queryByRole('link', { name: 'Design system' })).not.toBeInTheDocument()
+  })
+
+  it('em produção o link não existe e o menu continua só com as áreas aprovadas', async () => {
+    vi.stubEnv('DEV', false)
+    await renderRoute('/')
+    await screen.findByRole('heading', { level: 1 })
+
+    expect(screen.queryByRole('link', { name: 'Design system' })).not.toBeInTheDocument()
+  })
+
+  it('o link abre a página do design system e fica marcado como atual', async () => {
+    await renderRoute('/')
+    await screen.findByRole('heading', { level: 1 })
+
+    await userEvent.click(
+      within(screen.getByRole('complementary')).getByRole('link', { name: 'Design system' }),
+    )
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Design System' })).toBeVisible()
+    expect(
+      within(screen.getByRole('complementary')).getByRole('link', { name: 'Design system' }),
+    ).toHaveAttribute('aria-current', 'page')
   })
 })
