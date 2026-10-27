@@ -30,8 +30,8 @@ Tokens (CSS variables)  →  Primitivos UI (shadcn/Radix re-estilizados)  →  C
 
 - **Distribuição:** dentro do repositório (`apps/web/src/components`), **não** como pacote publicado (uso pessoal, `D-002`).
 - **Base:** shadcn/ui (código copiado) sobre Radix, **totalmente re-estilizado** com os tokens. Nenhum componente é usado "de fábrica".
-- **Acesso à vitrine:** `/design-system` não está no menu aprovado; em desenvolvimento há um link discreto no pé da barra lateral, ausente na versão publicada (`D-053`).
-- **Vitrine:** rota interna `/design-system` **mínima** (tokens, tipografia e cada primitivo com variantes e estados, no tema claro). Cresce junto com os componentes (`D-028`).
+- **Acesso à vitrine:** `/design-system` não está no menu aprovado e **só existe em desenvolvimento** (`D-053`, `D-057`): há um link discreto no pé da barra lateral, e a rota e o link somem da versão publicada, onde a URL cai na página não encontrada.
+- **Vitrine:** rota interna `/design-system`, **definitiva** desde `D-057` (tokens, tipografia e cada primitivo com variantes e estados, no tema claro). Cresce junto com os componentes (`D-028`).
 - **Dados de exemplo:** a vitrine e os testes usam **dados claramente fictícios e rotulados** ("Espaço Exemplo", "Fornecedor Exemplo"). Nunca dados reais ou inventados do casamento (`AGENTS.md`).
 
 ---
@@ -276,7 +276,7 @@ Racional: no celular o casal consulta próximo passo, compara opções, abre Wha
 | **Definição de pronto (UI)** | Todo componente ou tela do `apps/web` só está pronto quando foi **comparado com a página do guia** que o define (§15: abrir o PNG, ler a medida em `build/componentes.py`) e **cada divergência está registrada** em `decisions.md`. Vale também para estados que o guia não mostra: o espírito do guia, com a decisão registrada |
 | **Componentes puros** | Só recebem *props*: sem regra de negócio, sem chamada de API, sem acesso a `features` (`architecture.md` §11) |
 | **Utilitário de classes** | `cn()` (`clsx` + `tailwind-merge`) e `cva` (`class-variance-authority`) para variantes |
-| **Vitrine `/design-system`** | **Mínima**: tokens (cores com função), tipografia e cada primitivo com variantes e estados, no tema claro, legível em desktop e mobile. Ganha seções conforme os componentes surgem |
+| **Vitrine `/design-system`** | **Definitiva** (`D-057`), só em desenvolvimento: tokens (cores com função), tipografia e cada primitivo com variantes e estados, no tema claro, legível em desktop e mobile. Ganha seções conforme os componentes surgem; um teste exige que cada arquivo de `components/ui` apareça nela |
 | **Testes** | Vitest + Testing Library para comportamento (variantes, estados, teclado onde houver lógica) e para a navegação da casca. **Sem *snapshots* visuais e sem `axe` no CI** |
 | **Acessibilidade** | Verificação **manual** (teclado, foco, contraste) + regras de acessibilidade do Biome no lint (§7) |
 | **Dados de exemplo** | Claramente fictícios e rotulados ("Espaço Exemplo"); nunca dados do casamento (`AGENTS.md`) |
@@ -292,7 +292,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 2. **Ativos de marca:** copiar do pacote `docs/design/identidade-visual/` para `public/brand/`; favicon e ícones no `index.html`.
 3. **Primitivos (15), concluída em 2026-10-27 (`D-049`):** `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money` (mono tabular).
 4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as **8 áreas** (as 7 de `D-025` e o Assistente, `D-050`) como páginas-esqueleto com `EmptyState`. **Lote 1 (casca, rotas e seletor de lente) feito em `D-051`; lote 2, o ícone flutuante do assistente, feito em `D-056`.**
-5. **Vitrine `/design-system`:** tokens, tipografia e cada primitivo com variantes e estados.
+5. **Vitrine `/design-system`:** tokens, tipografia e cada primitivo com variantes e estados. **Concluída em `D-057`, só em desenvolvimento.**
 
 **Adiado, com gatilho para retomar:**
 
@@ -309,7 +309,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 | Menu do usuário | Com o login (restante do Bloco 0.1) |
 | E2E de navegação com Playwright | Com o login (restante do Bloco 0.1) |
 
-**Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos listados com variantes e estados, no tema claro, em desktop e mobile; as 7 áreas são navegáveis como esqueletos; o app segue a identidade do Altare.
+**Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos listados com variantes e estados, no tema claro, em desktop e mobile; as 8 áreas são navegáveis como esqueletos; o app segue a identidade do Altare. **Conferido e cumprido em `D-057`.**
 
 ---
 
