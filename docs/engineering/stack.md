@@ -156,12 +156,12 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Lint/format Python | **Ruff** (lint + format) |
 | Tipos Python | **Pyright** (modo `standard`, endurecer gradualmente) |
 | Arquitetura Python | **`import-linter`** com os contratos de `architecture.md` §9 |
-| Testes backend | **pytest** + `httpx`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
+| Testes backend | **pytest** + `httpx2`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
 | E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
-| Hooks locais | `pre-commit` (ruff, biome, pyright e import-linter), criado com o `apps/api` no PR 1 (`D-043`, `D-059`) |
+| Hooks locais | `pre-commit` com hooks locais que chamam os alvos do Makefile (`make lint-api`, `make typecheck-api`, `make lint-web`: ruff, import-linter, pyright e biome); `pre-commit install` é feito por clone (`D-043`, `D-059`, `D-060`) |
 | CI (GitHub Actions, criado no PR 1, `D-059`) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
-| Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make typecheck`, `make api-types`, `make migrate` |
+| Comandos | **Makefile** na raiz: `make dev`, `build`, `lint`, `typecheck`, `test` (os três com variantes `-api` e `-web`) e `migrate`; `make api-types` entra no PR 2 (`D-060`) |
 | Contrato OpenAPI | `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`; o drift é `make api-types && git diff --exit-code` (`D-059`) |
 
 ---
