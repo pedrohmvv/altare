@@ -67,14 +67,24 @@ describe('buildTokensCss', () => {
     expect(mapped).toBeGreaterThan(reset)
   })
 
-  it('mapeia as famílias de fonte pelo nome do Fontsource, com o nome da marca e os fallbacks do tokens.json', () => {
-    expect(css).toContain('--font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;')
+  it('mapeia as famílias pelo nome do Fontsource e da marca, com a reserva de métrica antes dos fallbacks do tokens.json', () => {
     expect(css).toContain(
-      '--font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;',
+      '--font-serif: "Newsreader Variable", "Newsreader", "Newsreader Fallback", Georgia, serif;',
     )
     expect(css).toContain(
-      '--font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;',
+      '--font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", system-ui, sans-serif;',
     )
+    expect(css).toContain(
+      '--font-mono: "JetBrains Mono Variable", "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, monospace;',
+    )
+  })
+
+  // identity.md §4 e guia, pág. 29: fallbacks com size-adjust para reduzir o salto de layout (D-054).
+  it('declara a reserva de cada família com size-adjust sobre uma fonte local', () => {
+    expect(css).toContain('font-family: "Newsreader Fallback";\n  src: local("Georgia");')
+    expect(css).toContain('font-family: "Plus Jakarta Sans Fallback";\n  src: local("Arial");')
+    expect(css).toContain('font-family: "JetBrains Mono Fallback";\n  src: local("Courier New");')
+    expect(css.match(/size-adjust: [\d.]+%;/g)).toHaveLength(3)
   })
 
   it('gera o utilitário de texto com tamanho mobile e o desktop em media query', () => {
@@ -138,5 +148,27 @@ describe('buildTokensCss', () => {
 describe('tokens.css versionado', () => {
   it('está em dia com o tokens.json (rode `pnpm tokens:build` se este teste falhar)', () => {
     expect(buildTokensCss(realTokens as Tokens)).toBe(versionedCss)
+  })
+})
+
+// Guia, pág. 26 e D-054: o guia desenha texto de interface em 15, 13 e 11 px, que a escala original
+// (40/32/24/20/18/16/14/12) não tinha.
+describe('escala tipográfica do tokens.json', () => {
+  const escala = (realTokens as Tokens).tipografia.escala
+  const find = (token: string) => escala.find((e) => e.token === token)
+
+  it.each([
+    ['ui', 15, 22],
+    ['ui-sm', 13, 18],
+    ['ui-xs', 11, 14],
+  ])('tem o token %s em %i/%i, sempre em sans', (token, px, lh) => {
+    expect(find(token)).toMatchObject({ familia: 'sans', px, lh, mobile: `${px}/${lh}` })
+  })
+
+  it('gera o utilitário de texto de cada tamanho novo', () => {
+    const generated = buildTokensCss(realTokens as Tokens)
+    expect(generated).toContain('@utility text-ui {')
+    expect(generated).toContain('@utility text-ui-sm {')
+    expect(generated).toContain('@utility text-ui-xs {')
   })
 })

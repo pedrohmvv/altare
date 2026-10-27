@@ -1025,3 +1025,70 @@
   - Link permanente no menu: altera a navegação aprovada e mostra ao casal uma ferramenta de desenvolvimento.
   - Atalho de teclado escondido: ninguém o descobre, e um atalho global precisaria de decisão sobre conflitos (`design-system.md` §10, item 8).
   - Item na folha "Mais" do celular: o desenvolvimento dos primitivos é feito no desktop.
+
+---
+
+## D-054 — Auditoria do `apps/web` contra o Guia de Identidade: Tamanhos 15, 13 e 11 px, Alturas de Campo e Alinhamento dos Primitivos e da Casca (Revisa o Item 6 de `D-052`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** auditar tudo o que existe no `apps/web` (15 primitivos, vitrine, casca, esqueletos, tokens, tipografia, ícones, movimento, textura) contra o guia de identidade visual e corrigir o que divergir, porque a casca e os primitivos nasceram sem conferência com as páginas de aplicação do guia (`D-052`).
+- **Método:** hierarquia de verdade explícita (1. `tokens.json`, valores; 2. o guia, composição e medidas, lidas em `build/componentes.py` e `medidas.json`; 3. `identity.md`; 4. `design-system.md`, onde diverge o guia vence; 5. o código nunca é fonte). Cada item foi classificado em A (guia claro, corrigir), B (ambíguo ou fora da escala, decisão do usuário), C (guia não cobre) ou D (já decidido); capturas do app em 1440, 768, 390 e 320 px foram comparadas com os PNGs do guia. Resultado: 17 itens A, 7 B, 4 C e 12 D; tokens, marca, cores semânticas, foco, superfícies, movimento e as medidas da casca já estavam conformes.
+- **Decisão:**
+  1. **Três tamanhos entram no `tokens.json`** (revisa o item 6 de `D-052`): `ui` 15/22 (botões, linhas de cartão e descrições de estado), `ui-sm` 13/18 (selos, lente) e `ui-xs` 11/14 (rótulo da barra inferior). Os 12,5 px do guia viram 13 e o título de 38 px fica em `display` (40). O guia (página 26) e o `tokens.css` foram regenerados; os SVGs de componentes cujo desenho não mudou foram restaurados, porque o subconjunto de fonte embutido muda de bytes a cada execução do pipeline.
+  2. **Alturas de controle como no guia:** campos (`Input`, `Select`) com **44 px** em qualquer tela, botão `md` com 40 px no desktop e **44 px no celular** (antes 48); `lg` segue em 48. Revisa `design-system.md` §5 (`D-025`).
+  3. **Tipografia:** a Newsreader passa a carregar o eixo óptico (`opsz.css`, +74 KB no arquivo latin), como a fonte do guia; *preload* da Newsreader 400 e da Plus Jakarta Sans 400 no `index.html`; reservas de métrica `"<Família> Fallback"` com `size-adjust`, `ascent-override` e `descent-override` medidos com `fontTools` (Georgia 90,5%, Arial 106,2%, Courier New 100%), geradas no `tokens.css` (`identity.md` §4, guia pág. 29).
+  4. **Ícones:** todo ícone Lucide com traço de **1,5 px que não escala** (`LucideProvider` com `strokeWidth` 1,5 e `nonScalingStroke` em `providers.tsx`), porque os tamanhos vêm de classes CSS e `absoluteStrokeWidth` mede pela prop `size`. Antes valia o padrão 2 (guia pág. 33).
+  5. **Primitivos:** `Button` em seminegrito, 15 px, e `ghost` em `ink-muted`; rótulo de campo em seminegrito; `Badge` em **pílula** de 26 px, 13 px, seminegrito, neutro em `ink-muted`; `EmptyState` com ramo de 64 px, título `name` e opção `ramo-grande` (a do 404, pág. 31); `Toast` com título em seminegrito; `SegmentedControl` em 13 px; `Tooltip` no **nível 1** da pág. 32 (Marfim, *hairline*, sombra suave) no lugar do escuro; `Table` com `isolate`, para o canto fixo não passar por cima da barra superior; **`Money` com espaço depois do sinal** (`+ R$ 1.200,00`, `− R$ 3.100`).
+  6. **Casca:** *wordmark* de 29 px de altura (versal de 26 px) e símbolo de 27 px no celular, com as posições do guia; rótulos da barra lateral numa linha só; barra inferior com rótulos de `ui-xs`; ícones da folha "Mais" em `ink-muted` e o ativo em `primary`; as páginas-esqueleto com o estado vazio dentro de um `Card`.
+  7. **Títulos editoriais nas 8 áreas** (padrão das págs. 38 a 40): o rótulo nomeia a área e o `h1` diz o que a página é; o título do documento e a barra superior seguem com o nome da área. Visão Geral usa o texto exato do guia ("O momento de vocês"). As outras sete são textos propostos e aprovados nesta decisão:
+
+     | Área | Rótulo | Título (h1) |
+     | :--- | :--- | :--- |
+     | Visão Geral | Visão geral | O momento de vocês |
+     | Planejamento & Caminhos | Planejamento | O rumo de vocês |
+     | Cronograma & Dependências | Cronograma | O que pode andar agora |
+     | Possibilidades & Decisões | Possibilidades | Comparar propostas |
+     | Orçamento & Simulador | Orçamento | O orçamento de vocês |
+     | Contatos & Fornecedores | Contatos | Quem vocês estão consultando |
+     | Convidados, Enxoval & Dia D | Convidados | Quem estará com vocês |
+     | Assistente | Assistente | Conversem com o assistente |
+
+  8. **Custo comparável como no guia** (págs. 34 e 40): o total sai em `ink`, mono de 24 px, e a terracota fica só nos custos extras, com ícone e sinal `+`. Corrige `design-system.md` §9 e `visual-direction.md` §2.3 e §3. O tom `comparable` do `Money` passa a ser o dos extras.
+  9. **Vitrine `/design-system`:** ganha as seções Cores (as 17 do `tokens.json`, com a função) e Tipografia (a escala inteira, com a amostra), o `SegmentedControl` e os estados que faltavam (carregando e desabilitado em todas as variantes do botão, `Textarea`, `Select` e `Checkbox` desabilitados, aba desabilitada, ramo grande). Um teste falha se um arquivo de `components/ui` não aparecer na vitrine.
+  10. **Desvios aceitos, registrados:** cabeçalho de `Table` com fundo `surface-muted` e linha em sans (o guia, pág. 28, é a linha de orçamento, componente de domínio, revista quando o `BudgetRow` nascer); `Toast` com raio de 10 px e *hairline* (precisa se separar do conteúdo, nível 1); barra superior opaca, sem a textura de 3,5% (evita o conteúdo aparecer por baixo ao rolar); `Dialog`, `Tabs`, `Checkbox`, lista do `Select`, folha "Mais" e tom `info` do `Toast` aprovados como estão, por não terem página no guia; lupa do celular (pág. 39) adiada até a busca global do Bloco 3.1 (`D-034`); rótulo de 11 px na barra inferior por fidelidade ao guia, abaixo dos 12 px da escala anterior.
+  11. **Ícone flutuante do Assistente** (lote 2 da etapa (d), `D-050`), que o guia não mostra: **pílula secundária de 48 px** com `message-square-text` e o texto "Assistente" (`surface`, borda `border-strong`, sombra de nível 1), no canto inferior direito e acima da barra inferior no celular, para ficar mais calma que o "Registrar" primário da pág. 39. A construção segue como lote 2.
+- **Ajustes em arquivos aprovados:** `tokens.json` (três tamanhos) e o guia regenerado (HTML, PDF, página 26); `design-system.md` §4 (escala), §5 (raios e alturas), §8 (`Badge`) e §9 (`Money` e `ComparableCostBreakdown`); `visual-direction.md` §2.3 e §3 (custo comparável).
+- **Razão:** o guia foi aprovado em `D-024` e `D-025`, e o app divergia dele em detalhes que o casal vê todo dia: traço dos ícones, peso dos títulos, quebra de linha na barra lateral, forma dos selos e alturas. Corrigir por medida lida do gerador do guia, e não a olho, evita repetir o `D-052`.
+- **O que ficou rejeitado:**
+  - Aproximar 15, 13 e 11 px dos tokens existentes: o usuário preferiu acrescentar os tamanhos para ficar fiel ao desenho do guia.
+  - Manter campos de 40 px e botões de 48 px no celular: o guia mostra 44 px nos dois.
+  - `absoluteStrokeWidth` do Lucide: mede pela prop `size`, e aqui o tamanho vem de classes.
+  - Manter o título de cada área igual ao nome dela: repete a barra superior e destoa das páginas do guia.
+  - Manter o total comparável em terracota: o guia reserva a terracota aos extras.
+  - Reabrir o regenerar dos 53 SVGs de componentes sem mudança de desenho: só enchia o diff de ruído.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` (teclado, zoom de 200%, VoiceOver e "reduzir movimento"); o reflow de 320 px sem rolagem horizontal foi verificado por script nas 10 rotas.
+
+---
+
+## D-055 — O Guia de Identidade como Referência Obrigatória do Front: Mapa guia → Componente, Regra nas Skills e Teste de Regras de Design (Revisa o Gatilho do Script Anti-*hex* de `D-028`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** garantir que, de agora em diante, qualquer trabalho de front seja feito com o guia de identidade como referência obrigatória, ajustando a documentação para agentes e os gates de revisão, para o próximo agente não precisar ouvir o usuário reclamar para consultar o guia.
+- **Causa (da auditoria de `D-054`):** nenhuma skill nem doc mandava abrir as páginas de **aplicação** do guia (32 a 42) antes de construir; `altare-design` citava a pasta só para tokens e pipeline, e `altare-frontend`, `altare-ui-ux` e `altare-code-review` nem a citavam. Os primitivos (`D-046` a `D-049`) saíram do texto de `design-system.md`, sem conferência, e a casca nasceu diferente do guia (`D-052`). A auditoria achou 17 divergências corrigíveis.
+- **Decisão:**
+  1. **Mapa guia → componente** em `design-system.md` §15, fora da pasta gerada do guia (que o pipeline sobrescreve): uma tabela com cada componente, tela ou padrão do app, a página do guia (PNG e SVG de aplicação), as linhas de `build/componentes.py` com as medidas e o estado (conforme, desvio com `D-xxx`, sem página ou pendente). É o índice único para o qual as skills apontam, com a hierarquia de verdade explícita (1. `tokens.json`; 2. o guia; 3. `identity.md`; 4. `design-system.md`; 5. o código nunca é fonte).
+  2. **Definição de pronto de UI** (`design-system.md` §12): todo componente ou tela só está pronto depois de **comparado com a página do guia**, com cada divergência registrada.
+  3. **`AGENTS.md`:** regra inegociável nova em §2 (item 6, curta) e um passo obrigatório em "Como Retomar" (item 4: achar a linha no mapa, abrir o PNG, ler a medida, comparar ao terminar). O `CLAUDE.md` da raiz continua sem regras, só apontando.
+  4. **Skills,** que apontam para o mapa e não copiam o conteúdo: `altare-design` ganha a seção "Fonte visual: o guia", antes dos princípios, com o fluxo (ache a página no mapa, abra o PNG, leia a medida em `componentes.py`, só então implemente, compare ao terminar); `altare-frontend` e `altare-ui-ux` (fluxo e estados contra as págs. 34, 35, 37 a 40 e 42) remetem a ele; `altare-code-review` passa a **bloquear** "UI sem conferência contra a página do guia, ou valor divergente sem decisão registrada"; `altare-pull-request` ganha o item "comparado com o guia, com captura quando houver mudança visual". As `description` de `altare-design`, `altare-frontend` e `altare-ui-ux` passam a disparar em pedidos de UI e visual mesmo sem a palavra "guia" ("ajusta o espaçamento", "cria a tela de X").
+  5. **Teste de regras de design ativado, revisando o gatilho de `D-028`** (`apps/web/scripts/design-rules.ts`, `src/design-rules.test.ts`, rodado pelo `make test`): falha com *hex*, `rgb()`/`hsl()` e afins literais, classe arbitrária de cor, fonte, traço ou sombra que não leia um token com `var(--…)` (`bg-[…]`, `text-[15px]`, `font-[600]`) e valor solto de cor ou fonte em `style`. Layout arbitrário (`min-w-[36rem]`, `grid-cols-[…]`, `calc()`) segue livre. Avaliação que levou à ativação: o código tinha **0 *hex*** e só valores arbitrários de layout, de modo que o gatilho de `D-028` ("*hex* mais de uma vez") não disparou, mas o risco real mostrado por `D-054` é o desvio de valor sem *hex* (`text-[15px]` seria a saída fácil para o que acabou virando token). Custo: um teste de milissegundos, sem infraestrutura. O gate foi conferido com violações reais, depois desfeitas. `D-028` fica como histórico.
+  6. **Limite assumido:** o teste barra valor solto, mas **não prova que a composição bate com o guia**. Isso continua sendo a conferência com o mapa (itens 1 a 4) e o bloqueio da revisão.
+- **Ajustes em arquivos aprovados:** `design-system.md` §12 (linha "Só token em componentes", definição de pronto), §13 (gatilho cumprido), cabeçalho e §15 (novo mapa); `AGENTS.md` §1, §2, §4 e "Como Retomar"; `roadmap.md` (Bloco 0.2); skills `altare-design`, `altare-frontend`, `altare-ui-ux`, `altare-code-review`, `altare-pull-request` e `altare-testes-qa` (tabela de gates). A ordem das etapas do roadmap não muda.
+- **Razão:** o guia foi aprovado, mas só valia se alguém o abrisse. Um mapa único, uma regra curta e um bloqueio na revisão põem a conferência no caminho de quem constrói e de quem revisa, e o teste tira da memória a regra "só token".
+- **O que ficou rejeitado:**
+  - Copiar as medidas do guia para as skills: criaria uma segunda verdade que diverge da primeira (`AGENTS.md` §5: skills apontam).
+  - Colocar o mapa dentro da pasta do guia: o pipeline (`uv run build.py`) a sobrescreve.
+  - Regra no `CLAUDE.md` da raiz: `AGENTS.md` é a fonte única das regras operacionais.
+  - *Snapshots* visuais contra os PNGs do guia: continuam adiados (`D-028`), por custo e sem o gatilho de regressões recorrentes.
+  - Manter o script anti-*hex* adiado: o risco não é o *hex*, e o teste custa quase nada.
+  - Proibir todo valor arbitrário, inclusive de layout: obrigaria tokens de espaço sem ganho para o casal.
+- **Pendente:** o mapa precisa de manutenção na mesma mudança que constrói um componente novo, e as linhas de `componentes.py` que ele cita acompanham o guia se ele for regenerado.

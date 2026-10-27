@@ -4,7 +4,7 @@
 >
 > **Status:** **Aprovado pelo usuário em 2026-10-27 (`D-025`)**. Linguagem de forma (cantos moderados) e tema claro + escuro em `D-022` (2026-10-26). Mudanças a partir daqui exigem nova decisão registrada.
 >
-> **Escopo enxuto (`D-028`, 2026-10-27):** design system proporcional a um app pessoal de duas pessoas. O Bloco 0.2 constrói **tema claro, 15 primitivos, casca de navegação e uma vitrine mínima** (§13). §8 e §9 continuam como **inventário de referência**: o restante nasce no bloco que o usa. Tema escuro, *snapshots* visuais, `axe` automatizado, script anti-*hex* e impressão foram **adiados com gatilho** (§13).
+> **Escopo enxuto (`D-028`, 2026-10-27):** design system proporcional a um app pessoal de duas pessoas. O Bloco 0.2 constrói **tema claro, 15 primitivos, casca de navegação e uma vitrine mínima** (§13). §8 e §9 continuam como **inventário de referência**: o restante nasce no bloco que o usa. Tema escuro, *snapshots* visuais, `axe` automatizado e impressão foram **adiados com gatilho** (§13); o script anti-*hex* foi ativado como teste de regras de design em `D-055` (§12).
 >
 > Implementa `docs/design/visual-direction.md` e `docs/design/identity.md` (cores, fontes, marca, ornamento) em tokens, componentes e padrões. Este documento é a **especificação do Bloco 0.2** do roadmap.
 
@@ -110,8 +110,11 @@ Valores de cada papel (claro e escuro) estão em `docs/design/identity.md` §3.3
 | `name` | Serifa | 20/28 | 500 | **Nome de espaço/fornecedor/cenário em cartões** |
 | `body-lg` | Sans | 18/28 | 400 | Introduções |
 | `body` | Sans | 16/24 | 400/500 | Texto e controles (**mínimo 16 px em campos no mobile**, evita *zoom* do iOS) |
+| `ui` | Sans | 15/22 | 400/600 | Botões, linhas de cartão e descrições de estado (`D-054`) |
 | `body-sm` | Sans | 14/20 | 400/500 | Metadados, tabelas densas |
+| `ui-sm` | Sans | 13/18 | 400/600 | Selos, lente de visão e rótulos de apoio (`D-054`) |
 | `eyebrow` | Sans | 12/16, maiúsculas, `tracking .08em` | 600 | Rótulo acima de títulos |
+| `ui-xs` | Sans | 11/14 | 500/600 | Rótulo da barra inferior no celular (`D-054`) |
 | `num-xl` | Mono | 24/32 | 500 | Totais em `StatBlock` |
 | `num-lg` | Mono | 20/28 | 500 | Custo comparável em cartões |
 | `num` | Mono | 16/24 | 400 | Valores em linhas |
@@ -126,12 +129,12 @@ Todo token mono aplica `font-variant-numeric: tabular-nums`. Largura máxima de 
 | Categoria | Valores |
 | :--- | :--- |
 | **Espaçamento** (base 4 px) | `1`=4 · `2`=8 · `3`=12 · `4`=16 · `5`=20 · `6`=24 · `8`=32 · `10`=40 · `12`=48 · `16`=64 |
-| **Raios** (`D-022` — cantos moderados) | `control`=6 px (botões, campos, badges retangulares) · `card`=10 px (cartões, overlays, gavetas) · `thumb`=8 px (miniaturas) · `pill`=9999 (chips e avatares) |
+| **Raios** (`D-022` — cantos moderados) | `control`=6 px (botões, campos) · `card`=10 px (cartões, overlays, gavetas) · `thumb`=8 px (miniaturas) · `pill`=9999 (selos/badges, chips e avatares, `D-054`) |
 | **Bordas** | `1px solid border` (divisória) · `1px solid border-strong` (controle) · foco: anel duplo (§7) |
 | **Profundidade** | Nível 0: **plano + hairline** (cartões, tabelas) · Nível 1 (popover/menu): `0 4px 16px rgb(35 42 34/.08)` + hairline · Nível 2 (diálogo/gaveta): `0 12px 32px rgb(35 42 34/.12)`. **Escuro: sem sombra**; profundidade por degraus de `surface` |
 | **Z-index** | `sticky`=10 · `nav`=20 · `drawer`=30 · `modal`=40 · `popover`=50 · `toast`=60 |
 | **Breakpoints** | `sm` 640 · `md` 768 · `lg` 1024 · `xl` 1280 · `2xl` 1536 |
-| **Alturas de controle** | `sm` 32 (denso, desktop) · `md` 40 (padrão desktop) · `lg` 48 (padrão mobile). Com `pointer: coarse`, nenhum alvo < 44 px |
+| **Alturas de controle** | **Botão:** `sm` 32 (denso, desktop) · `md` 40 (padrão; **44 no celular**) · `lg` 48. **Campos** (`Input`, `Select`): **44 em qualquer tela**, como no guia (`D-054`, revisa `D-025`). Com `pointer: coarse`, nenhum alvo < 44 px |
 
 ### Casca do aplicativo (shell)
 | Faixa | Layout |
@@ -181,7 +184,7 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 | **Checkbox · Radio · Switch** | Com rótulo clicável | Alvo 44 px no mobile |
 | **SegmentedControl** | 2–5 opções | Base do seletor de lente e das classificações |
 | **Tabs** | Horizontal; no mobile rolável | Abas das áreas (ex.: Orçamento Ativo / Simulador / Pagamentos) |
-| **Badge** | `neutral` · `consensus` · `attention` · `primary` · `outline`; com ícone | Selos "Consenso Favorito", "1 extra pendente", "Acima do teto" |
+| **Badge** | `neutral` (`surface-sunken` com `ink-muted`) · `consensus` · `attention` · `primary` · `outline`; com ícone | **Pílula** de 26 px, 13 px em seminegrito, como os selos do guia (págs. 34 e 38 a 40). Selos "Consenso Favorito", "1 extra pendente", "Acima do teto" |
 | **Tag editorial** | Itálico serifa, `surface-muted` | Etiquetas de categoria/estilo |
 | **Avatar** | Inicial em `pill` `surface-sunken` | Sem cor por perfil |
 | **Card** | `default` · `interactive` (hover com `border-strong`) · `muted` | Plano, sem sombra, raio `card` |
@@ -203,13 +206,13 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 
 | Componente | Responsabilidade | Detalhes de especificação |
 | :--- | :--- | :--- |
-| **`Money`** | Exibir valores em centavos | Mono tabular, `R$` + U+00A0, vírgula decimal. `precision`: `auto` (sem centavos se inteiro, em cartões e resumos) · `always` (tabelas financeiras, parcelas) · ~~`none`~~ (não construído: nenhuma tela o pede e arredondar na exibição faria o total divergir das linhas, `D-048`). `tone`: `default` · `comparable` (`accent-ink`, destaque do custo real) · `muted` · `positive` (dentro do teto) · `attention`. `signed` mostra `+`/`−` (extras e diferenças) |
+| **`Money`** | Exibir valores em centavos | Mono tabular, `R$` + U+00A0, vírgula decimal. `precision`: `auto` (sem centavos se inteiro, em cartões e resumos) · `always` (tabelas financeiras, parcelas) · ~~`none`~~ (não construído: nenhuma tela o pede e arredondar na exibição faria o total divergir das linhas, `D-048`). `tone`: `default` · `comparable` (`accent-ink`, para os custos extras, `+ R$`; o total comparável usa `default` em `num-xl`, `D-054`) · `muted` · `positive` (dentro do teto) · `attention`. `signed` mostra `+`/`−` (extras e diferenças); o sinal vem **separado do `R$` por espaço não separável** (`+ R$ 1.200,00`, guia págs. 28 e 34) |
 | **`MoneyInput`** | Entrada de valor | Máscara pt-BR, armazena **centavos inteiros**, alinhado à direita, mono; nunca `float` |
 | **`ProfileChip`** | Mostrar autoria/responsável | Avatar com inicial + rótulo `Noivo`/`Noiva`; **`Ambos`** = dois avatares sobrepostos. Sem cor por perfil |
 | **`ProfileLensSwitcher`** | Alternar `Visão do Casal` / `Minha visão` | `SegmentedControl` na barra superior; estado persistido em URL/preferência |
 | **`ConsensusBadge`** | Indicador de alinhamento do casal (`D-012`) | Estados: *Consenso Favorito* (sálvia, `heart-handshake`) · *Conversar juntos* (argila, `messages-square`) · *Ambos descartariam* (neutro) · *Aguardando avaliação* (neutro, mostra quem falta) |
 | **`RatingPair`** | Avaliação individual dupla | Duas colunas (`Noivo`, `Noiva`): classificação em `SegmentedControl` (`Favorito`/`Gostei`/`Com ressalvas`/`Descartaria`) + nota **1–5 em botões numéricos mono** (não estrelas) + comentário. Edita apenas a coluna do usuário logado; a do outro é leitura (`D-021`) |
-| **`ComparableCostBreakdown`** | Normalizador de custo comparável | Linhas: Preço de capa · `+` extras (cada um com rótulo e `Money signed`) · linha total em `Money tone="comparable"` + selo "1 extra pendente" quando aplicável. Mostra a mensagem do tom de voz (ex.: "abaixo/acima do teto") |
+| **`ComparableCostBreakdown`** | Normalizador de custo comparável | Linhas: Preço de capa · `+` extras (cada um com rótulo e `Money signed`) · linha total em `Money` `default`, `num-xl`, sobre `surface-muted` (a terracota fica só nos extras, guia págs. 34 e 40, `D-054`) + selo "1 extra pendente" quando aplicável. Mostra a mensagem do tom de voz (ex.: "abaixo/acima do teto") |
 | **`ComparisonTable`** | Quadro lado a lado (3–5 colunas) | Colunas ≥ 280 px, primeira coluna fixa; linha "Custo real comparável" em destaque; linha de `RatingPair` resumido; realce de "Menor custo real" com `Badge consensus`; mobile vira cartões empilhados com abas deslizantes |
 | **`NextStepCard`** | Próximo Passo Único | Ação, data-alvo (mono), `ProfileChip` responsável; urgente = `accent-ink` + `circle-arrow-right` |
 | **`DependencyStatus`** | Cronograma | `Destravado` (sálvia, `lock-open`) / `Bloqueado` (neutro, `lock`) com *popover* "Aguardando: …" |
@@ -269,7 +272,8 @@ Racional: no celular o casal consulta próximo passo, compara opções, abre Wha
 | :--- | :--- |
 | **Fonte única de tokens** | `docs/design/identidade-visual/tokens.json` (`D-024`); `apps/web/src/styles/tokens.css` é **gerado** por script a partir dele e **nunca editado à mão**. Mudar um token = editar o `tokens.json`, regenerar o guia e o `tokens.css`. Um teste do Vitest falha se o `tokens.css` estiver desatualizado |
 | **Tema** | Só o **claro** no Nível 0, com nomes semânticos e `data-theme="light"` no `<html>`. Escuro adiado (§13) |
-| **Sem *hex* em componentes** | **Convenção documentada**: `#RRGGBB` só em `tokens.css` e nos SVGs de marca; componentes usam classes de token (`bg-surface`, `text-ink`). Sem script de CI por enquanto (gatilho em §13) |
+| **Só token em componentes** | `#RRGGBB` só em `tokens.css` e nos SVGs de marca; componentes usam classes de token (`bg-surface`, `text-ink`, `text-ui`). **Um teste do Vitest (`src/design-rules.test.ts`, `scripts/design-rules.ts`, `D-055`) falha** com *hex*, `rgb()`/`hsl()` literal, classe arbitrária de cor, fonte, traço ou sombra sem `var(--…)` e valor solto de cor ou fonte em `style`. Layout arbitrário (`min-w-[36rem]`, `grid-cols-[…]`) segue livre |
+| **Definição de pronto (UI)** | Todo componente ou tela do `apps/web` só está pronto quando foi **comparado com a página do guia** que o define (§15: abrir o PNG, ler a medida em `build/componentes.py`) e **cada divergência está registrada** em `decisions.md`. Vale também para estados que o guia não mostra: o espírito do guia, com a decisão registrada |
 | **Componentes puros** | Só recebem *props*: sem regra de negócio, sem chamada de API, sem acesso a `features` (`architecture.md` §11) |
 | **Utilitário de classes** | `cn()` (`clsx` + `tailwind-merge`) e `cva` (`class-variance-authority`) para variantes |
 | **Vitrine `/design-system`** | **Mínima**: tokens (cores com função), tipografia e cada primitivo com variantes e estados, no tema claro, legível em desktop e mobile. Ganha seções conforme os componentes surgem |
@@ -297,7 +301,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 | Tema escuro "Noite Oliva" (§3.1), alternador `claro / escuro / sistema` e script anti-*flash* (§3.2) | Quando o usuário pedir |
 | Regressão visual por *snapshots* | Se houver regressões visuais recorrentes |
 | `axe` automatizado (E2E ou vitrine) | Se houver regressões de acessibilidade recorrentes ou o produto se abrir a outros casais (`D-002`) |
-| Script de CI/`pre-commit` contra *hex* | Se aparecer *hex* em componente mais de uma vez na revisão |
+| ~~Script de CI/`pre-commit` contra *hex*~~ | **Ativado em `D-055`**, como teste do Vitest e com escopo mais largo (cor, fonte, traço e sombra), sem esperar o gatilho (§12) |
 | Impressão (`@media print`, tokens de papel) | Bloco 4.2 (Dossiê do Dia D): **gatilho atingido no detalhamento** (`D-038`, `F-DOS-08`); entra na construção do Bloco 4.2 |
 | Demais primitivos de §8 (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`, `Popover`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`) e `MoneyInput` | Quando a primeira tela que o usa for construída |
 | Componentes de domínio de §9 | No bloco que os usa |
@@ -316,3 +320,52 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 4. Formatação monetária: sem centavos em resumos, com centavos em parcelas/pagamentos (§11).
 5. Tema escuro **Noite Oliva** e alternador `claro / escuro / sistema` por dispositivo (§3.2). *(Construção adiada em `D-028` até o usuário pedir.)*
 6. Escala tipográfica (§4) e alturas de controle (§5).
+
+---
+
+## 15. Mapa guia → componente (`D-055`)
+
+O **guia de identidade** (`docs/design/identidade-visual/`, aprovado em `D-024` e `D-025`) é a referência de composição e medidas de tudo que o `apps/web` desenha. Este mapa é o **índice único**: para construir ou alterar um componente, uma tela ou um padrão, ache a linha, **abra a página e o PNG**, leia a medida na função de `build/componentes.py` e só então implemente. As skills `altare-design`, `altare-frontend`, `altare-ui-ux`, `altare-code-review` e `altare-pull-request` apontam para cá.
+
+**Hierarquia de verdade:** (1) `tokens.json`, os valores; (2) o guia, composição e medidas; (3) `identity.md`, o porquê da marca; (4) este documento, inventário e governança (onde diverge do guia, o guia vence e este texto é corrigido, com registro em `decisions.md`); (5) o código nunca é fonte.
+
+**Onde estão as páginas:** PNG de cada página em `identidade-visual/componentes/paginas/pagina-NN-*.png`; aplicações em `componentes/aplicacoes/` e elementos em `componentes/elementos/` (SVG e PNG); medidas exatas em `build/componentes.py` (linhas abaixo) e `build/medidas.json`. Os arquivos de `componentes/` são gerados: leia, nunca edite. O guia desenha em 15, 13 e 11 px, que o app tem como `ui`, `ui-sm` e `ui-xs` (`D-054`). **Estados que o guia não desenha** (hover, ativo, desabilitado, carregando, erro): sigam o espírito dele, com decisão registrada se houver dúvida.
+
+**Estado:** **conforme** (conferido em `D-054`, com captura), **desvio** (registrado em `D-xxx`), **sem página** (não há desenho no guia; aprovado no espírito da pág. 32) ou **pendente** (nasce no bloco que o usa, `D-028`).
+
+| Componente, tela ou padrão | Página(s) | Arquivo do guia | Medidas em `build/componentes.py` | Estado |
+| :--- | :--- | :--- | :--- | :--- |
+| Tokens de cor (claro) | 20, 22, 24 | `cores/paleta-clara`, `pagina-20-paleta-clara` | `build_paletas` `:402-431`; valores em `tokens.json` | Conforme (teste do `tokens.css`) |
+| Tema escuro | 21, 23, 41 | `cores/paleta-escura`, `aplicacoes/tema-escuro` | `_visao_geral(D, …)` `:848-928` | Pendente (adiado, `D-028`) |
+| Famílias e escala tipográfica | 25, 26, 27 | `tipografia/familias`, `hierarquia`, `especime` | `build_familias` `:437`, `build_hierarquia` `:463`; escala em `tokens.json` | Conforme (`D-054`) |
+| Números e formatos pt-BR | 28 | `tipografia/numeros` | `build_numeros` `:506-551` | Conforme (`D-054`: sinal separado do `R$`) |
+| Regras de texto (serifa, carregamento) | 29 | página 29 | `documento.py` `tipografia()` `:268-289` | Conforme (`D-054`: `opsz`, *preload*, reservas) |
+| Superfícies: textura, raios, linhas, profundidade | 32 | `elementos/superficies` | `build_superficies` `:599-633` (cantos `:611-613`, sombras `:620-628`), `textura` `:98` | Conforme |
+| Ícones e traço | 33 | `elementos/iconografia` | `build_iconografia` `:643-661`, `ICONES` `:635` | Conforme (`D-054`: 1,5 px que não escala) |
+| Ornamentos (arco, ramo) | 30, 31 | `elementos/arco`, `elementos/ramo` | `build_arco` `:555`, `build_ramo` `:577` | Conforme (SVGs copiados) |
+| Movimento | 35 | `elementos/estados-e-movimento` | `build_estados` `:727-761` (tokens `:752-758`) | Conforme |
+| `Button` | 34, 39 | `elementos/interface`, `aplicacoes/mobile` | `button` `:54-71` (40 px, raio 6, 15 px seminegrito), variantes `:666-672`; celular 44 px `:958` | Conforme (`D-054`) |
+| `Input`, `Textarea`, `Select`, `Field` | 34, 37 | `elementos/interface`, `aplicacoes/tela-de-login` | campo 44 px, borda `border-strong`, foco em anel duplo `:673-679`; login `:830-834` | Conforme (`D-054`); lista do `Select` sem página (`D-047`) |
+| `Checkbox`, `Tabs`, `Dialog`, folha "Mais" | 32 | `elementos/superficies` | raios e níveis `:611-613`, `:620-628` | Sem página (aprovado, `D-054`) |
+| `SegmentedControl` (lente de visão) | 34, 38 | `elementos/interface`, `aplicacoes/visao-geral` | trilho 34 px, ativo 28 px com *hairline* `:687-689`, `:868-870` | Conforme (`D-052`, `D-054`) |
+| `Badge` (selos) | 34, 38–40 | `elementos/interface`, `aplicacoes/*` | `chip` `:43-52` (pílula, 26 a 30 px, 13 px); selos `:691-700` | Conforme (`D-054`); selos de domínio pendentes |
+| `Card` | 32, 38 | `aplicacoes/visao-geral` | `card` `:30`, `cartao` `:879-884` (raio 10, *hairline*, título em serifa 20) | Conforme |
+| `Table` | 28, 40 | `tipografia/numeros`, `aplicacoes/comparador` | `:506-551`, `build_comparador` `:1003-1053` | Desvio: cabeçalho com fundo e linha em sans (`D-054`, item 10) |
+| `Money` | 28, 34, 40 | `tipografia/numeros`, `elementos/interface` | `:513-551`, valor comparável `:713-718` | Conforme (`D-054`) |
+| `Toast` | 35 | `elementos/estados-e-movimento` | `:742-749` (Sálvia, ícone, 4 s) | Desvio: raio 10 e *hairline* (`D-054`, item 10) |
+| `Tooltip` | 32 | `elementos/superficies` | nível 1 `:620-628` | Conforme (`D-054`) |
+| `EmptyState` e páginas-esqueleto | 30, 31, 35, 38 | `elementos/estados-e-movimento`, `elementos/ramo` | vazio `:730-736` (ramo 160 × 64, título 20 px, 1 ação) | Conforme (`D-054`) |
+| 404 | 31 | `elementos/ramo` | ramo grande 300 × 112 `:577-597` | Conforme (`D-054`) |
+| `PageHeader` | 38, 40 | `aplicacoes/visao-geral` | rótulo, título serifa, apoio e *hairline* `:874-877` | Conforme (`D-054`) |
+| Casca: barra lateral e trilho | 38 | `aplicacoes/visao-geral` | `_visao_geral` `:848-872`, `AREAS` `:843` (itens 40 a cada 46, ícone 20, rótulo 12) | Conforme (`D-052`, `D-054`); trilho sem página (`D-051`) |
+| Casca: barra superior | 38 | `aplicacoes/visao-geral` | `:866-871` (72 px) | Conforme (`D-052`); barra opaca (`D-054`, item 10) |
+| Casca: barra inferior (celular) | 39 | `aplicacoes/mobile` | `:964-968` (72 px, ícone 22, rótulo 11) | Conforme (`D-052`, `D-054`); lupa adiada |
+| Marca na casca e favicon | 12, 13, 16, 17, 36 | `construcao/*`, `aplicacoes/favicon-e-icone-de-app` | `build_lockups` `:226`, `build_favicon_app` `:784-819`; `medidas.json` | Conforme (`D-045`, `D-054`) |
+| Ícone flutuante do Assistente | 33, 39 | (não desenhado) | texto sempre com ícone `:635-661`; "Registrar" `:963` | Pendente (lote 2; desenho em `D-054`, item 11) |
+| Avaliação dupla, `RatingPair` | 34, 39, 40 | `elementos/interface`, `aplicacoes/mobile` | `:703-712`, `:987-994` | Pendente (Bloco 2.2) |
+| Comparador de propostas | 40 | `aplicacoes/comparador` | `build_comparador` `:1003-1053` | Pendente (Bloco 3.2) |
+| `QuickAddFab` ("Registrar") | 39 | `aplicacoes/mobile` | `:963` | Pendente (Bloco 3.1) |
+| Login | 37 | `aplicacoes/tela-de-login` | `build_login` `:821-841` | Pendente (restante do Bloco 0.1) |
+| Dossiê do Dia D (impressão) | 42 | `aplicacoes/dossie-do-dia-d` | `build_dossie` `:1055-1103` | Pendente (Bloco 4.2) |
+
+**Manutenção:** componente ou tela nova entra no mapa **na mesma mudança** que a constrói; um desvio novo ganha `D-xxx` e a linha passa a "Desvio". Se o guia for regenerado (`uv run build.py`), confira as linhas citadas, que acompanham `componentes.py`.

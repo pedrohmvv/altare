@@ -1,7 +1,7 @@
 ---
 name: altare-pull-request
 description: >-
-  Como abrir e descrever um pull request no Altare com gh: base develop (ou main em hotfix e release), título no padrão de commit, corpo em pt-BR com o que muda e por quê, decisões D-xxx, como testar e um checklist de gates, docs vivas, CLAUDE.md de módulo e acessibilidade, merge commit sem squash e o PR de volta para a develop quando for hotfix. Use quando o usuário pedir para abrir, criar ou subir um PR, fechar a branch, ou preparar a descrição de uma mudança para integração, mesmo que ele não diga pull request. NÃO use para decidir o nome da branch ou o fluxo de release (use altare-git-fluxo), para commitar (use altare-commit) nem para revisar o diff (use altare-code-review).
+  Como abrir e descrever um pull request no Altare com gh: base develop (ou main em hotfix e release), título no padrão de commit, corpo em pt-BR com o que muda e por quê, decisões D-xxx, como testar e um checklist de gates, docs vivas, CLAUDE.md de módulo, acessibilidade e conferência com o guia de identidade (captura quando houver mudança visual), merge commit sem squash e o PR de volta para a develop quando for hotfix. Use quando o usuário pedir para abrir, criar ou subir um PR, fechar a branch, ou preparar a descrição de uma mudança para integração, mesmo que ele não diga pull request. NÃO use para decidir o nome da branch ou o fluxo de release (use altare-git-fluxo), para commitar (use altare-commit) nem para revisar o diff (use altare-code-review).
 ---
 
 # Pull request
@@ -10,6 +10,7 @@ O PR é onde a intenção, as decisões e a prova de que funciona ficam juntas. 
 
 ## Docs a consultar
 
+- `docs/design/design-system.md` §15 (mapa guia → componente), para PR que muda UI.
 - `docs/product/decisions.md` D-041 (bases e estratégia de merge) e D-040 (PR atômico entre API e web).
 - `docs/engineering/stack.md` §7 (gates) e `AGENTS.md` §2, regra 5 (docs vivas).
 
@@ -41,6 +42,7 @@ O PR é onde a intenção, as decisões e a prova de que funciona ficam juntas. 
 - [ ] Docs vivas atualizadas: `decisions.md`, doc de feature, `AGENTS.md` se a fase mudou (`altare-docs-vivas`)
 - [ ] `CLAUDE.md` criado ou atualizado, se há módulo novo
 - [ ] Acessibilidade conferida manualmente (`altare-acessibilidade`), se tocou UI
+- [ ] Comparado com o guia (mapa em `design-system.md` §15), com captura quando houver mudança visual; desvios com `D-xxx` (`altare-design`)
 - [ ] Sem dados reais do casamento, segredos ou `data/`
 ```
 

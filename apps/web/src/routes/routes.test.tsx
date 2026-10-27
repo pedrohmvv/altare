@@ -3,18 +3,18 @@ import { describe, expect, it } from 'vitest'
 import { renderRoute } from '@/test/render-route'
 
 const AREAS = [
-  ['/', 'Visão Geral'],
-  ['/planejamento', 'Planejamento & Caminhos'],
-  ['/cronograma', 'Cronograma & Dependências'],
-  ['/possibilidades', 'Possibilidades & Decisões'],
-  ['/orcamento', 'Orçamento & Simulador'],
-  ['/contatos', 'Contatos & Fornecedores'],
-  ['/convidados', 'Convidados, Enxoval & Dia D'],
-  ['/assistente', 'Assistente'],
+  ['/', 'O momento de vocês'],
+  ['/planejamento', 'O rumo de vocês'],
+  ['/cronograma', 'O que pode andar agora'],
+  ['/possibilidades', 'Comparar propostas'],
+  ['/orcamento', 'O orçamento de vocês'],
+  ['/contatos', 'Quem vocês estão consultando'],
+  ['/convidados', 'Quem estará com vocês'],
+  ['/assistente', 'Conversem com o assistente'],
 ] as const
 
 describe('rotas das áreas', () => {
-  it.each(AREAS)('%s mostra o título da área como o único h1', async (path, title) => {
+  it.each(AREAS)('%s mostra o título editorial da área como o único h1', async (path, title) => {
     await renderRoute(path)
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument()

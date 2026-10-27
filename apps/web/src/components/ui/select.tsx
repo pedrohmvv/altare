@@ -53,9 +53,9 @@ export function Select({
           <RadixSelect.Trigger
             {...control}
             className={cn(
-              'flex h-10 w-full items-center justify-between gap-2 rounded-control border bg-surface px-3',
+              'flex h-11 w-full items-center justify-between gap-2 rounded-control border bg-surface px-3',
               'text-left text-body text-ink transition-colors duration-fast ease-standard',
-              'max-md:h-12 pointer-coarse:min-h-11 disabled:cursor-default disabled:opacity-40',
+              'disabled:cursor-default disabled:opacity-40',
               'data-[placeholder]:text-ink-subtle',
               error ? 'border-attention-ink' : 'border-border-strong',
             )}

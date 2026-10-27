@@ -1,6 +1,6 @@
 export const copy = {
   eyebrow: 'Possibilidades',
-  title: 'Possibilidades & Decisões',
+  title: 'Comparar propostas',
   description: 'Comparem propostas por categoria e registrem a decisão de vocês.',
   empty: {
     title: 'Ainda sem possibilidades',

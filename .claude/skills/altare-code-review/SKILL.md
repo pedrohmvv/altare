@@ -1,7 +1,7 @@
 ---
 name: altare-code-review
 description: >-
-  Checklist de revisão de diff ou PR do Altare, por severidade (bloqueia, corrija, sugestão), com formato de saída fixo. Aponta para as skills da área em vez de repetir regras, e trata nada a corrigir como resultado válido. É somente leitura por padrão. Use quando o usuário pedir para revisar, olhar, dar parecer ou conferir um diff, uma branch ou um PR, e antes de sugerir o merge de qualquer mudança, mesmo que ele não diga review. NÃO use para escrever ou corrigir código (use altare-escrita-de-codigo), para decidir a arquitetura de um módulo novo (use altare-arquitetura) nem para executar o pipeline de gates (use altare-testes-qa e altare-devops).
+  Checklist de revisão de diff ou PR do Altare, por severidade (bloqueia, corrija, sugestão), com formato de saída fixo, incluindo a conferência de UI contra a página do guia de identidade quando o diff toca o apps/web. Aponta para as skills da área em vez de repetir regras, e trata nada a corrigir como resultado válido. É somente leitura por padrão. Use quando o usuário pedir para revisar, olhar, dar parecer ou conferir um diff, uma branch ou um PR, e antes de sugerir o merge de qualquer mudança, mesmo que ele não diga review. NÃO use para escrever ou corrigir código (use altare-escrita-de-codigo), para decidir a arquitetura de um módulo novo (use altare-arquitetura) nem para executar o pipeline de gates (use altare-testes-qa e altare-devops).
 ---
 
 # Code review
@@ -10,6 +10,7 @@ Revisar é ler a mudança contra as decisões já tomadas, não contra o gosto d
 
 ## Docs a consultar
 
+- Se o diff toca `apps/web`: o mapa guia → componente (`docs/design/design-system.md` §15) e a página do guia correspondente.
 - `AGENTS.md` §2 (regras inegociáveis) e `docs/product/decisions.md` (a decisão `D-xxx` que a mudança implementa ou contraria).
 - O doc de feature da área (`docs/product/features/*.md`) para os critérios de aceite.
 - `docs/engineering/architecture.md` §2 e §9, e `docs/engineering/stack.md` §4 e §7.
@@ -27,6 +28,7 @@ Revisar é ler a mudança contra as decisões já tomadas, não contra o gosto d
 
 ### Bloqueia (não integra)
 
+- UI sem conferência contra a página do guia, ou valor divergente sem decisão registrada (`altare-design`, "Fonte visual: o guia"; mapa em `design-system.md` §15). Peça a captura ao lado do PNG da página, ou o desvio em `decisions.md`.
 - Import que quebra a regra de dependência ou atravessa módulo sem `public.py` (`altare-arquitetura`).
 - Escrita de agente sem `ChangeProposal` e confirmação humana (`altare-agente-dados`, `D-008`).
 - Autoria vinda do cliente em vez da sessão, ou rota sem autorização (`altare-seguranca-privacidade`, `altare-backend-api`).

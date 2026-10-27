@@ -8,32 +8,32 @@ const sidebar = () => screen.getByRole('navigation', { name: 'Navegação princi
 describe('anúncio da troca de rota', () => {
   it('põe o nome da área no título do documento já na primeira página', async () => {
     await renderRoute('/cronograma')
-    await screen.findByRole('heading', { level: 1, name: 'Cronograma & Dependências' })
+    await screen.findByRole('heading', { level: 1, name: 'O que pode andar agora' })
 
     expect(document.title).toBe('Cronograma & Dependências · Altare')
   })
 
   it('não rouba o foco na primeira página', async () => {
     await renderRoute('/')
-    const title = await screen.findByRole('heading', { level: 1, name: 'Visão Geral' })
+    const title = await screen.findByRole('heading', { level: 1, name: 'O momento de vocês' })
 
     expect(title).not.toHaveFocus()
   })
 
   it('ao trocar de área muda o título do documento e leva o foco ao novo h1', async () => {
     await renderRoute('/')
-    await screen.findByRole('heading', { level: 1, name: 'Visão Geral' })
+    await screen.findByRole('heading', { level: 1, name: 'O momento de vocês' })
 
     await userEvent.click(within(sidebar()).getByRole('link', { name: 'Orçamento & Simulador' }))
 
-    const title = await screen.findByRole('heading', { level: 1, name: 'Orçamento & Simulador' })
+    const title = await screen.findByRole('heading', { level: 1, name: 'O orçamento de vocês' })
     await waitFor(() => expect(title).toHaveFocus())
     expect(document.title).toBe('Orçamento & Simulador · Altare')
   })
 
   it('o título da página é focável por programa, mas fora da ordem do Tab', async () => {
     await renderRoute('/')
-    const title = await screen.findByRole('heading', { level: 1, name: 'Visão Geral' })
+    const title = await screen.findByRole('heading', { level: 1, name: 'O momento de vocês' })
 
     expect(title).toHaveAttribute('tabindex', '-1')
   })

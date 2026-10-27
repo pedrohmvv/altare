@@ -14,8 +14,7 @@ const BAR_ITEM = cn(
   'group flex min-h-18 w-full flex-col items-center justify-center gap-1 px-1',
   'text-ink-muted transition-colors duration-fast ease-standard data-[status=active]:text-primary',
 )
-const BAR_LABEL =
-  'max-w-full truncate text-eyebrow font-medium normal-case tracking-normal group-data-[status=active]:font-semibold'
+const BAR_LABEL = 'max-w-full truncate text-ui-xs group-data-[status=active]:font-semibold'
 
 /** Barra inferior do celular: 4 destinos e "Mais", com a lente e as demais áreas (D-025, D-050). */
 export function BottomNav() {
@@ -72,9 +71,12 @@ export function BottomNav() {
                         <Link
                           to={item.to}
                           search={keepLens}
-                          className="flex min-h-11 items-center gap-3 rounded-control px-3 text-body font-medium text-ink hover:bg-surface-muted data-[status=active]:bg-surface-muted"
+                          className="group flex min-h-11 items-center gap-3 rounded-control px-3 text-body font-medium text-ink hover:bg-surface-muted data-[status=active]:bg-surface-muted"
                         >
-                          <Icon aria-hidden className="size-5 shrink-0" />
+                          <Icon
+                            aria-hidden
+                            className="size-5 shrink-0 text-ink-muted group-data-[status=active]:text-primary"
+                          />
                           {item.label}
                         </Link>
                       </DialogClose>

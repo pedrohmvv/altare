@@ -1,20 +1,29 @@
 ---
 name: altare-design
 description: >-
-  Identidade visual e design system do Altare: tokens (tokens.json é a fonte única, tokens.css é gerado), tipografia, cor semântica, ornamento sutil, ícones, movimento, os 15 primitivos do escopo enxuto (D-028) e a regra de sacralidade discreta e não confessional. Use sempre que for criar ou alterar aparência de componente, escolher cor, fonte, espaçamento, ícone ou ilustração, adicionar primitivo, mexer em marca ou logo, ou quando aparecer um valor de cor escrito à mão num componente, mesmo que o pedido seja só 'deixa isso mais bonito' ou 'muda a cor do botão'. NÃO use para estrutura de código e estado (use altare-frontend), fluxos e estados de tela (use altare-ui-ux), checklist de acessibilidade (use altare-acessibilidade) ou texto da interface (use altare-conteudo-copy).
+  Identidade visual e design system do Altare, com o guia de identidade como fonte visual (mapa guia → componente em design-system.md §15): tokens (tokens.json é a fonte única, tokens.css é gerado), tipografia, cor semântica, ornamento sutil, ícones, movimento, os 15 primitivos do escopo enxuto (D-028) e a regra de sacralidade discreta e não confessional. Use sempre que for criar, alterar, conferir ou comparar a aparência de qualquer componente, tela, página, estado vazio, barra, cartão, botão, campo, selo ou ícone no apps/web, escolher cor, fonte, tamanho, espaçamento, ícone ou ilustração, adicionar primitivo, mexer em marca ou logo, ou quando aparecer um valor de cor ou fonte escrito à mão, mesmo que o pedido seja só 'deixa isso mais bonito', 'ajusta o espaçamento', 'cria a tela de X' ou 'muda a cor do botão', sem citar o guia. NÃO use para estrutura de código e estado (use altare-frontend), fluxos e estados de tela (use altare-ui-ux), checklist de acessibilidade (use altare-acessibilidade) ou texto da interface (use altare-conteudo-copy).
 ---
 
 # Design do Altare
 
 ## Docs a consultar
+- **`docs/design/design-system.md` §15, o mapa guia → componente**: a página do guia que define cada componente e tela. Comece por ele.
 - `docs/design/identity.md` (a marca e o porquê): §1.3 sacralidade discreta, §3 cor, §4 tipografia, §6 ornamento, §7 ícones, §8 movimento.
 - `docs/design/design-system.md`: §1 princípios, §3.3 regras de cor, §8 e §9 inventário (referência), §12 governança, §13 ordem e adiamentos.
 - `docs/design/identidade-visual/`: `tokens.json` (valores), `componentes/INDEX.md` (ativos exportados), `build/` (pipeline).
 - `docs/design/visual-direction.md` §1 e §2 (personalidade e densidade). Decisões: `D-025`, `D-026`, `D-028`.
 
+## Fonte visual: o guia
+O guia de identidade (`docs/design/identidade-visual/`, aprovado em `D-024` e `D-025`) é a referência de **composição e medidas** de tudo que se desenha. O texto de `design-system.md` resume; quando diverge do guia, o guia vence e o texto é corrigido, com decisão registrada. Antes de implementar ou alterar qualquer UI:
+1. **Ache o componente ou a tela no mapa** (`design-system.md` §15): ele diz a página, o arquivo e as linhas de medida.
+2. **Abra o PNG da página** (`componentes/paginas/pagina-NN-*.png`, ou o de `aplicacoes/` e `elementos/`). Olhe a imagem; não confie só na descrição.
+3. **Leia a medida** na função indicada de `build/componentes.py` (e em `medidas.json`); valores de marca vêm do `tokens.json`. Não estime a olho.
+4. **Só então implemente**, com classes de token. Tamanho que o guia usa e a escala não tem não vira valor solto: vira token (`D-054`).
+5. **Ao terminar, compare** o resultado com o PNG (suba o app e capture, skill `run`) e registre cada desvio em `decisions.md`. Estado que o guia não desenha: proponha no espírito dele e peça aprovação (`AGENTS.md` §3).
+
 ## Princípios
 1. **`tokens.json` é a única fonte de valores.** `apps/web/src/styles/tokens.css` é **gerado** por script e nunca editado à mão; um teste do Vitest falha se estiver desatualizado. Para mudar um valor: edite o `tokens.json`, regenere o guia (`uv run build.py`; `--marca` regenera os logos) e o `tokens.css`. Os arquivos gerados do pacote (PDF, HTML, PNG, SVG de `componentes/`) não se editam.
-2. **Sem *hex* em componente.** `#RRGGBB` só existe em `tokens.css` e nos SVGs de marca; componente usa classe de token (`bg-surface`, `text-ink`, `border-border-strong`). É convenção sem script (`D-028`); se o *hex* aparecer em componente mais de uma vez na revisão, vira script de CI.
+2. **Só token em componente.** `#RRGGBB` só existe em `tokens.css` e nos SVGs de marca; componente usa classe de token (`bg-surface`, `text-ink`, `text-ui`, `border-border-strong`). O teste `design-rules.test.ts` (`D-055`) falha com *hex*, cor funcional, classe arbitrária de cor, fonte, traço ou sombra sem `var(--…)` e valor solto de cor ou fonte em `style`.
 3. **Nomes semânticos, não literais** (`canvas`, `surface`, `ink`, `primary`, `consensus-*`, `attention-*`). É o que deixa o tema escuro entrar depois sem retrabalho.
 4. **Só o tema claro por enquanto** (`data-theme="light"` fixo). O escuro "Noite Oliva" está especificado, mas não se implementa alternador, script anti-*flash* nem bloco `dark` até o usuário pedir (`D-028`).
 5. **Regras de cor** (`design-system.md` §3.3):
@@ -36,6 +45,8 @@ description: >-
 13. **Dados de exemplo** na vitrine e nos testes são fictícios e rotulados ("Espaço Exemplo"); nunca dados do casamento (`AGENTS.md` §2).
 
 ## Checklist (componente ou mudança visual)
+- [ ] Achei a linha no mapa (§15), abri o PNG da página e li a medida em `componentes.py`.
+- [ ] Comparei o resultado com a página do guia; cada desvio tem `D-xxx` e o mapa foi atualizado.
 - [ ] Nenhum *hex*, `px` de cor ou fonte escrita à mão; só classes de token.
 - [ ] Cor semântica certa (acordo e atenção) e nada em vermelho.
 - [ ] Famílias tipográficas nos papéis certos; número comparado em mono tabular.

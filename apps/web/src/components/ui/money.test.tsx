@@ -17,8 +17,8 @@ describe('Money', () => {
   })
 
   it('mostra o sinal quando signed, com o menos tipográfico nos negativos', () => {
-    expect(textOf(<Money cents={125_000} signed />)).toBe(`+R$${NBSP}1.250`)
-    expect(textOf(<Money cents={-125_000} signed />)).toBe(`${MINUS}R$${NBSP}1.250`)
+    expect(textOf(<Money cents={125_000} signed />)).toBe(`+${NBSP}R$${NBSP}1.250`)
+    expect(textOf(<Money cents={-125_000} signed />)).toBe(`${MINUS}${NBSP}R$${NBSP}1.250`)
   })
 
   it('aceita className e atributos do span, como title', () => {

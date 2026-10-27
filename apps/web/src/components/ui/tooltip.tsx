@@ -20,7 +20,7 @@ export function Tooltip({ content, children, delayDuration = 300, side = 'top' }
           <RadixTooltip.Content
             side={side}
             sideOffset={6}
-            className="z-50 max-w-xs rounded-control bg-ink px-2 py-1 text-body-sm text-canvas shadow-nivel-1 data-[state=closed]:animate-overlay-out data-[state=delayed-open]:animate-overlay-in data-[state=instant-open]:animate-overlay-in"
+            className="z-50 max-w-xs rounded-control border border-border bg-surface px-2.5 py-1.5 text-body-sm text-ink shadow-nivel-1 data-[state=closed]:animate-overlay-out data-[state=delayed-open]:animate-overlay-in data-[state=instant-open]:animate-overlay-in"
           >
             {content}
           </RadixTooltip.Content>

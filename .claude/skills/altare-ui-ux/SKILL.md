@@ -1,12 +1,13 @@
 ---
 name: altare-ui-ux
 description: >-
-  UI/UX do Altare: fluxos do casal, heurísticas de usabilidade aplicadas ao produto, postura desktop (planejar junto) versus mobile (consultar e capturar), navegação das 7 áreas, onboarding do casamento novo, estados vazio, carregando, erro e desabilitado, confirmações destrutivas e a estrutura que cada mensagem deve ter. Use sempre que for desenhar ou revisar uma tela, fluxo, formulário, navegação, estado de interface ou o ícone flutuante do assistente, e ao detalhar uma feature nova, mesmo que o pedido seja só 'como essa tela deveria funcionar' ou 'o que mostrar quando não tem dado'. NÃO use para tokens, cor e primitivos (use altare-design), estrutura de código (use altare-frontend), checklist de acessibilidade (use altare-acessibilidade) nem para escrever as palavras (use altare-conteudo-copy: aqui só se define o que a mensagem precisa dizer).
+  UI/UX do Altare: fluxos do casal, heurísticas de usabilidade aplicadas ao produto, postura desktop (planejar junto) versus mobile (consultar e capturar), navegação das 8 áreas, onboarding do casamento novo, estados vazio, carregando, erro e desabilitado, confirmações destrutivas e a estrutura que cada mensagem deve ter, sempre conferidos contra as páginas de aplicação do guia de identidade (mapa em design-system.md §15). Use sempre que for desenhar, montar ou revisar uma tela, página, fluxo, formulário, navegação, estado de interface ou o ícone flutuante do assistente, e ao detalhar uma feature nova, mesmo que o pedido seja só 'como essa tela deveria funcionar', 'monta a tela de X' ou 'o que mostrar quando não tem dado'. NÃO use para tokens, cor e primitivos (use altare-design), estrutura de código (use altare-frontend), checklist de acessibilidade (use altare-acessibilidade) nem para escrever as palavras (use altare-conteudo-copy: aqui só se define o que a mensagem precisa dizer).
 ---
 
 # UI/UX do Altare
 
 ## Docs a consultar
+- **`docs/design/design-system.md` §15 (mapa guia → componente)** e as páginas de aplicação do guia: 34 (interface), 35 (estados e movimento), 37 (login), 38 (visão geral), 39 (mobile), 40 (comparador) e 42 (Dossiê), em `docs/design/identidade-visual/componentes/paginas/`.
 - `docs/design/experience.md`: §1 jornada, §3 navegação e comportamento desktop e mobile, §4 fluxos 1 a 8.
 - `docs/design/design-system.md`: §10 padrões (formulário, detalhe lateral, filtros, confirmação, feedback) e §10.1 navegação.
 - `docs/design/identity.md` §9 (estados de interface) e `docs/design/visual-direction.md` §2 (densidade e tom das divergências).
@@ -22,6 +23,9 @@ description: >-
 6. **Detalhe sem sair da lista.** Informação extensa (PDF, histórico, avaliação) abre em painel lateral no desktop e em folha inferior no mobile. Filtros são *chips* com estado na URL.
 7. **Custo Real Comparável em primeiro plano.** Onde há preço, o total comparável vem à frente do preço de capa, para a opção "barata" não enganar.
 8. **Reconhecer, não lembrar.** Estado sempre em texto completo ("Aguardando avaliação da Noiva"), nunca só ícone ou cor. "Bloqueado" explica o que falta ("Aguardando: …").
+
+## Fonte visual das telas: o guia
+Fluxo, composição e estados de uma tela se conferem contra as páginas do guia que a cobrem (lista acima, achadas pelo mapa em `design-system.md` §15), com o fluxo de **`altare-design`, "Fonte visual: o guia"**. As páginas 38 a 40 mostram como as áreas se organizam no desktop e no celular; a 35, os estados vazio, carregando, sucesso e atenção; a 37 e a 42, o login e o Dossiê. O que o guia não desenha (o ícone do assistente, por exemplo) se propõe no espírito dele, com aprovação e registro (`AGENTS.md` §3).
 
 ## Estados de interface
 | Estado | O que a tela faz | Armadilha |
@@ -50,6 +54,7 @@ Toda mensagem de erro, aviso ou estado vazio responde, nesta ordem e só no que 
 - **A casca já existe (`D-050`):** o ícone, oculto na própria área Assistente, e a área **Assistente** na navegação. O painel de chat de verdade é do Bloco 5.3; até lá o ícone abre um painel provisório que diz, com calma, que o assistente ainda não está disponível.
 
 ## Checklist (tela ou fluxo novo)
+- [ ] Conferi a tela e os estados contra as páginas do guia que a cobrem (34, 35, 37 a 40, 42), pelo mapa, e os desvios estão registrados.
 - [ ] Li o doc da área e o fluxo em `experience.md` §4; o job da tela está claro.
 - [ ] Desktop e mobile descritos; o que vai para "Mais" no celular está dito.
 - [ ] Estados vazio, carregando, erro e desabilitado desenhados.

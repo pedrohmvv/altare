@@ -26,5 +26,5 @@ export function formatMoney(
   const decimals = precision === 'always' || rest !== 0 ? `,${String(rest).padStart(2, '0')}` : ''
   const sign = cents < 0 ? MINUS : signed && cents > 0 ? '+' : ''
 
-  return `${sign}R$${NBSP}${reais}${decimals}`
+  return `${sign && `${sign}${NBSP}`}R$${NBSP}${reais}${decimals}`
 }

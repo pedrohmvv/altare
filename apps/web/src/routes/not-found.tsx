@@ -18,7 +18,7 @@ export function NotFoundPage() {
       />
       <EmptyState
         className="mt-10"
-        illustration="arco"
+        illustration="ramo-grande"
         title="Nada por aqui"
         description="Escolham uma área no menu para continuar."
       />

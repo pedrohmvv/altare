@@ -1,6 +1,6 @@
 export const copy = {
   eyebrow: 'Planejamento',
-  title: 'Planejamento & Caminhos',
+  title: 'O rumo de vocês',
   description: 'Definições Base, Caminhos Macro e o Mapa de Escopo do casamento.',
   empty: {
     title: 'Ainda sem definições',
