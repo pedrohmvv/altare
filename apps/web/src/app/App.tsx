@@ -1,3 +1,7 @@
 export function App() {
-  return <main />
+  return (
+    <main>
+      <h1>Altare</h1>
+    </main>
+  )
 }
