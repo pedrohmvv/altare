@@ -813,3 +813,24 @@
   - Criar `pre-commit` e `dependency-cruiser` já: configurações sem nada para verificar, que envelhecem sem uso.
   - Criar pastas vazias de `routes/`, `features/` e `components/ui`: o git não as rastreia e cada uma nasce com o primeiro arquivo.
   - Recuar para TypeScript 5.x por precaução: a instalação e os quatro gates passaram com a 7.0.
+
+---
+
+## D-044 — Bloco 0.2, Etapa (a): Tokens Gerados, Fontes e `cn()`
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** aprovou o escopo da etapa (a) com seis pontos de revisão (derivados, paleta padrão do Tailwind, escala no gerador, `tailwind-merge`, conferência visual) e mandou planejar e executar.
+- **Decisão:**
+  1. **`tokens.css` é gerado** por `apps/web/scripts/tokens.ts` (TypeScript, rodado com `tsx`) a partir de `docs/design/identidade-visual/tokens.json`: `pnpm tokens:build` ou `make tokens`. Um teste do Vitest falha se o arquivo versionado estiver defasado (`design-system.md` §12).
+  2. **Derivados fora do `tokens.json`**, em constantes nomeadas no gerador: `focus-ring` (`var(--primary)`), `scrim` (`rgb(35 42 34 / .45)`), `primary-ink` (de `apoio`), `letter-spacing` do `eyebrow` (`.08em`) e o ponto de troca mobile/desktop (`48rem`). O JSON e o guia de 43 páginas não foram alterados.
+  3. **Paleta padrão do Tailwind zerada** (`--color-*: initial`): só existem as cores semânticas, o que impõe "nunca vermelho" e "sem *hex* em componente" pela ferramenta.
+  4. **Escala de texto como `@utility`** (`text-display`, `text-body-sm`, `text-num-lg`…), cada uma com família, tamanho mobile, peso e entrelinha, e o tamanho desktop em `@media`; os `num-*` levam `tabular-nums` e o `eyebrow` caixa-alta. Escolhido no lugar de `--text-*` do tema porque o Tailwind não carrega a família por ali. Raios, sombras, durações e curvas saem como variáveis do tema; `prefers-reduced-motion` zera animações e transições.
+  5. **Fontes autohospedadas** pelo Fontsource (Newsreader com itálico, Plus Jakarta Sans e JetBrains Mono, variáveis). As famílias do Fontsource têm o sufixo ` Variable`, listado antes do nome da marca em `--font-*`.
+  6. **`cn()`** (`clsx` + `tailwind-merge`) lê cores, raios, sombras e a escala de texto do `tokens.json`. O merge padrão descartava `text-ink` ao ver `text-body-sm` e não conhecia `rounded-card`. `class-variance-authority` está instalado para a etapa (c).
+  7. **Base global:** `data-theme="light"` no `<html>`, `body` com `bg-canvas text-ink text-body` e foco visível em anel duplo. O Biome passa a aceitar as diretivas do Tailwind. O `App` mostra as três famílias só para conferência visual, até a vitrine da etapa (e).
+- **Razão:** deixar as etapas (b) a (e) usarem só classes de token, com o gerador como única fonte e a defasagem barrada por teste.
+- **O que ficou rejeitado:**
+  - Acrescentar `focus-ring` e `scrim` ao `tokens.json`: obrigaria a regenerar o guia inteiro por dois valores derivados.
+  - Manter a paleta padrão do Tailwind: `bg-red-600` ficaria a um *autocomplete* de distância.
+  - Escrever à mão a lista de tokens do `cn()`: criaria uma segunda verdade que diverge da primeira.
+  - `?raw` no teste de defasagem: o Vitest devolve string vazia para CSS e o teste passaria sem testar nada.

@@ -1,0 +1,174 @@
+/* Gerado de docs/design/identidade-visual/tokens.json por `pnpm tokens:build`. Não edite. */
+
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --canvas: #F9F5EC;
+  --surface: #FFFDF9;
+  --surface-muted: #F5EFE2;
+  --surface-sunken: #EFE7D6;
+  --border: #DFD5C3;
+  --border-strong: #8F846F;
+  --ink: #232A22;
+  --ink-muted: #5C6158;
+  --ink-subtle: #6F7367;
+  --primary: #3A4B3C;
+  --primary-hover: #2F3E31;
+  --consensus-bg: #E4ECE4;
+  --consensus-ink: #2B422E;
+  --accent: #B5563C;
+  --accent-ink: #98442D;
+  --attention-bg: #F6E6E0;
+  --attention-ink: #8A3C27;
+  --primary-ink: #FFFDF9;
+  --focus-ring: var(--primary);
+  --scrim: rgb(35 42 34 / .45);
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-consensus-bg: var(--consensus-bg);
+  --color-consensus-ink: var(--consensus-ink);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-attention-bg: var(--attention-bg);
+  --color-attention-ink: var(--attention-ink);
+  --color-primary-ink: var(--primary-ink);
+  --color-focus-ring: var(--focus-ring);
+  --color-scrim: var(--scrim);
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-thumb: 8px;
+  --radius-pill: 9999px;
+  --shadow-nivel-1: 0 4px 16px rgb(35 42 34 / .08);
+  --shadow-nivel-2: 0 12px 32px rgb(35 42 34 / .12);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-delight: 400ms;
+  --ease-standard: cubic-bezier(.2,.8,.2,1);
+  --ease-exit: cubic-bezier(.4,0,1,1);
+}
+
+@utility text-display {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  line-height: 2.5rem;
+  font-weight: 500;
+  @media (min-width: 48rem) {
+    font-size: 2.5rem;
+    line-height: 3rem;
+  }
+}
+
+@utility text-title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 500;
+  @media (min-width: 48rem) {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+}
+
+@utility text-heading {
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  line-height: 1.875rem;
+  font-weight: 500;
+  @media (min-width: 48rem) {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+@utility text-name {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+}
+
+@utility text-body-lg {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 400;
+}
+
+@utility text-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+}
+
+@utility text-body-sm {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+
+@utility text-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+@utility text-num-xl {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-num-lg {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-num {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-num-sm {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

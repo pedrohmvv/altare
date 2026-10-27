@@ -1,5 +1,5 @@
 # Ponto de entrada das tarefas (stack.md §7). Só orquestra: a lógica mora nos scripts do pnpm.
-.PHONY: dev build lint typecheck test
+.PHONY: dev build lint typecheck test tokens
 
 dev:
 	pnpm dev
@@ -15,3 +15,6 @@ typecheck:
 
 test:
 	pnpm test
+
+tokens:
+	pnpm --filter @altare/web tokens:build
