@@ -31,7 +31,7 @@ Dinheiro, parcelas e contagem de convidados são o que o casal confere à mão. 
 | Domínio | Regras puras e **invariantes numéricas** (orçamento, contadores de convidados, parcelas, arredondamento de F-ORC-03) | pytest + Hypothesis |
 | Aplicação | Casos de uso com **fakes das portas**, sem banco e sem rede; um caso de uso = uma transação | pytest |
 | Infraestrutura | Repositórios, mapeamento e migrations Alembic (sobe, desce, sobe) em SQLite real e temporário | pytest |
-| Adaptadores HTTP | `TestClient` com app composto; status e `code` de erro (`problem+json`); snapshot do OpenAPI | pytest, httpx |
+| Adaptadores HTTP | `TestClient` com app composto; status e `code` de erro (`problem+json`); snapshot do OpenAPI | pytest, httpx2 |
 | Frontend | Componentes, hooks de tela e utilitários; navegação da casca; validação Zod | Vitest + Testing Library |
 | Ponta a ponta | Fluxos críticos de `experience.md` §4 em projeto *desktop* e *mobile*; entra **com o login** | Playwright |
 | Portabilidade | A suíte de integração também contra **PostgreSQL** (contêiner efêmero) **antes do primeiro deploy** | Docker ou testcontainers |
@@ -97,4 +97,4 @@ def test_parcelas_somam_o_total(parts):
 
 ## Em aberto
 
-- **Hooks do `pre-commit`:** `stack.md` §7 lista Ruff, Pyright e Biome; `architecture.md` §2 e §14 acrescentam `import-linter` e o gate de limites do frontend. Decidido na `D-043`: o `pre-commit` e a verificação de limites do frontend ficam adiados (o primeiro, até o `apps/api`; o segundo, até a primeira `feature`). **A verificação de limites chegou com a primeira `feature` (`D-051`), como o gate próprio `apps/web/src/architecture.test.ts`**, porque o `dependency-cruiser` não suporta o Node 25. Ao criá-los, fechar a lista de hooks e registrar.
+- Nada em aberto sobre hooks: a lista foi fechada na `D-060` (Ruff e `import-linter`, Pyright e Biome, chamados pelos alvos do Makefile); o gate de limites do frontend é `apps/web/src/architecture.test.ts` (`D-051`).
