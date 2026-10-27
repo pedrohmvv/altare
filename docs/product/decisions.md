@@ -1025,3 +1025,45 @@
   - Link permanente no menu: altera a navegação aprovada e mostra ao casal uma ferramenta de desenvolvimento.
   - Atalho de teclado escondido: ninguém o descobre, e um atalho global precisaria de decisão sobre conflitos (`design-system.md` §10, item 8).
   - Item na folha "Mais" do celular: o desenvolvimento dos primitivos é feito no desktop.
+
+---
+
+## D-054 — Auditoria do `apps/web` contra o Guia de Identidade: Tamanhos 15, 13 e 11 px, Alturas de Campo e Alinhamento dos Primitivos e da Casca (Revisa o Item 6 de `D-052`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** auditar tudo o que existe no `apps/web` (15 primitivos, vitrine, casca, esqueletos, tokens, tipografia, ícones, movimento, textura) contra o guia de identidade visual e corrigir o que divergir, porque a casca e os primitivos nasceram sem conferência com as páginas de aplicação do guia (`D-052`).
+- **Método:** hierarquia de verdade explícita (1. `tokens.json`, valores; 2. o guia, composição e medidas, lidas em `build/componentes.py` e `medidas.json`; 3. `identity.md`; 4. `design-system.md`, onde diverge o guia vence; 5. o código nunca é fonte). Cada item foi classificado em A (guia claro, corrigir), B (ambíguo ou fora da escala, decisão do usuário), C (guia não cobre) ou D (já decidido); capturas do app em 1440, 768, 390 e 320 px foram comparadas com os PNGs do guia. Resultado: 17 itens A, 7 B, 4 C e 12 D; tokens, marca, cores semânticas, foco, superfícies, movimento e as medidas da casca já estavam conformes.
+- **Decisão:**
+  1. **Três tamanhos entram no `tokens.json`** (revisa o item 6 de `D-052`): `ui` 15/22 (botões, linhas de cartão e descrições de estado), `ui-sm` 13/18 (selos, lente) e `ui-xs` 11/14 (rótulo da barra inferior). Os 12,5 px do guia viram 13 e o título de 38 px fica em `display` (40). O guia (página 26) e o `tokens.css` foram regenerados; os SVGs de componentes cujo desenho não mudou foram restaurados, porque o subconjunto de fonte embutido muda de bytes a cada execução do pipeline.
+  2. **Alturas de controle como no guia:** campos (`Input`, `Select`) com **44 px** em qualquer tela, botão `md` com 40 px no desktop e **44 px no celular** (antes 48); `lg` segue em 48. Revisa `design-system.md` §5 (`D-025`).
+  3. **Tipografia:** a Newsreader passa a carregar o eixo óptico (`opsz.css`, +74 KB no arquivo latin), como a fonte do guia; *preload* da Newsreader 400 e da Plus Jakarta Sans 400 no `index.html`; reservas de métrica `"<Família> Fallback"` com `size-adjust`, `ascent-override` e `descent-override` medidos com `fontTools` (Georgia 90,5%, Arial 106,2%, Courier New 100%), geradas no `tokens.css` (`identity.md` §4, guia pág. 29).
+  4. **Ícones:** todo ícone Lucide com traço de **1,5 px que não escala** (`LucideProvider` com `strokeWidth` 1,5 e `nonScalingStroke` em `providers.tsx`), porque os tamanhos vêm de classes CSS e `absoluteStrokeWidth` mede pela prop `size`. Antes valia o padrão 2 (guia pág. 33).
+  5. **Primitivos:** `Button` em seminegrito, 15 px, e `ghost` em `ink-muted`; rótulo de campo em seminegrito; `Badge` em **pílula** de 26 px, 13 px, seminegrito, neutro em `ink-muted`; `EmptyState` com ramo de 64 px, título `name` e opção `ramo-grande` (a do 404, pág. 31); `Toast` com título em seminegrito; `SegmentedControl` em 13 px; `Tooltip` no **nível 1** da pág. 32 (Marfim, *hairline*, sombra suave) no lugar do escuro; `Table` com `isolate`, para o canto fixo não passar por cima da barra superior; **`Money` com espaço depois do sinal** (`+ R$ 1.200,00`, `− R$ 3.100`).
+  6. **Casca:** *wordmark* de 29 px de altura (versal de 26 px) e símbolo de 27 px no celular, com as posições do guia; rótulos da barra lateral numa linha só; barra inferior com rótulos de `ui-xs`; ícones da folha "Mais" em `ink-muted` e o ativo em `primary`; as páginas-esqueleto com o estado vazio dentro de um `Card`.
+  7. **Títulos editoriais nas 8 áreas** (padrão das págs. 38 a 40): o rótulo nomeia a área e o `h1` diz o que a página é; o título do documento e a barra superior seguem com o nome da área. Visão Geral usa o texto exato do guia ("O momento de vocês"). As outras sete são textos propostos e aprovados nesta decisão:
+
+     | Área | Rótulo | Título (h1) |
+     | :--- | :--- | :--- |
+     | Visão Geral | Visão geral | O momento de vocês |
+     | Planejamento & Caminhos | Planejamento | O rumo de vocês |
+     | Cronograma & Dependências | Cronograma | O que pode andar agora |
+     | Possibilidades & Decisões | Possibilidades | Comparar propostas |
+     | Orçamento & Simulador | Orçamento | O orçamento de vocês |
+     | Contatos & Fornecedores | Contatos | Quem vocês estão consultando |
+     | Convidados, Enxoval & Dia D | Convidados | Quem estará com vocês |
+     | Assistente | Assistente | Conversem com o assistente |
+
+  8. **Custo comparável como no guia** (págs. 34 e 40): o total sai em `ink`, mono de 24 px, e a terracota fica só nos custos extras, com ícone e sinal `+`. Corrige `design-system.md` §9 e `visual-direction.md` §2.3 e §3. O tom `comparable` do `Money` passa a ser o dos extras.
+  9. **Vitrine `/design-system`:** ganha as seções Cores (as 17 do `tokens.json`, com a função) e Tipografia (a escala inteira, com a amostra), o `SegmentedControl` e os estados que faltavam (carregando e desabilitado em todas as variantes do botão, `Textarea`, `Select` e `Checkbox` desabilitados, aba desabilitada, ramo grande). Um teste falha se um arquivo de `components/ui` não aparecer na vitrine.
+  10. **Desvios aceitos, registrados:** cabeçalho de `Table` com fundo `surface-muted` e linha em sans (o guia, pág. 28, é a linha de orçamento, componente de domínio, revista quando o `BudgetRow` nascer); `Toast` com raio de 10 px e *hairline* (precisa se separar do conteúdo, nível 1); barra superior opaca, sem a textura de 3,5% (evita o conteúdo aparecer por baixo ao rolar); `Dialog`, `Tabs`, `Checkbox`, lista do `Select`, folha "Mais" e tom `info` do `Toast` aprovados como estão, por não terem página no guia; lupa do celular (pág. 39) adiada até a busca global do Bloco 3.1 (`D-034`); rótulo de 11 px na barra inferior por fidelidade ao guia, abaixo dos 12 px da escala anterior.
+  11. **Ícone flutuante do Assistente** (lote 2 da etapa (d), `D-050`), que o guia não mostra: **pílula secundária de 48 px** com `message-square-text` e o texto "Assistente" (`surface`, borda `border-strong`, sombra de nível 1), no canto inferior direito e acima da barra inferior no celular, para ficar mais calma que o "Registrar" primário da pág. 39. A construção segue como lote 2.
+- **Ajustes em arquivos aprovados:** `tokens.json` (três tamanhos) e o guia regenerado (HTML, PDF, página 26); `design-system.md` §4 (escala), §5 (raios e alturas), §8 (`Badge`) e §9 (`Money` e `ComparableCostBreakdown`); `visual-direction.md` §2.3 e §3 (custo comparável).
+- **Razão:** o guia foi aprovado em `D-024` e `D-025`, e o app divergia dele em detalhes que o casal vê todo dia: traço dos ícones, peso dos títulos, quebra de linha na barra lateral, forma dos selos e alturas. Corrigir por medida lida do gerador do guia, e não a olho, evita repetir o `D-052`.
+- **O que ficou rejeitado:**
+  - Aproximar 15, 13 e 11 px dos tokens existentes: o usuário preferiu acrescentar os tamanhos para ficar fiel ao desenho do guia.
+  - Manter campos de 40 px e botões de 48 px no celular: o guia mostra 44 px nos dois.
+  - `absoluteStrokeWidth` do Lucide: mede pela prop `size`, e aqui o tamanho vem de classes.
+  - Manter o título de cada área igual ao nome dela: repete a barra superior e destoa das páginas do guia.
+  - Manter o total comparável em terracota: o guia reserva a terracota aos extras.
+  - Reabrir o regenerar dos 53 SVGs de componentes sem mudança de desenho: só enchia o diff de ruído.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` (teclado, zoom de 200%, VoiceOver e "reduzir movimento"); o reflow de 320 px sem rolagem horizontal foi verificado por script nas 10 rotas.

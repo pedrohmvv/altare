@@ -110,8 +110,11 @@ Valores de cada papel (claro e escuro) estão em `docs/design/identity.md` §3.3
 | `name` | Serifa | 20/28 | 500 | **Nome de espaço/fornecedor/cenário em cartões** |
 | `body-lg` | Sans | 18/28 | 400 | Introduções |
 | `body` | Sans | 16/24 | 400/500 | Texto e controles (**mínimo 16 px em campos no mobile**, evita *zoom* do iOS) |
+| `ui` | Sans | 15/22 | 400/600 | Botões, linhas de cartão e descrições de estado (`D-054`) |
 | `body-sm` | Sans | 14/20 | 400/500 | Metadados, tabelas densas |
+| `ui-sm` | Sans | 13/18 | 400/600 | Selos, lente de visão e rótulos de apoio (`D-054`) |
 | `eyebrow` | Sans | 12/16, maiúsculas, `tracking .08em` | 600 | Rótulo acima de títulos |
+| `ui-xs` | Sans | 11/14 | 500/600 | Rótulo da barra inferior no celular (`D-054`) |
 | `num-xl` | Mono | 24/32 | 500 | Totais em `StatBlock` |
 | `num-lg` | Mono | 20/28 | 500 | Custo comparável em cartões |
 | `num` | Mono | 16/24 | 400 | Valores em linhas |
@@ -126,12 +129,12 @@ Todo token mono aplica `font-variant-numeric: tabular-nums`. Largura máxima de 
 | Categoria | Valores |
 | :--- | :--- |
 | **Espaçamento** (base 4 px) | `1`=4 · `2`=8 · `3`=12 · `4`=16 · `5`=20 · `6`=24 · `8`=32 · `10`=40 · `12`=48 · `16`=64 |
-| **Raios** (`D-022` — cantos moderados) | `control`=6 px (botões, campos, badges retangulares) · `card`=10 px (cartões, overlays, gavetas) · `thumb`=8 px (miniaturas) · `pill`=9999 (chips e avatares) |
+| **Raios** (`D-022` — cantos moderados) | `control`=6 px (botões, campos) · `card`=10 px (cartões, overlays, gavetas) · `thumb`=8 px (miniaturas) · `pill`=9999 (selos/badges, chips e avatares, `D-054`) |
 | **Bordas** | `1px solid border` (divisória) · `1px solid border-strong` (controle) · foco: anel duplo (§7) |
 | **Profundidade** | Nível 0: **plano + hairline** (cartões, tabelas) · Nível 1 (popover/menu): `0 4px 16px rgb(35 42 34/.08)` + hairline · Nível 2 (diálogo/gaveta): `0 12px 32px rgb(35 42 34/.12)`. **Escuro: sem sombra**; profundidade por degraus de `surface` |
 | **Z-index** | `sticky`=10 · `nav`=20 · `drawer`=30 · `modal`=40 · `popover`=50 · `toast`=60 |
 | **Breakpoints** | `sm` 640 · `md` 768 · `lg` 1024 · `xl` 1280 · `2xl` 1536 |
-| **Alturas de controle** | `sm` 32 (denso, desktop) · `md` 40 (padrão desktop) · `lg` 48 (padrão mobile). Com `pointer: coarse`, nenhum alvo < 44 px |
+| **Alturas de controle** | **Botão:** `sm` 32 (denso, desktop) · `md` 40 (padrão; **44 no celular**) · `lg` 48. **Campos** (`Input`, `Select`): **44 em qualquer tela**, como no guia (`D-054`, revisa `D-025`). Com `pointer: coarse`, nenhum alvo < 44 px |
 
 ### Casca do aplicativo (shell)
 | Faixa | Layout |
@@ -181,7 +184,7 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 | **Checkbox · Radio · Switch** | Com rótulo clicável | Alvo 44 px no mobile |
 | **SegmentedControl** | 2–5 opções | Base do seletor de lente e das classificações |
 | **Tabs** | Horizontal; no mobile rolável | Abas das áreas (ex.: Orçamento Ativo / Simulador / Pagamentos) |
-| **Badge** | `neutral` · `consensus` · `attention` · `primary` · `outline`; com ícone | Selos "Consenso Favorito", "1 extra pendente", "Acima do teto" |
+| **Badge** | `neutral` (`surface-sunken` com `ink-muted`) · `consensus` · `attention` · `primary` · `outline`; com ícone | **Pílula** de 26 px, 13 px em seminegrito, como os selos do guia (págs. 34 e 38 a 40). Selos "Consenso Favorito", "1 extra pendente", "Acima do teto" |
 | **Tag editorial** | Itálico serifa, `surface-muted` | Etiquetas de categoria/estilo |
 | **Avatar** | Inicial em `pill` `surface-sunken` | Sem cor por perfil |
 | **Card** | `default` · `interactive` (hover com `border-strong`) · `muted` | Plano, sem sombra, raio `card` |
@@ -203,13 +206,13 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 
 | Componente | Responsabilidade | Detalhes de especificação |
 | :--- | :--- | :--- |
-| **`Money`** | Exibir valores em centavos | Mono tabular, `R$` + U+00A0, vírgula decimal. `precision`: `auto` (sem centavos se inteiro, em cartões e resumos) · `always` (tabelas financeiras, parcelas) · ~~`none`~~ (não construído: nenhuma tela o pede e arredondar na exibição faria o total divergir das linhas, `D-048`). `tone`: `default` · `comparable` (`accent-ink`, destaque do custo real) · `muted` · `positive` (dentro do teto) · `attention`. `signed` mostra `+`/`−` (extras e diferenças) |
+| **`Money`** | Exibir valores em centavos | Mono tabular, `R$` + U+00A0, vírgula decimal. `precision`: `auto` (sem centavos se inteiro, em cartões e resumos) · `always` (tabelas financeiras, parcelas) · ~~`none`~~ (não construído: nenhuma tela o pede e arredondar na exibição faria o total divergir das linhas, `D-048`). `tone`: `default` · `comparable` (`accent-ink`, para os custos extras, `+ R$`; o total comparável usa `default` em `num-xl`, `D-054`) · `muted` · `positive` (dentro do teto) · `attention`. `signed` mostra `+`/`−` (extras e diferenças); o sinal vem **separado do `R$` por espaço não separável** (`+ R$ 1.200,00`, guia págs. 28 e 34) |
 | **`MoneyInput`** | Entrada de valor | Máscara pt-BR, armazena **centavos inteiros**, alinhado à direita, mono; nunca `float` |
 | **`ProfileChip`** | Mostrar autoria/responsável | Avatar com inicial + rótulo `Noivo`/`Noiva`; **`Ambos`** = dois avatares sobrepostos. Sem cor por perfil |
 | **`ProfileLensSwitcher`** | Alternar `Visão do Casal` / `Minha visão` | `SegmentedControl` na barra superior; estado persistido em URL/preferência |
 | **`ConsensusBadge`** | Indicador de alinhamento do casal (`D-012`) | Estados: *Consenso Favorito* (sálvia, `heart-handshake`) · *Conversar juntos* (argila, `messages-square`) · *Ambos descartariam* (neutro) · *Aguardando avaliação* (neutro, mostra quem falta) |
 | **`RatingPair`** | Avaliação individual dupla | Duas colunas (`Noivo`, `Noiva`): classificação em `SegmentedControl` (`Favorito`/`Gostei`/`Com ressalvas`/`Descartaria`) + nota **1–5 em botões numéricos mono** (não estrelas) + comentário. Edita apenas a coluna do usuário logado; a do outro é leitura (`D-021`) |
-| **`ComparableCostBreakdown`** | Normalizador de custo comparável | Linhas: Preço de capa · `+` extras (cada um com rótulo e `Money signed`) · linha total em `Money tone="comparable"` + selo "1 extra pendente" quando aplicável. Mostra a mensagem do tom de voz (ex.: "abaixo/acima do teto") |
+| **`ComparableCostBreakdown`** | Normalizador de custo comparável | Linhas: Preço de capa · `+` extras (cada um com rótulo e `Money signed`) · linha total em `Money` `default`, `num-xl`, sobre `surface-muted` (a terracota fica só nos extras, guia págs. 34 e 40, `D-054`) + selo "1 extra pendente" quando aplicável. Mostra a mensagem do tom de voz (ex.: "abaixo/acima do teto") |
 | **`ComparisonTable`** | Quadro lado a lado (3–5 colunas) | Colunas ≥ 280 px, primeira coluna fixa; linha "Custo real comparável" em destaque; linha de `RatingPair` resumido; realce de "Menor custo real" com `Badge consensus`; mobile vira cartões empilhados com abas deslizantes |
 | **`NextStepCard`** | Próximo Passo Único | Ação, data-alvo (mono), `ProfileChip` responsável; urgente = `accent-ink` + `circle-arrow-right` |
 | **`DependencyStatus`** | Cronograma | `Destravado` (sálvia, `lock-open`) / `Bloqueado` (neutro, `lock`) com *popover* "Aguardando: …" |
