@@ -223,7 +223,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 1. Tokens do **tema claro** gerados do `tokens.json` e mapeados em `@theme`, com nomes semânticos; fontes autohospedadas. Tema escuro adiado até o usuário pedir.
 2. Ativos de marca copiados para `public/brand/`.
 3. 15 primitivos shadcn/Radix re-estilizados: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money`. Componentes de domínio e gaveta (`vaul`) nascem no bloco que os usa.
-4. Casca de navegação das 7 áreas (desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
+4. Casca de navegação das 8 áreas (as 7 de `D-025` mais o Assistente, `D-050`; desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente, ícone flutuante do assistente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
 5. Rota `/design-system` **mínima**. Testes com Vitest + Testing Library; sem *snapshots* visuais e sem `axe` no CI.
 
 **Critério de conclusão do Nível 0:** abrir no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta.

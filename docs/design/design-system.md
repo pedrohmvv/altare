@@ -135,9 +135,9 @@ Todo token mono aplica `font-variant-numeric: tabular-nums`. Largura máxima de 
 ### Casca do aplicativo (shell)
 | Faixa | Layout |
 | :--- | :--- |
-| **≥ 1024 (desktop)** | Barra lateral fixa de 256 px (marca, 7 áreas) + barra superior (título da área, **seletor de lente**, menu do usuário) + conteúdo (máx. 1200 px; tabelas comparativas usam largura total) |
+| **≥ 1024 (desktop)** | Barra lateral fixa de 256 px (marca, 7 áreas e, separado por uma hairline ao fim, o **Assistente**, `D-050`) + barra superior (título da área, **seletor de lente**, menu do usuário) + conteúdo (máx. 1200 px; tabelas comparativas usam largura total) |
 | **768–1023 (tablet)** | Barra lateral recolhida em trilho de ícones (72 px) |
-| **< 768 (mobile)** | Barra superior compacta + **barra inferior** com 4 destinos + "Mais" + botão flutuante **"+ Registrar Rápido"** |
+| **< 768 (mobile)** | Barra superior compacta + **barra inferior** com 4 destinos + "Mais" + botão flutuante **"+ Registrar Rápido"** (Bloco 3.1). O **ícone flutuante do assistente** fica acima da barra inferior; a convivência dos dois é a `OQ-IA-001`, item 5 |
 
 ---
 
@@ -235,16 +235,19 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 7. **Estados vazios, carregando e erro:** conforme `identity.md` §9.
 8. **Atalhos de teclado (desktop):** `g` + letra navega às áreas, `n` novo item, `/` busca (documentados na vitrine; opcionais na v1).
 
-### 10.1 Navegação (aprovada em `D-025`, §14 item 1)
-| Posição | Desktop (barra lateral) | Mobile (barra inferior) |
-| :--- | :--- | :--- |
-| 1 | Visão Geral | **Início** (Visão Geral) |
-| 2 | Planejamento & Caminhos | **Possibilidades** |
-| 3 | Cronograma & Dependências | **Contatos** |
-| 4 | Possibilidades & Decisões | **Orçamento** |
-| 5 | Orçamento & Simulador | **Mais** → folha com Planejamento, Cronograma, Convidados/Enxoval/Dia D |
-| 6 | Contatos & Fornecedores | — |
-| 7 | Convidados, Enxoval & Dia D | — |
+### 10.1 Navegação (aprovada em `D-025`, §14 item 1; Assistente acrescentado em `D-050`)
+| Posição | Desktop (barra lateral) | Ícone (Lucide) | Mobile (barra inferior) |
+| :--- | :--- | :--- | :--- |
+| 1 | Visão Geral | `house` | **Início** (Visão Geral) |
+| 2 | Planejamento & Caminhos | `compass` | **Possibilidades** |
+| 3 | Cronograma & Dependências | `calendar-days` | **Contatos** |
+| 4 | Possibilidades & Decisões | `columns-3` | **Orçamento** |
+| 5 | Orçamento & Simulador | `wallet` | **Mais** → folha com Planejamento, Cronograma, Convidados/Enxoval/Dia D e Assistente |
+| 6 | Contatos & Fornecedores | `contact` | — |
+| 7 | Convidados, Enxoval & Dia D | `users` | — |
+| 8 | **Assistente** (separado por hairline; `D-050`) | `message-square-text` | Dentro de "Mais" |
+
+Os ícones de navegação têm 24 px e traço de 1,5 px (`identity.md` §7), sempre com rótulo. O ícone do Assistente evita `message-circle` (reservado ao WhatsApp) e `messages-square` (reservado à divergência).
 
 Racional: no celular o casal consulta próximo passo, compara opções, abre WhatsApp e confere saldo (`D-003`); áreas de planejamento profundo ficam em "Mais" e continuam completas no desktop.
 

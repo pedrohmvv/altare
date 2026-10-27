@@ -69,7 +69,7 @@ const { data } = useBudgetSimulation(scenarioId, premises) // premises com debou
 ## Widget de chat flutuante (`D-042`, Bloco 5.3)
 - Componente da casca do app, **só UI**: mensagens, campo de texto e a prévia de uma `ChangeProposal` com Confirmar e Rejeitar explícitos. Sem regra de negócio; consome a API do assistente pelo cliente OpenAPI gerado.
 - O contexto da tela (rota e id do registro aberto) segue como parâmetro. O widget não lê dados de outras features.
-- **Não nasce antes do Bloco 5.3**, nem como placeholder.
+- **O ícone flutuante e o painel provisório nascem na etapa (d) do Bloco 0.2** (`D-050`), sem regra de negócio: só o botão, o texto de que o assistente ainda não está disponível e o fechamento. **O chat de verdade (mensagens, campo de texto, prévia de `ChangeProposal`) não nasce antes do Bloco 5.3.**
 - Padrão de interação em `altare-ui-ux`; foco e `aria-live` em `altare-acessibilidade`.
 
 ## Limites e vizinhas
@@ -78,4 +78,4 @@ const { data } = useBudgetSimulation(scenarioId, premises) // premises com debou
 - Estratégia de testes e gates: `altare-testes-qa`. Estilo de código geral: `altare-escrita-de-codigo`.
 
 ## Em aberto
-- Posição do módulo de chat na navegação (8ª área ou só o ícone flutuante): `OQ-IA-001`.
+- Convivência do ícone do assistente com o "+ Registrar Rápido" no canto inferior direito: `OQ-IA-001`, item 5 (Bloco 3.1).

@@ -65,7 +65,7 @@ Para que o produto nunca pareça uma colcha de retalhos, todos os módulos opera
 
 A navegação foi desenhada para refletir a forma como vocês pensam o casamento, com adaptação clara entre **Computador (planejamento conjunto profundo)** e **Celular (consulta e captura rápida)**.
 
-### 3.1. Estrutura de Navegação Principal (7 Áreas + Seletor Rápido de Perfil)
+### 3.1. Estrutura de Navegação Principal (7 Áreas + Assistente + Seletor de Lente)
 
 > **Revisado em `D-020`/`D-021` (2026-10-26):** cada pessoa tem **login individual** (`Noivo` ou `Noiva`) e a autoria sempre vem da sessão. O seletor passou a ser uma **lente de visão**, não uma troca de identidade.
 
@@ -75,7 +75,7 @@ No topo/lateral, um **Seletor de Lente** permite alternar com 1 clique entre:
 
 Avaliações individuais são visíveis ao outro imediatamente. Para avaliar como o outro no computador compartilhado, a pessoa troca de usuário (login rápido por senha).
 
-As **7 áreas principais** da aplicação são:
+As **7 áreas principais** da aplicação são (mais o **Assistente**, a 8ª área, descrito ao final da lista, `D-050`):
 
 1. **Visão Geral (Centro de Comando):**
    - Resumo do momento atual: definições base do casamento, decisões destravadas da vez, próximos passos com fornecedores vencendo na semana, termômetro do orçamento ativo (Planejado vs. Estimado vs. Contratado vs. Pago), contagem atual de convidados e próximas parcelas a vencer.
@@ -99,6 +99,7 @@ As **7 áreas principais** da aplicação são:
    - **Subárea Convidados:** lista nominal agrupada por núcleo familiar e indicadores de contagem (*Total*, *Ponderado*, *Confirmados*).
    - **Subárea Enxoval & Lista de Presentes:** controle dos itens da casa nova + módulo de exportação/formatação para site externo ou envio aos convidados.
    - **Subárea Dossiê do Dia D:** documento vivo estruturado para o(a) cerimonialista do dia, com modo de visualização limpa / exportação (PDF/impressão).
+8. **Assistente (`D-042`, `D-050`):** o módulo de chat em linguagem natural. Fica **ao fim da navegação, separado das 7 áreas**, e há também um **ícone flutuante** no canto inferior direito das demais áreas, recolhido por padrão e que nunca abre sozinho. A casca existe desde a etapa (d) do Bloco 0.2; o chat só funciona no Bloco 5.3 (Nível 5).
 
 ### 3.2. Comportamento Desktop vs. Mobile (`D-003`)
 

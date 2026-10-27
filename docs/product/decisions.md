@@ -939,3 +939,22 @@
   - Antecipar `AlertDialog`, `Sheet` e `Popover`: nenhuma tela do Nível 0 os usa (`D-028`).
   - `sonner` para as notificações: segunda biblioteca de acessibilidade a conferir, sem ganho sobre o Radix Toast.
   - Limite de fila de notificações: sem caso real ainda.
+
+---
+
+## D-050 — Assistente como 8ª Área da Navegação e Ícone Flutuante, Já na Casca (Resolve o Item 1 de `OQ-IA-001`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (etapa (d) do Bloco 0.2)
+- **Pedido do usuário:** ao planejar a casca de navegação, o usuário decidiu que o assistente entra **já na casca**: "Incluir a área \"Assistente\", e o ícone flutuante."
+- **Decisão:**
+  1. **A navegação tem 8 áreas:** as 7 de `D-025` e o **Assistente** (o "módulo de chat" de `D-042`). No desktop e no tablet fica **ao fim da lista, separado das demais por uma *hairline***; no celular a barra inferior continua com 4 destinos mais "Mais", e o Assistente entra dentro de "Mais".
+  2. **O ícone flutuante do assistente** fica no canto inferior direito das demais áreas, **recolhido por padrão, nunca abre sozinho e nunca cobre o conteúdo principal**; fica **oculto na própria área Assistente** (seria redundante). No celular fica acima da barra inferior.
+  3. **Só a casca nasce agora.** A área Assistente é uma página-esqueleto como as outras, e o ícone abre um painel provisório que diz, com calma e sem prometer prazo, que o assistente ainda não está disponível. O chat de verdade (mensagens, campo de texto, prévia de `ChangeProposal` com Confirmar e Rejeitar) é do Bloco 5.3 (`D-008`, `D-042`).
+  4. **Item 5 da `OQ-IA-001` (canto compartilhado com o "+ Registrar Rápido") continua aberto, com gatilho no Bloco 3.1:** até lá o assistente é o único dono do canto; ao construir o `QuickAddFab`, decide-se como convivem (ex.: o assistente dentro do menu "Novo"). Os itens 2 a 4 seguem para o Bloco 5.3.
+  5. **Ícone da área:** `message-square-text` (Lucide), que evita `message-circle` (WhatsApp) e `messages-square` (divergência), os dois reservados em `identity.md` §7. Os ícones das demais áreas estão em `design-system.md` §10.1.
+- **Ajustes em arquivos aprovados:** `experience.md` §3.1 (8ª área); `design-system.md` §5 e §10.1 (barra lateral, "Mais" e tabela de ícones); `roadmap.md` (Blocos 0.2 e 5.3); `stack.md` §11 (item 4); `open-questions.md` (item 1 resolvido, item 5 com gatilho); skills `altare-ui-ux`, `altare-frontend`, `altare-agente-dados` e `altare-engenharia-de-ia` (a regra "não nasce antes do Bloco 5.3, nem como placeholder" passa a valer só para o chat, não para a casca).
+- **Razão:** o usuário quer o assistente visível na estrutura do app desde o início, para a navegação e o canto inferior direito nascerem já contando com ele, em vez de serem refeitos no Nível 5.
+- **O que ficou rejeitado:**
+  - Manter a `OQ-IA-001` inteira em aberto e construir só as 7 áreas (recomendação do agente): o usuário preferiu decidir agora.
+  - Só o ícone flutuante, sem área própria: não dá lugar ao histórico e à tela do módulo de chat de `D-042`.
+  - Só a 8ª área, sem o ícone: perde o acesso ao assistente com o contexto da tela atual.
