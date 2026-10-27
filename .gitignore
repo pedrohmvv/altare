@@ -15,3 +15,10 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
+
+# Python: caches de teste e bancos locais
+.pytest_cache/
+.hypothesis/
+*.db
+*.db-wal
+*.db-shm

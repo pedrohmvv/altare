@@ -34,6 +34,8 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "N", "C4", "PT", "RUF"]
+# N818: os erros de domínio têm os nomes de architecture.md §8 (NotFound, Conflict...)
+ignore = ["N818"]
 
 [tool.pyright]
 include = ["src", "tests"]
@@ -44,7 +46,7 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers --import-mode=importlib"
 
 [tool.importlinter]
 root_package = "wedding"
