@@ -22,6 +22,8 @@ export interface Tokens {
 const SCRIM = 'rgb(35 42 34 / .45)'
 const EYEBROW_TRACKING = '.08em'
 const DESKTOP_BREAKPOINT = '48rem'
+// O Fontsource publica as fontes variáveis como "<Família> Variable".
+const FONTSOURCE_VARIABLE_SUFFIX = ' Variable'
 
 const rem = (px: number) => `${px / 16}rem`
 
@@ -83,7 +85,7 @@ export function buildTokensCss(tokens: Tokens): string {
   if (!primaryInk) throw new Error('apoio.primary-ink ausente no tokens.json')
   const motion = parseMotion(movimento)
   const font = (key: 'serif' | 'sans' | 'mono') =>
-    `  --font-${key}: "${tipografia[key].familia}", ${tipografia[key].fallback};`
+    `  --font-${key}: "${tipografia[key].familia}${FONTSOURCE_VARIABLE_SUFFIX}", "${tipografia[key].familia}", ${tipografia[key].fallback};`
 
   const root = [
     ':root, [data-theme="light"] {',

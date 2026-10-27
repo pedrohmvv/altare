@@ -66,10 +66,14 @@ describe('buildTokensCss', () => {
     expect(mapped).toBeGreaterThan(reset)
   })
 
-  it('mapeia as famílias de fonte com os fallbacks do tokens.json', () => {
-    expect(css).toContain('--font-serif: "Newsreader", Georgia, serif;')
-    expect(css).toContain('--font-sans: "Plus Jakarta Sans", system-ui, sans-serif;')
-    expect(css).toContain('--font-mono: "JetBrains Mono", ui-monospace, monospace;')
+  it('mapeia as famílias de fonte pelo nome do Fontsource, com o nome da marca e os fallbacks do tokens.json', () => {
+    expect(css).toContain('--font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;')
+    expect(css).toContain(
+      '--font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;',
+    )
+    expect(css).toContain(
+      '--font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;',
+    )
   })
 
   it('gera o utilitário de texto com tamanho mobile e o desktop em media query', () => {

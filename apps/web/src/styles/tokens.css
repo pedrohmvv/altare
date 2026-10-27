@@ -46,9 +46,9 @@
   --color-primary-ink: var(--primary-ink);
   --color-focus-ring: var(--focus-ring);
   --color-scrim: var(--scrim);
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-thumb: 8px;
