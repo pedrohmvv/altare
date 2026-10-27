@@ -1,16 +1,24 @@
-import type { ComponentProps } from 'react'
+import { type ComponentProps, createContext, useContext } from 'react'
 import { cn } from '@/lib/cn'
 
-// A densidade e a primeira coluna fixa chegam às células pelos atributos de dados da <table>.
-const CELL_SPACING =
-  'px-4 py-3 group-data-[density=compact]/table:py-1.5 group-data-[density=compact]/table:text-body-sm'
-const STICKY_FIRST =
-  'group-data-[sticky-first]/table:first:sticky group-data-[sticky-first]/table:first:left-0'
+type Density = 'comfortable' | 'compact'
+
+interface TableContextValue {
+  density: Density
+  stickyFirstColumn: boolean
+}
+
+// A densidade e a primeira coluna fixa chegam às células por contexto, não por variantes de grupo:
+// as classes de texto do Altare definem família e peso, e uma variante as sobrescreveria.
+const TableContext = createContext<TableContextValue>({
+  density: 'comfortable',
+  stickyFirstColumn: false,
+})
 
 export type TableProps = Omit<ComponentProps<'table'>, 'aria-label'> & {
   /** Nome da região rolável, anunciado pelo leitor de tela. */
   label: string
-  density?: 'comfortable' | 'compact'
+  density?: Density
   /** Mantém a primeira coluna visível ao rolar na horizontal. */
   stickyFirstColumn?: boolean
   /** Classes do contêiner de rolagem; use `max-h-*` para o cabeçalho fixo valer na vertical. */
@@ -27,22 +35,19 @@ export function Table({
   ...props
 }: TableProps) {
   return (
-    <section
-      aria-label={label}
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: região rolável precisa de foco para rolar por teclado (design-system.md §7)
-      tabIndex={0}
-      className={cn(
-        'overflow-auto rounded-card border border-border bg-surface [--focus-gap:var(--surface)]',
-        containerClassName,
-      )}
-    >
-      <table
-        data-density={density}
-        data-sticky-first={stickyFirstColumn || undefined}
-        className={cn('group/table w-full border-collapse text-left text-body', className)}
-        {...props}
-      />
-    </section>
+    <TableContext value={{ density, stickyFirstColumn }}>
+      <section
+        aria-label={label}
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: região rolável precisa de foco para rolar por teclado (design-system.md §7)
+        tabIndex={0}
+        className={cn(
+          'overflow-auto rounded-card border border-border bg-surface [--focus-gap:var(--surface)]',
+          containerClassName,
+        )}
+      >
+        <table className={cn('w-full border-collapse text-left', className)} {...props} />
+      </section>
+    </TableContext>
   )
 }
 
@@ -74,6 +79,8 @@ export function TableRow({ className, ...props }: ComponentProps<'tr'>) {
   return <tr className={cn('border-b border-border last:border-b-0', className)} {...props} />
 }
 
+const padding = (density: Density) => (density === 'compact' ? 'px-4 py-1.5' : 'px-4 py-3')
+
 /** Cabeçalho de coluna (`scope="col"`, fixo no topo) ou de linha (`scope="row"`). */
 export function TableHead({
   scope = 'col',
@@ -81,16 +88,23 @@ export function TableHead({
   className,
   ...props
 }: ComponentProps<'th'> & { numeric?: boolean }) {
+  const { density, stickyFirstColumn } = useContext(TableContext)
   const isRow = scope === 'row'
   return (
     <th
       scope={scope}
       className={cn(
-        CELL_SPACING,
-        STICKY_FIRST,
+        padding(density),
+        stickyFirstColumn && 'first:sticky first:left-0',
         isRow
-          ? 'bg-surface font-medium text-ink'
-          : 'sticky top-0 z-10 bg-surface-muted text-eyebrow text-ink-muted normal-case tracking-normal group-data-[sticky-first]/table:first:z-20',
+          ? [
+              'bg-surface font-medium text-ink',
+              density === 'compact' ? 'text-body-sm' : 'text-body',
+            ]
+          : [
+              'sticky top-0 z-10 bg-surface-muted text-eyebrow text-ink-muted normal-case tracking-normal',
+              stickyFirstColumn && 'first:z-20',
+            ],
         numeric ? 'text-right' : 'text-left',
         className,
       )}
@@ -104,13 +118,18 @@ export function TableCell({
   className,
   ...props
 }: ComponentProps<'td'> & { numeric?: boolean }) {
+  const { density, stickyFirstColumn } = useContext(TableContext)
+  const compact = density === 'compact'
   return (
     <td
       className={cn(
-        CELL_SPACING,
-        STICKY_FIRST,
-        'group-data-[sticky-first]/table:first:bg-surface',
-        numeric && 'text-right font-mono tabular-nums',
+        padding(density),
+        stickyFirstColumn && 'first:sticky first:left-0 first:bg-surface',
+        numeric
+          ? ['text-right', compact ? 'text-num-sm' : 'text-num']
+          : compact
+            ? 'text-body-sm'
+            : 'text-body',
         className,
       )}
       {...props}
