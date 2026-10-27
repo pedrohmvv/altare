@@ -13,6 +13,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Money } from '@/components/ui/money'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Select } from '@/components/ui/select'
 import {
@@ -308,7 +309,7 @@ export function Conferencia() {
 
       <section aria-labelledby="conf-sobreposicoes" className="flex flex-col gap-6">
         <h2 id="conf-sobreposicoes" className="text-heading">
-          Diálogo, abas, dica e notificações
+          Diálogo, cartão, abas, dica e notificações
         </h2>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -345,6 +346,15 @@ export function Conferencia() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="secondary">Ver nota do espaço</Button>
+            </PopoverTrigger>
+            <PopoverContent
+              title="Nota do Espaço Exemplo A"
+              description="Cartão ancorado no gatilho, sem escurecer a página. Esc, Fechar ou um clique fora o fecham."
+            />
+          </Popover>
           <Tooltip content="Mover para a lixeira">
             <Button variant="secondary" size="icon" aria-label="Excluir fornecedor">
               <Trash2 aria-hidden />

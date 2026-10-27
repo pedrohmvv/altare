@@ -51,7 +51,7 @@ Toda mensagem de erro, aviso ou estado vazio responde, nesta ordem e só no que 
 ## Ícone flutuante do assistente (`D-042`, `D-050`): padrão de interação
 - Fica no canto inferior direito das demais áreas, **recolhido por padrão**, e expande para um chat que já conhece a tela atual. **Nunca abre sozinho** e nunca cobre a tabela comparativa nem o conteúdo principal.
 - Resposta é de leitura livre. Qualquer mudança aparece como **prévia com Confirmar e Rejeitar** explícitos (`D-008`); o assistente não "faz e avisa depois".
-- **A casca já existe (`D-050`):** o ícone, oculto na própria área Assistente, e a área **Assistente** na navegação. O painel de chat de verdade é do Bloco 5.3; até lá o ícone abre um painel provisório que diz, com calma, que o assistente ainda não está disponível.
+- **A casca já existe (`D-050`):** o ícone, oculto na própria área Assistente, e a área **Assistente** na navegação. O ícone é uma pílula que **se recolhe ao rolar para baixo** (sem sair do teclado, `D-056`) e abre um cartão ancorado (`Popover`). O painel de chat de verdade é do Bloco 5.3; até lá o ícone abre um painel provisório que diz, com calma, que o assistente ainda não está disponível.
 
 ## Checklist (tela ou fluxo novo)
 - [ ] Conferi a tela e os estados contra as páginas do guia que a cobrem (34, 35, 37 a 40, 42), pelo mapa, e os desvios estão registrados.

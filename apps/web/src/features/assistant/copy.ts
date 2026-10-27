@@ -7,4 +7,12 @@ export const copy = {
     description:
       'Ele chega com a camada de inteligência, depois que as áreas manuais estiverem prontas.',
   },
+  launcher: {
+    label: 'Assistente',
+    panel: {
+      title: 'O assistente ainda não está disponível',
+      description:
+        'Ele chega com a camada de inteligência, depois que as áreas manuais estiverem prontas. Até lá, tudo continua nas áreas do Altare.',
+    },
+  },
 } as const

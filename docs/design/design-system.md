@@ -191,7 +191,7 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 | **Table** | Densidade `comfortable`/`compact`; cabeçalho sticky; **primeira coluna fixa** opcional; números à direita | Cabeçalho em `surface-muted`, sans 12 px |
 | **Dialog / AlertDialog** | Centralizado desktop, folha inferior mobile | AlertDialog para ações destrutivas, explicando o que fica salvo |
 | **Sheet / Drawer** | **Lateral direita (desktop)**, **folha inferior (mobile)** | Detalhes, histórico, PDF, formulários rápidos |
-| **Popover · Tooltip · DropdownMenu** | Radix | Tooltip nunca é a única fonte de informação crítica |
+| **Popover · Tooltip · DropdownMenu** | Radix. **`Popover` existe desde `D-056`**: cartão ancorado, nível 1 da pág. 32, não modal, com título, descrição opcional e Fechar | Tooltip nunca é a única fonte de informação crítica |
 | **Toast** | `success` · `attention` · `info`; 4 s; ação opcional "Desfazer" | Posição: topo-direita (desktop), acima da barra inferior (mobile) |
 | **Skeleton · Progress** | `surface-muted` | Sem *spinner* de tela cheia |
 | **Separator · ScrollArea · Accordion** | Hairline 1 px | — |
@@ -291,7 +291,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 1. **Tokens e fontes:** `tokens.css` gerado do `tokens.json` (tema claro), mapeado em `@theme`; fontes autohospedadas (Fontsource); `cn()` e `cva`.
 2. **Ativos de marca:** copiar do pacote `docs/design/identidade-visual/` para `public/brand/`; favicon e ícones no `index.html`.
 3. **Primitivos (15), concluída em 2026-10-27 (`D-049`):** `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money` (mono tabular).
-4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as **8 áreas** (as 7 de `D-025` e o Assistente, `D-050`) como páginas-esqueleto com `EmptyState`. **Lote 1 (casca, rotas e seletor de lente) feito em `D-051`; o ícone flutuante do assistente é o lote 2.**
+4. **Casca de navegação e esqueletos:** barra lateral (desktop), trilho de ícones (tablet), barra superior com o **seletor de lente** (`Casal` / `Minha visão`), barra inferior com 4 destinos + "Mais" (mobile, conforme §10.1) e as **8 áreas** (as 7 de `D-025` e o Assistente, `D-050`) como páginas-esqueleto com `EmptyState`. **Lote 1 (casca, rotas e seletor de lente) feito em `D-051`; lote 2, o ícone flutuante do assistente, feito em `D-056`.**
 5. **Vitrine `/design-system`:** tokens, tipografia e cada primitivo com variantes e estados.
 
 **Adiado, com gatilho para retomar:**
@@ -303,7 +303,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 | `axe` automatizado (E2E ou vitrine) | Se houver regressões de acessibilidade recorrentes ou o produto se abrir a outros casais (`D-002`) |
 | ~~Script de CI/`pre-commit` contra *hex*~~ | **Ativado em `D-055`**, como teste do Vitest e com escopo mais largo (cor, fonte, traço e sombra), sem esperar o gatilho (§12) |
 | Impressão (`@media print`, tokens de papel) | Bloco 4.2 (Dossiê do Dia D): **gatilho atingido no detalhamento** (`D-038`, `F-DOS-08`); entra na construção do Bloco 4.2 |
-| Demais primitivos de §8 (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`, `Popover`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`) e `MoneyInput` | Quando a primeira tela que o usa for construída |
+| Demais primitivos de §8 (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`) e `MoneyInput` | Quando a primeira tela que o usa for construída |
 | Componentes de domínio de §9 | No bloco que os usa |
 | `QuickAddFab` ("+ Registrar Rápido") | Primeiro bloco com algo para registrar rápido (Bloco 3.1) |
 | Menu do usuário | Com o login (restante do Bloco 0.1) |
@@ -361,7 +361,8 @@ O **guia de identidade** (`docs/design/identidade-visual/`, aprovado em `D-024` 
 | Casca: barra superior | 38 | `aplicacoes/visao-geral` | `:866-871` (72 px) | Conforme (`D-052`); barra opaca (`D-054`, item 10) |
 | Casca: barra inferior (celular) | 39 | `aplicacoes/mobile` | `:964-968` (72 px, ícone 22, rótulo 11) | Conforme (`D-052`, `D-054`); lupa adiada |
 | Marca na casca e favicon | 12, 13, 16, 17, 36 | `construcao/*`, `aplicacoes/favicon-e-icone-de-app` | `build_lockups` `:226`, `build_favicon_app` `:784-819`; `medidas.json` | Conforme (`D-045`, `D-054`) |
-| Ícone flutuante do Assistente | 33, 39 | (não desenhado) | texto sempre com ícone `:635-661`; "Registrar" `:963` | Pendente (lote 2; desenho em `D-054`, item 11) |
+| Ícone flutuante do Assistente | 33, 39 | (não desenhado) | texto sempre com ícone `:635-661`; "Registrar" `:963` (144 × 48, 16 px da borda e da barra) | Desvio: pílula secundária que se recolhe ao rolar (`D-054` item 11, `D-056`) |
+| `Popover` (cartão do Assistente) | 32 | `elementos/superficies` | nível 1 `:620-628`, raio `card` `:611-613` | Conforme (`D-056`); sem página para o cartão em si |
 | Avaliação dupla, `RatingPair` | 34, 39, 40 | `elementos/interface`, `aplicacoes/mobile` | `:703-712`, `:987-994` | Pendente (Bloco 2.2) |
 | Comparador de propostas | 40 | `aplicacoes/comparador` | `build_comparador` `:1003-1053` | Pendente (Bloco 3.2) |
 | `QuickAddFab` ("Registrar") | 39 | `aplicacoes/mobile` | `:963` | Pendente (Bloco 3.1) |
