@@ -235,7 +235,7 @@ Estados mínimos de todo componente interativo: *default · hover · focus-visib
 7. **Estados vazios, carregando e erro:** conforme `identity.md` §9.
 8. **Atalhos de teclado (desktop):** `g` + letra navega às áreas, `n` novo item, `/` busca (documentados na vitrine; opcionais na v1).
 
-### 10.1 Navegação (**proposta** — decisão de design a aprovar)
+### 10.1 Navegação (aprovada em `D-025`, §14 item 1)
 | Posição | Desktop (barra lateral) | Mobile (barra inferior) |
 | :--- | :--- | :--- |
 | 1 | Visão Geral | **Início** (Visão Geral) |

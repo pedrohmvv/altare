@@ -712,3 +712,84 @@
 - **Aprovado:** `features/centro-de-comando.md` e a parte Dossiê de `features/convidados-enxoval-e-dia-d.md` pelo usuário em 2026-10-27 ("aprovo"). **O detalhamento da v1 manual (Níveis 1 a 4) está concluído.**
 - **Escolhido pelo usuário:** retomar a implementação do Nível 0 (`D-028`). O Passo 0 e o plano foram aprovados e a sessão foi **pausada** antes do primeiro código.
 - **Pendente (sem urgência):** detalhar a camada de IA do Nível 5 (v1.1+) e planejar implantação, hospedagem e backup automático.
+
+---
+
+## D-039 — Skills de Projeto do Altare, Precedência sobre as Instruções Globais e `CLAUDE.md` por Módulo
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (ferramental de agentes)
+- **Pedido do usuário:** criar um conjunto de skills de projeto em `.claude/skills/`, uma por área de trabalho, para um projeto **pessoal e não Dharma**, sem aplicar padrões da Dharma.
+- **Decisão:**
+  1. **23 skills** em `.claude/skills/altare-<nome>/SKILL.md`, em português, nomes em kebab-case com prefixo `altare-`, indexadas em `AGENTS.md` §5. Áreas: arquitetura, backend-api, banco-de-dados, agente-dados, engenharia-de-ia, seguranca-privacidade, escrita-de-codigo, code-review, testes-qa, devops, monorepo, frontend, design, ui-ux, acessibilidade, conteudo-copy, produto, analytics-metricas, gtm-pricing, git-fluxo, commit, pull-request e docs-vivas.
+  2. **Fonte de verdade inalterada:** `AGENTS.md` e `docs/`. As skills **apontam** para os docs e não os copiam; havendo conflito, vale o doc e a skill é corrigida.
+  3. **Precedência:** neste repositório, as skills `altare-*` **substituem** as instruções globais do usuário baseadas em padrões da Dharma (`dharma-standards`, `dharma-sdd`, `dharma-tdd`, `dharma-commit`, `dharma-commit-push-pr`, `dharma-create-pr` e `dharma-code-review*`). O Altare é projeto pessoal.
+  4. **`CLAUDE.md` por módulo:** cada módulo da arquitetura (`architecture.md` §4) tem um `CLAUDE.md` curto na própria pasta (propósito, superfície pública, invariantes, dependências permitidas, links de feature e como testar), que aponta para `AGENTS.md` e `docs/` sem repetir regras gerais. **Módulo novo nasce com `CLAUDE.md`.** Vale para os módulos do **backend** (`architecture.md` §4); a pasta da *feature* correspondente no `apps/web` é apenas linkada nele. O modelo fica em `altare-docs-vivas`; os arquivos são criados quando cada módulo for criado.
+  5. **Acessibilidade vira skill própria**, porque `D-028` trocou o `axe` automatizado por verificação manual: o checklist manual passa a ser o único gate e precisa de um dono único.
+  6. **`altare-gtm-pricing` é dormente:** só se aplica se o usuário explorar a hipótese de outros casais (`D-002`).
+  7. **Decisões ficam em `decisions.md`** (formato `D-xxx`); não há pasta de ADRs separada.
+- **Razão:** o `CLAUDE.md` global manda aplicar padrões de um projeto de empresa, o que não vale para um app pessoal de duas pessoas. Sem skills próprias, cada sessão redescobre as convenções que os docs já decidiram.
+- **O que ficou rejeitado:**
+  - Regras operacionais no `CLAUDE.md` raiz: ele deve apenas apontar para `AGENTS.md`.
+  - Uma skill única e grande: dilui o gatilho e o contexto carregado.
+  - Acessibilidade diluída em Frontend, UI/UX, Design e Code review: o mesmo checklist apareceria em quatro lugares.
+  - Pasta de ADRs: `decisions.md` já cumpre o papel.
+  - Ciclo de avaliações quantitativas das skills: custo desproporcional para 23 skills de uso pessoal. Cada `description` foi otimizada para disparo, sem *evals*.
+
+---
+
+## D-040 — Monorepo Sem Git Submodules
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Decisão:**
+  1. `apps/api` (Python) e `apps/web` (React) vivem **no mesmo repositório**, como já previsto em `stack.md` §8. **Git submodules não são usados.**
+  2. Uma mudança que atravessa API e web (rota nova e tela que a usa) é **um único PR**, com commits atômicos por intenção, validado pela CI inteira.
+  3. A única ponte entre os apps é o **contrato OpenAPI**: `apps/web` não importa código de `apps/api` nem o contrário. Os tipos TypeScript são gerados do OpenAPI e a CI falha se houver *drift* (`stack.md` §7).
+  4. **Pacotes compartilhados** (`packages/`) só nascem quando houver um segundo consumidor real; hoje não há nenhum.
+  5. Tarefas e scripts na raiz (`Makefile`, `pnpm` workspace e `uv`) e CI com *path filters*, detalhados em `altare-monorepo`.
+- **Razão:** com submodules, uma mudança de contrato viraria dois PRs em repositórios diferentes, sem commit atômico e com a CI de um lado sem enxergar o outro. Para dois usuários e uma só pessoa desenvolvendo, o custo não se paga.
+- **O que ficou rejeitado:**
+  - Git submodules para `apps/api` e `apps/web`: quebra a atomicidade entre API e web.
+  - Dois repositórios independentes: mesmo problema, com versionamento de contrato à parte.
+  - Pasta `packages/` criada de antemão "para o futuro": abstração especulativa.
+
+---
+
+## D-041 — Fluxo de Branches: `main ← develop ← feature`, com Hotfix e Release
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Decisão:**
+  1. **`main`** guarda só o que foi concluído e validado (cada merge nela é uma *release* e leva *tag*). **`develop`** é a linha de integração. Todo trabalho sai da `develop` em uma branch de trabalho e volta por PR.
+  2. **Nomes:** `<tipo>/<assunto-curto>` em minúsculas e kebab-case, com o tipo igual ao de commit (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`). Exemplo: `feat/orcamento-simulador`, `docs/detalhamento-features-v1`.
+  3. **Hotfix:** `hotfix/<assunto>` sai da **`main`**, volta para a `main` (nova *tag*) **e também para a `develop`**, para a correção não se perder.
+  4. **Release:** abre-se um PR `develop → main` quando um **bloco ou nível do roadmap** é concluído e passa em todos os gates de `altare-testes-qa`; a *tag* segue `vMAJOR.MINOR.PATCH`. Não há branch `release/*`: com uma pessoa desenvolvendo, a `develop` já é a candidata a release.
+  5. **Estratégia de merge:** *merge commit* (sem *squash* e sem *rebase and merge*), para **preservar os commits atômicos** e o histórico por intenção. Antes do PR, a branch de trabalho se atualiza com a `develop` por *rebase* local (nunca em branch já compartilhada).
+  6. **Proteção** de `main` e `develop`: sem *push* direto, PR obrigatório e CI verde. Aplicada no GitHub em 2026-10-27, a pedido do usuário: PR obrigatório (0 aprovações, porque uma pessoa não aprova o próprio PR), vale também para administradores, sem *force push* e sem exclusão da branch. **Falta exigir os *status checks* da CI**, que entram quando o pipeline existir (`altare-devops`).
+  7. **Transição (concluída em 2026-10-27):** o PR #1 (`docs/detalhamento-features-v1`) foi integrado na `main` e a `develop` foi criada a partir dela. O repositório é privado; o GitHub aceitou a proteção no plano atual.
+  8. Detalhes em `altare-git-fluxo`, `altare-commit` e `altare-pull-request`.
+- **Razão:** separa o que está integrado do que está validado, e o merge sem *squash* mantém a promessa de commits atômicos feitos com `altare-commit`.
+- **O que ficou rejeitado:**
+  - *Trunk-based* só com `main`: o usuário pediu uma linha de integração separada.
+  - *Squash merge*: apaga os commits atômicos.
+  - Branch `release/*` fixa: cerimônia sem ganho para um desenvolvedor.
+  - Git Flow completo com `support/*`: sem várias versões em produção, não há para quê.
+
+---
+
+## D-042 — Assistente Conversacional do Altare (Chat no Módulo, Ícone Flutuante e WhatsApp); Nível 5
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Produto, Camada de IA)
+- **Pedido do usuário:** "quase tudo no produto possa ser feito por linguagem natural, só dentro do projeto", por três canais: módulo de chatbot, ícone fixo no canto inferior direito dos outros módulos que expande para um chat, e WhatsApp. Pensar como um servidor MCP próprio do Altare.
+- **Decisão:**
+  1. **Um só núcleo, três canais finos.** Um servidor de *tools* do Altare expõe **casos de uso da camada de aplicação** (nunca SQL direto) e os canais são adaptadores de entrada sobre ele: (a) **módulo de chat** (tela própria), (b) **ícone flutuante** no canto inferior direito das demais áreas, que expande para o chat com o contexto da tela, (c) **WhatsApp**.
+  2. **Mesma autorização da API:** o agente age com `Actor(kind="agent", on_behalf_of=Noivo|Noiva)` (`architecture.md` §7). No WhatsApp, o número é **vinculado** a um dos dois usuários; número desconhecido não recebe dados.
+  3. **Leitura livre, escrita sempre por proposta (`D-008`):** consultas respondem direto; qualquer mutação vira `ChangeProposal` com prévia e só é aplicada após confirmação humana explícita, também no WhatsApp (confirmação por resposta ou botão).
+  4. **Schema legível por agente:** nomes autoexplicativos, enums fechados, descrições nas tabelas e colunas, *views* de leitura e chaves de busca aproximada (achar um fornecedor pelo nome parecido). Detalhado em `altare-agente-dados`.
+  5. **Nível 5, depois do fluxo manual:** entra como Bloco 5.3 do roadmap. Nada da v1 depende dele (`D-005`).
+  6. **Coerência com os não-objetivos (`vision.md` §5):** o WhatsApp aqui é o canal **entre o casal e o Altare**. O Altare continua sem enviar mensagem a fornecedores e sem ler conversas privadas do casal (`scope.md` §4, fora do escopo).
+- **Razão:** a arquitetura já trata o agente como "mais um adaptador de entrada" (`D-027`). Tornar a linguagem natural um canal, e não uma segunda aplicação, evita duplicar regra e mantém a confirmação humana como conceito da camada de aplicação.
+- **O que ficou rejeitado:**
+  - Agente que acessa o banco ou executa SQL: contorna autorização, regras e histórico.
+  - Escrita direta por agente, mesmo "de baixo risco": viola `D-008`.
+  - Três implementações independentes, uma por canal.
+  - Agente falando com fornecedores pelo WhatsApp: contraria o não-objetivo "não é um mensageiro".
+- **Em aberto (`OQ-IA-001`, sem bloquear a v1):** lugar do módulo de chat na navegação, detalhamento do Nível 5, busca aproximada portátil entre SQLite e Postgres e custo e conta da API do WhatsApp (o *webhook* exige o app na nuvem) e a convivência do ícone flutuante com o "+ Registrar Rápido" no canto inferior direito.

@@ -116,7 +116,7 @@ As **7 áreas principais** da aplicação são:
 ### Fluxo 1 — Largada no Marco Zero (Definir Escopo e Caminhos Macro)
 1. **Abertura:** O casal acessa **Planejamento & Caminhos**. As variáveis base (*Data/Época*, *Cidade/Região*, *Formato*, *Porte*, *Teto*) começam como `Em definição`.
 2. **Mapa de Escopo:** O casal percorre a lista de categorias sugeridas para um casamento no Brasil.
-   - O Noivo e a Noiva marcam cada categoria como `Entra (Essencial)`, `Talvez (Se couber)` ou `Fica de fora` (anotando o motivo quando descartam algo, ex.: *"Sem assessoria completa de preparação — faremos pelo nosso sistema e contrataremos apenas cerimonialista do dia"*).
+   - O Noivo e a Noiva marcam cada categoria como `Entra (Essencial)`, `Talvez (Se couber)` ou `Fica de fora`; o que ainda não foi resolvido permanece `Em discussão` (anotando o motivo quando descartam algo, ex.: *"Sem assessoria completa de preparação — faremos pelo nosso sistema e contrataremos apenas cerimonialista do dia"*).
 3. **Comparação de Caminhos Macro (`D-007`):** Se estão em dúvida entre formatos (ex.: *Campo no interior* vs. *Restaurante na capital*), criam 2 ou 3 **Possibilidades Macro**, anotam prós, contras, logística para convidados, dão suas avaliações individuais e vinculam cada uma a um cenário no **Simulador de Orçamentos**.
 4. **Encaixe futuro da IA (v1.1 — `D-010`):** Um botão *"Iniciar com Entrevista Guiada por IA"* permite que o casal responda perguntas sobre gostos, referências e prioridades; ao final, a IA exibe uma prévia preenchida do Mapa de Escopo e dos Caminhos Macro para o casal revisar, ajustar e confirmar.
 

@@ -1,12 +1,20 @@
 # Perguntas em Aberto (`open-questions.md`)
 
-> **Status Global:** **Nenhuma pergunta em aberto.** Concepção de produto (`D-001` a `D-018`), stack (`D-020`, `D-021`), identidade visual e design system (`D-025`), caráter não confessional do produto (`D-026`), arquitetura (`D-027`) escopo enxuto do design system (`D-028`) e o detalhamento de features da v1 manual (`D-029` a `D-038`) estão fechados. A implementação do Nível 0 foi autorizada em `D-028`.
+> **Status Global:** **Uma pergunta em aberto, que não bloqueia a v1** (`OQ-IA-001`, camada de IA). Concepção de produto (`D-001` a `D-018`), stack (`D-020`, `D-021`), identidade visual e design system (`D-025`), caráter não confessional do produto (`D-026`), arquitetura (`D-027`) escopo enxuto do design system (`D-028`) e o detalhamento de features da v1 manual (`D-029` a `D-038`) estão fechados. A implementação do Nível 0 foi autorizada em `D-028`.
 
 ---
 
 ## Perguntas Abertas
 
-*Nenhuma no momento.*
+### OQ-IA-001 — Assistente Conversacional: Navegação, Detalhamento e Infraestrutura (`D-042`)
+- **Por que importa:** o assistente por linguagem natural (chat no módulo, ícone flutuante e WhatsApp) entra no Nível 5, mas algumas escolhas mudam a navegação e a hospedagem.
+- **O que falta decidir:**
+  1. O módulo de chat é uma **8ª área** da navegação ou só o ícone flutuante e uma tela de histórico? (`design-system.md` §10.1 hoje tem 7 áreas.)
+  2. Detalhamento de features do Nível 5 (o que o assistente faz em cada área, no mesmo formato de `docs/product/features/`).
+  3. **Busca aproximada** de fornecedores pelo nome que funcione igual em SQLite e em PostgreSQL.
+  4. **WhatsApp:** custo, conta do WhatsApp Business e aprovação de modelos. O *webhook* exige o app publicado na nuvem (`stack.md` §9).
+  5. **Canto inferior direito:** o ícone flutuante do assistente e o "+ Registrar Rápido" (`QuickAddFab`, `design-system.md` §9) disputam o mesmo canto no celular. Qual ocupa o canto, ou como convivem (ex.: o assistente dentro do menu "Novo")?
+- **Bloqueia:** apenas o Bloco 5.3. Nada da v1 manual depende disso (`D-005`).
 
 ---
 

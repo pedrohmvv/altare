@@ -6,3 +6,7 @@ venv/
 .env
 .env.*
 !.env.example
+
+# Dados locais e dependências (stack.md §8)
+data/
+node_modules/

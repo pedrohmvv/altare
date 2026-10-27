@@ -150,7 +150,8 @@ Consequência: a decisão (`DecisionRecord`) **não precisa atualizar** orçamen
 4. **Entrevista guiada (`D-010`)** produz um `ChangeProposal` composto (escopo + cenário macro + cenário de orçamento) em lote.
 5. **Notificações (`D-013`)** passam pela porta `Notifier` com adaptadores *In-App*, *Web Push* e *WhatsApp*, acionados por eventos pós-commit.
 6. **Rastreabilidade:** tabela `AgentRun` (entrada, ferramentas chamadas, saída, custo) a ser criada no Nível 5.
-7. **Escolha de biblioteca de orquestração** (própria, LangGraph, etc.) permanece adiada para o Bloco 5.1; a arquitetura não depende dela.
+7. **Canais conversacionais (`D-042`)** (módulo de chat, ícone flutuante e WhatsApp) são adaptadores de entrada finos sobre o mesmo servidor de *tools*; o canal só traduz a mensagem e entrega a resposta, sem regra de negócio. No WhatsApp, o número é vinculado a um usuário e a confirmação de uma `ChangeProposal` exige resposta humana explícita.
+8. **Escolha de biblioteca de orquestração** (própria, LangGraph, etc.) permanece adiada para o Bloco 5.1; a arquitetura não depende dela.
 
 ---
 
