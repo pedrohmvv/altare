@@ -126,10 +126,10 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Ícones | `lucide-react` | Leve e consistente | — |
 | Datas | `date-fns` (locale `pt-BR`) | — | dayjs |
 | Formatação monetária | `Intl.NumberFormat('pt-BR')` sobre centavos inteiros | Sem aritmética de float | — |
-| Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016` — **escolha estética a confirmar** | Instrument Serif / DM Sans / Geist Mono |
+| Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016`; **aprovadas em `D-025`** | Instrument Serif / DM Sans / Geist Mono |
 | PDFs | Início: visualização nativa (`<object>`/nova aba). Evolução: `react-pdf` (pdf.js) para o painel lateral no desktop e no iOS | Evita dependência pesada antes de ser necessária | — |
 | PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell* | `D-003` | — |
-| Lint / format | **Biome** (um único binário para lint + format) + **`dependency-cruiser`** para limites entre `features` | Menos configuração | ESLint + Prettier |
+| Lint / format | **Biome** (um único binário para lint + format) + o gate de limites (`apps/web/src/architecture.test.ts`, `D-051`) para limites entre `features` (no lugar do `dependency-cruiser`, que não suporta o Node 25) | Menos configuração | ESLint + Prettier |
 | Vitrine do Design System | Rota interna `/design-system` (tokens, tipografia, componentes, estados) | Cumpre o Bloco 0.2 sem o peso do Storybook | Storybook |
 
 **Fronteira explícita do PWA na v1:** instalável e com *app shell* em cache; **sem modo offline de escrita** e sem sincronização offline de dados (não está no escopo aprovado). Se vocês quiserem consulta offline do último estado, isso vira nova decisão.
@@ -158,7 +158,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Testes backend | **pytest** + `httpx`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
 | E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
-| Hooks locais | `pre-commit` (ruff, pyright, biome) |
+| Hooks locais | `pre-commit` (ruff, pyright, biome); **adiado até o `apps/api`** (`D-043`) |
 | CI (quando houver remoto) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
 | Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` |
 
@@ -202,7 +202,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 | PDF do Dossiê do Dia D | Bloco 4.2 | CSS de impressão (zero dependência) vs. WeasyPrint no backend |
 | Jobs agendados (lembretes, parcelas) | Bloco 5.2 | APScheduler in-process → fila (ARQ/Celery) só se necessário |
 | Web Push | Bloco 5.2 | `pywebpush` + service worker do PWA |
-| WhatsApp (envio) | Bloco 5.2 | API oficial do WhatsApp Business (exige conta e aprovação; custo a levantar) |
+| WhatsApp (envio de notificações no Bloco 5.2 e canal de entrada do assistente no Bloco 5.3, `D-042`) | Blocos 5.2 e 5.3 | API oficial do WhatsApp Business (exige conta e aprovação; custo a levantar); o *webhook* de entrada exige o app na nuvem |
 | Camada de IA (extração, entrevista, revisor) | Bloco 5.1 | Provedor de LLM e biblioteca (saída estruturada com Pydantic); toda mutação via rascunho (`D-008`) |
 | Observabilidade / erros | Antes do deploy | Sentry (plano gratuito) |
 | Passkeys/WebAuthn | Após deploy | Evolução do login próprio |
@@ -223,7 +223,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 1. Tokens do **tema claro** gerados do `tokens.json` e mapeados em `@theme`, com nomes semânticos; fontes autohospedadas. Tema escuro adiado até o usuário pedir.
 2. Ativos de marca copiados para `public/brand/`.
 3. 15 primitivos shadcn/Radix re-estilizados: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `Badge`, `Card`, `Dialog`, `Table`, `Tabs`, `Tooltip`, `Toast`, `EmptyState`, `PageHeader`, `Money`. Componentes de domínio e gaveta (`vaul`) nascem no bloco que os usa.
-4. Casca de navegação das 7 áreas (desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
+4. Casca de navegação das 8 áreas (as 7 de `D-025` mais o Assistente, `D-050`; desktop: lateral; mobile: barra inferior + "Mais") com seletor de lente, ícone flutuante do assistente e páginas-esqueleto. O "+ Registrar Rápido" entra no Bloco 3.1.
 5. Rota `/design-system` **mínima**. Testes com Vitest + Testing Library; sem *snapshots* visuais e sem `axe` no CI.
 
 **Critério de conclusão do Nível 0:** abrir no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta.

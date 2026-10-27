@@ -65,7 +65,7 @@ Para que o produto nunca pareça uma colcha de retalhos, todos os módulos opera
 
 A navegação foi desenhada para refletir a forma como vocês pensam o casamento, com adaptação clara entre **Computador (planejamento conjunto profundo)** e **Celular (consulta e captura rápida)**.
 
-### 3.1. Estrutura de Navegação Principal (7 Áreas + Seletor Rápido de Perfil)
+### 3.1. Estrutura de Navegação Principal (7 Áreas + Assistente + Seletor de Lente)
 
 > **Revisado em `D-020`/`D-021` (2026-10-26):** cada pessoa tem **login individual** (`Noivo` ou `Noiva`) e a autoria sempre vem da sessão. O seletor passou a ser uma **lente de visão**, não uma troca de identidade.
 
@@ -75,7 +75,7 @@ No topo/lateral, um **Seletor de Lente** permite alternar com 1 clique entre:
 
 Avaliações individuais são visíveis ao outro imediatamente. Para avaliar como o outro no computador compartilhado, a pessoa troca de usuário (login rápido por senha).
 
-As **7 áreas principais** da aplicação são:
+As **7 áreas principais** da aplicação são (mais o **Assistente**, a 8ª área, descrito ao final da lista, `D-050`):
 
 1. **Visão Geral (Centro de Comando):**
    - Resumo do momento atual: definições base do casamento, decisões destravadas da vez, próximos passos com fornecedores vencendo na semana, termômetro do orçamento ativo (Planejado vs. Estimado vs. Contratado vs. Pago), contagem atual de convidados e próximas parcelas a vencer.
@@ -99,6 +99,7 @@ As **7 áreas principais** da aplicação são:
    - **Subárea Convidados:** lista nominal agrupada por núcleo familiar e indicadores de contagem (*Total*, *Ponderado*, *Confirmados*).
    - **Subárea Enxoval & Lista de Presentes:** controle dos itens da casa nova + módulo de exportação/formatação para site externo ou envio aos convidados.
    - **Subárea Dossiê do Dia D:** documento vivo estruturado para o(a) cerimonialista do dia, com modo de visualização limpa / exportação (PDF/impressão).
+8. **Assistente (`D-042`, `D-050`):** o módulo de chat em linguagem natural. Fica **ao fim da navegação, separado das 7 áreas**, e há também um **ícone flutuante** no canto inferior direito das demais áreas, recolhido por padrão e que nunca abre sozinho. A casca existe desde a etapa (d) do Bloco 0.2; o chat só funciona no Bloco 5.3 (Nível 5).
 
 ### 3.2. Comportamento Desktop vs. Mobile (`D-003`)
 
@@ -116,7 +117,7 @@ As **7 áreas principais** da aplicação são:
 ### Fluxo 1 — Largada no Marco Zero (Definir Escopo e Caminhos Macro)
 1. **Abertura:** O casal acessa **Planejamento & Caminhos**. As variáveis base (*Data/Época*, *Cidade/Região*, *Formato*, *Porte*, *Teto*) começam como `Em definição`.
 2. **Mapa de Escopo:** O casal percorre a lista de categorias sugeridas para um casamento no Brasil.
-   - O Noivo e a Noiva marcam cada categoria como `Entra (Essencial)`, `Talvez (Se couber)` ou `Fica de fora` (anotando o motivo quando descartam algo, ex.: *"Sem assessoria completa de preparação — faremos pelo nosso sistema e contrataremos apenas cerimonialista do dia"*).
+   - O Noivo e a Noiva marcam cada categoria como `Entra (Essencial)`, `Talvez (Se couber)` ou `Fica de fora`; o que ainda não foi resolvido permanece `Em discussão` (anotando o motivo quando descartam algo, ex.: *"Sem assessoria completa de preparação — faremos pelo nosso sistema e contrataremos apenas cerimonialista do dia"*).
 3. **Comparação de Caminhos Macro (`D-007`):** Se estão em dúvida entre formatos (ex.: *Campo no interior* vs. *Restaurante na capital*), criam 2 ou 3 **Possibilidades Macro**, anotam prós, contras, logística para convidados, dão suas avaliações individuais e vinculam cada uma a um cenário no **Simulador de Orçamentos**.
 4. **Encaixe futuro da IA (v1.1 — `D-010`):** Um botão *"Iniciar com Entrevista Guiada por IA"* permite que o casal responda perguntas sobre gostos, referências e prioridades; ao final, a IA exibe uma prévia preenchida do Mapa de Escopo e dos Caminhos Macro para o casal revisar, ajustar e confirmar.
 

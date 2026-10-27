@@ -712,3 +712,453 @@
 - **Aprovado:** `features/centro-de-comando.md` e a parte Dossiê de `features/convidados-enxoval-e-dia-d.md` pelo usuário em 2026-10-27 ("aprovo"). **O detalhamento da v1 manual (Níveis 1 a 4) está concluído.**
 - **Escolhido pelo usuário:** retomar a implementação do Nível 0 (`D-028`). O Passo 0 e o plano foram aprovados e a sessão foi **pausada** antes do primeiro código.
 - **Pendente (sem urgência):** detalhar a camada de IA do Nível 5 (v1.1+) e planejar implantação, hospedagem e backup automático.
+
+---
+
+## D-039 — Skills de Projeto do Altare, Precedência sobre as Instruções Globais e `CLAUDE.md` por Módulo
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (ferramental de agentes)
+- **Pedido do usuário:** criar um conjunto de skills de projeto em `.claude/skills/`, uma por área de trabalho, para um projeto **pessoal e não Dharma**, sem aplicar padrões da Dharma.
+- **Decisão:**
+  1. **23 skills** em `.claude/skills/altare-<nome>/SKILL.md`, em português, nomes em kebab-case com prefixo `altare-`, indexadas em `AGENTS.md` §5. Áreas: arquitetura, backend-api, banco-de-dados, agente-dados, engenharia-de-ia, seguranca-privacidade, escrita-de-codigo, code-review, testes-qa, devops, monorepo, frontend, design, ui-ux, acessibilidade, conteudo-copy, produto, analytics-metricas, gtm-pricing, git-fluxo, commit, pull-request e docs-vivas.
+  2. **Fonte de verdade inalterada:** `AGENTS.md` e `docs/`. As skills **apontam** para os docs e não os copiam; havendo conflito, vale o doc e a skill é corrigida.
+  3. **Precedência:** neste repositório, as skills `altare-*` **substituem** as instruções globais do usuário baseadas em padrões da Dharma (`dharma-standards`, `dharma-sdd`, `dharma-tdd`, `dharma-commit`, `dharma-commit-push-pr`, `dharma-create-pr` e `dharma-code-review*`). O Altare é projeto pessoal.
+  4. **`CLAUDE.md` por módulo:** cada módulo da arquitetura (`architecture.md` §4) tem um `CLAUDE.md` curto na própria pasta (propósito, superfície pública, invariantes, dependências permitidas, links de feature e como testar), que aponta para `AGENTS.md` e `docs/` sem repetir regras gerais. **Módulo novo nasce com `CLAUDE.md`.** Vale para os módulos do **backend** (`architecture.md` §4); a pasta da *feature* correspondente no `apps/web` é apenas linkada nele. O modelo fica em `altare-docs-vivas`; os arquivos são criados quando cada módulo for criado.
+  5. **Acessibilidade vira skill própria**, porque `D-028` trocou o `axe` automatizado por verificação manual: o checklist manual passa a ser o único gate e precisa de um dono único.
+  6. **`altare-gtm-pricing` é dormente:** só se aplica se o usuário explorar a hipótese de outros casais (`D-002`).
+  7. **Decisões ficam em `decisions.md`** (formato `D-xxx`); não há pasta de ADRs separada.
+- **Razão:** o `CLAUDE.md` global manda aplicar padrões de um projeto de empresa, o que não vale para um app pessoal de duas pessoas. Sem skills próprias, cada sessão redescobre as convenções que os docs já decidiram.
+- **O que ficou rejeitado:**
+  - Regras operacionais no `CLAUDE.md` raiz: ele deve apenas apontar para `AGENTS.md`.
+  - Uma skill única e grande: dilui o gatilho e o contexto carregado.
+  - Acessibilidade diluída em Frontend, UI/UX, Design e Code review: o mesmo checklist apareceria em quatro lugares.
+  - Pasta de ADRs: `decisions.md` já cumpre o papel.
+  - Ciclo de avaliações quantitativas das skills: custo desproporcional para 23 skills de uso pessoal. Cada `description` foi otimizada para disparo, sem *evals*.
+
+---
+
+## D-040 — Monorepo Sem Git Submodules
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Decisão:**
+  1. `apps/api` (Python) e `apps/web` (React) vivem **no mesmo repositório**, como já previsto em `stack.md` §8. **Git submodules não são usados.**
+  2. Uma mudança que atravessa API e web (rota nova e tela que a usa) é **um único PR**, com commits atômicos por intenção, validado pela CI inteira.
+  3. A única ponte entre os apps é o **contrato OpenAPI**: `apps/web` não importa código de `apps/api` nem o contrário. Os tipos TypeScript são gerados do OpenAPI e a CI falha se houver *drift* (`stack.md` §7).
+  4. **Pacotes compartilhados** (`packages/`) só nascem quando houver um segundo consumidor real; hoje não há nenhum.
+  5. Tarefas e scripts na raiz (`Makefile`, `pnpm` workspace e `uv`) e CI com *path filters*, detalhados em `altare-monorepo`.
+- **Razão:** com submodules, uma mudança de contrato viraria dois PRs em repositórios diferentes, sem commit atômico e com a CI de um lado sem enxergar o outro. Para dois usuários e uma só pessoa desenvolvendo, o custo não se paga.
+- **O que ficou rejeitado:**
+  - Git submodules para `apps/api` e `apps/web`: quebra a atomicidade entre API e web.
+  - Dois repositórios independentes: mesmo problema, com versionamento de contrato à parte.
+  - Pasta `packages/` criada de antemão "para o futuro": abstração especulativa.
+
+---
+
+## D-041 — Fluxo de Branches: `main ← develop ← feature`, com Hotfix e Release
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Decisão:**
+  1. **`main`** guarda só o que foi concluído e validado (cada merge nela é uma *release* e leva *tag*). **`develop`** é a linha de integração. Todo trabalho sai da `develop` em uma branch de trabalho e volta por PR.
+  2. **Nomes:** `<tipo>/<assunto-curto>` em minúsculas e kebab-case, com o tipo igual ao de commit (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`). Exemplo: `feat/orcamento-simulador`, `docs/detalhamento-features-v1`.
+  3. **Hotfix:** `hotfix/<assunto>` sai da **`main`**, volta para a `main` (nova *tag*) **e também para a `develop`**, para a correção não se perder.
+  4. **Release:** abre-se um PR `develop → main` quando um **bloco ou nível do roadmap** é concluído e passa em todos os gates de `altare-testes-qa`; a *tag* segue `vMAJOR.MINOR.PATCH`. Não há branch `release/*`: com uma pessoa desenvolvendo, a `develop` já é a candidata a release.
+  5. **Estratégia de merge:** *merge commit* (sem *squash* e sem *rebase and merge*), para **preservar os commits atômicos** e o histórico por intenção. Antes do PR, a branch de trabalho se atualiza com a `develop` por *rebase* local (nunca em branch já compartilhada).
+  6. **Proteção** de `main` e `develop`: sem *push* direto, PR obrigatório e CI verde. Aplicada no GitHub em 2026-10-27, a pedido do usuário: PR obrigatório (0 aprovações, porque uma pessoa não aprova o próprio PR), vale também para administradores, sem *force push* e sem exclusão da branch. **Falta exigir os *status checks* da CI**, que entram quando o pipeline existir (`altare-devops`).
+  7. **Transição (concluída em 2026-10-27):** o PR #1 (`docs/detalhamento-features-v1`) foi integrado na `main` e a `develop` foi criada a partir dela. O repositório é privado; o GitHub aceitou a proteção no plano atual.
+  8. Detalhes em `altare-git-fluxo`, `altare-commit` e `altare-pull-request`.
+- **Razão:** separa o que está integrado do que está validado, e o merge sem *squash* mantém a promessa de commits atômicos feitos com `altare-commit`.
+- **O que ficou rejeitado:**
+  - *Trunk-based* só com `main`: o usuário pediu uma linha de integração separada.
+  - *Squash merge*: apaga os commits atômicos.
+  - Branch `release/*` fixa: cerimônia sem ganho para um desenvolvedor.
+  - Git Flow completo com `support/*`: sem várias versões em produção, não há para quê.
+
+---
+
+## D-042 — Assistente Conversacional do Altare (Chat no Módulo, Ícone Flutuante e WhatsApp); Nível 5
+- **Data:** 2026-10-27
+- **Fase:** Pós-Congelamento (Produto, Camada de IA)
+- **Pedido do usuário:** "quase tudo no produto possa ser feito por linguagem natural, só dentro do projeto", por três canais: módulo de chatbot, ícone fixo no canto inferior direito dos outros módulos que expande para um chat, e WhatsApp. Pensar como um servidor MCP próprio do Altare.
+- **Decisão:**
+  1. **Um só núcleo, três canais finos.** Um servidor de *tools* do Altare expõe **casos de uso da camada de aplicação** (nunca SQL direto) e os canais são adaptadores de entrada sobre ele: (a) **módulo de chat** (tela própria), (b) **ícone flutuante** no canto inferior direito das demais áreas, que expande para o chat com o contexto da tela, (c) **WhatsApp**.
+  2. **Mesma autorização da API:** o agente age com `Actor(kind="agent", on_behalf_of=Noivo|Noiva)` (`architecture.md` §7). No WhatsApp, o número é **vinculado** a um dos dois usuários; número desconhecido não recebe dados.
+  3. **Leitura livre, escrita sempre por proposta (`D-008`):** consultas respondem direto; qualquer mutação vira `ChangeProposal` com prévia e só é aplicada após confirmação humana explícita, também no WhatsApp (confirmação por resposta ou botão).
+  4. **Schema legível por agente:** nomes autoexplicativos, enums fechados, descrições nas tabelas e colunas, *views* de leitura e chaves de busca aproximada (achar um fornecedor pelo nome parecido). Detalhado em `altare-agente-dados`.
+  5. **Nível 5, depois do fluxo manual:** entra como Bloco 5.3 do roadmap. Nada da v1 depende dele (`D-005`).
+  6. **Coerência com os não-objetivos (`vision.md` §5):** o WhatsApp aqui é o canal **entre o casal e o Altare**. O Altare continua sem enviar mensagem a fornecedores e sem ler conversas privadas do casal (`scope.md` §4, fora do escopo).
+- **Razão:** a arquitetura já trata o agente como "mais um adaptador de entrada" (`D-027`). Tornar a linguagem natural um canal, e não uma segunda aplicação, evita duplicar regra e mantém a confirmação humana como conceito da camada de aplicação.
+- **O que ficou rejeitado:**
+  - Agente que acessa o banco ou executa SQL: contorna autorização, regras e histórico.
+  - Escrita direta por agente, mesmo "de baixo risco": viola `D-008`.
+  - Três implementações independentes, uma por canal.
+  - Agente falando com fornecedores pelo WhatsApp: contraria o não-objetivo "não é um mensageiro".
+- **Em aberto (`OQ-IA-001`, sem bloquear a v1):** lugar do módulo de chat na navegação, detalhamento do Nível 5, busca aproximada portátil entre SQLite e Postgres e custo e conta da API do WhatsApp (o *webhook* exige o app na nuvem) e a convivência do ícone flutuante com o "+ Registrar Rápido" no canto inferior direito.
+
+---
+
+## D-043 — Etapa 0: Base do `apps/web` Construída, com Hooks e Verificação de Limites Adiados
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** gerar o plano do scaffold da Etapa 0 e executá-lo (`D-028`).
+- **Decisão:**
+  1. **Escopo entregue:** monorepo pnpm (sem `packages/` e sem *submodules*, `D-040`), `apps/web` com Vite, React 19, TypeScript `strict`, Tailwind v4 (plugin do Vite), Vitest com Testing Library e Biome (regras de acessibilidade incluídas). Scripts `lint`, `typecheck`, `test`, `build` e `dev`, expostos na raiz e no `Makefile`, que só orquestra o pnpm. Gates verdes: Biome, `tsc`, Vitest e `vite build`.
+  2. **Versões fixadas pelo `pnpm-lock.yaml`:** React 19.3, Vite 8.3, TypeScript 7.0, Tailwind 4.3, Vitest 5.0 e Biome 2.6 (esta em versão exata). Tudo compatível na instalação, sem recuo para TypeScript 5.x.
+  3. **`pre-commit` adiado** para o `apps/api`: só o Biome rodaria hoje, e Ruff, Pyright e `import-linter` dependem do backend. Fecha o item "hooks" que `altare-testes-qa` deixava para a Etapa 0.1.
+  4. **`dependency-cruiser` adiado** para a primeira `feature` (Bloco 1.1): ainda não há `features/` para cobrar. As regras de `architecture.md` §11 valem desde já por revisão.
+  5. **Fora da Etapa 0, por pertencerem à etapa seguinte:** roteamento, TanStack Query, formulários, Radix/shadcn, fontes, `tokens.css`, ativos de marca, PWA e cliente OpenAPI.
+  6. **Um `biome.json` na raiz**, com escopo em `apps/web`; o Python usará Ruff.
+  7. **Próximo passo:** Bloco 0.2, etapa (a): `tokens.css` gerado do `tokens.json`, fontes autohospedadas, `cn()` e `cva` (`design-system.md` §13).
+- **Razão:** entregar só o necessário para o `apps/web` existir, com gates reais, antes de qualquer tela (`D-028`).
+- **O que ficou rejeitado:**
+  - Criar `pre-commit` e `dependency-cruiser` já: configurações sem nada para verificar, que envelhecem sem uso.
+  - Criar pastas vazias de `routes/`, `features/` e `components/ui`: o git não as rastreia e cada uma nasce com o primeiro arquivo.
+  - Recuar para TypeScript 5.x por precaução: a instalação e os quatro gates passaram com a 7.0.
+
+---
+
+## D-044 — Bloco 0.2, Etapa (a): Tokens Gerados, Fontes e `cn()`
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** aprovou o escopo da etapa (a) com seis pontos de revisão (derivados, paleta padrão do Tailwind, escala no gerador, `tailwind-merge`, conferência visual) e mandou planejar e executar.
+- **Decisão:**
+  1. **`tokens.css` é gerado** por `apps/web/scripts/tokens.ts` (TypeScript, rodado com `tsx`) a partir de `docs/design/identidade-visual/tokens.json`: `pnpm tokens:build` ou `make tokens`. Um teste do Vitest falha se o arquivo versionado estiver defasado (`design-system.md` §12).
+  2. **Derivados fora do `tokens.json`**, em constantes nomeadas no gerador: `focus-ring` (`var(--primary)`), `scrim` (`rgb(35 42 34 / .45)`), `primary-ink` (de `apoio`), `letter-spacing` do `eyebrow` (`.08em`) e o ponto de troca mobile/desktop (`48rem`). O JSON e o guia de 43 páginas não foram alterados.
+  3. **Paleta padrão do Tailwind zerada** (`--color-*: initial`): só existem as cores semânticas, o que impõe "nunca vermelho" e "sem *hex* em componente" pela ferramenta.
+  4. **Escala de texto como `@utility`** (`text-display`, `text-body-sm`, `text-num-lg`…), cada uma com família, tamanho mobile, peso e entrelinha, e o tamanho desktop em `@media`; os `num-*` levam `tabular-nums` e o `eyebrow` caixa-alta. Escolhido no lugar de `--text-*` do tema porque o Tailwind não carrega a família por ali. Raios, sombras, durações e curvas saem como variáveis do tema; `prefers-reduced-motion` zera animações e transições.
+  5. **Fontes autohospedadas** pelo Fontsource (Newsreader com itálico, Plus Jakarta Sans e JetBrains Mono, variáveis). As famílias do Fontsource têm o sufixo ` Variable`, listado antes do nome da marca em `--font-*`.
+  6. **`cn()`** (`clsx` + `tailwind-merge`) lê cores, raios, sombras e a escala de texto do `tokens.json`. O merge padrão descartava `text-ink` ao ver `text-body-sm` e não conhecia `rounded-card`. `class-variance-authority` está instalado para a etapa (c).
+  7. **Base global:** `data-theme="light"` no `<html>`, `body` com `bg-canvas text-ink text-body` e foco visível em anel duplo. O Biome passa a aceitar as diretivas do Tailwind. O `App` mostra as três famílias só para conferência visual, até a vitrine da etapa (e).
+- **Razão:** deixar as etapas (b) a (e) usarem só classes de token, com o gerador como única fonte e a defasagem barrada por teste.
+- **O que ficou rejeitado:**
+  - Acrescentar `focus-ring` e `scrim` ao `tokens.json`: obrigaria a regenerar o guia inteiro por dois valores derivados.
+  - Manter a paleta padrão do Tailwind: `bg-red-600` ficaria a um *autocomplete* de distância.
+  - Escrever à mão a lista de tokens do `cn()`: criaria uma segunda verdade que diverge da primeira.
+  - `?raw` no teste de defasagem: o Vitest devolve string vazia para CSS e o teste passaria sem testar nada.
+
+---
+
+## D-045 — Bloco 0.2, Etapa (b): Ativos de Marca Copiados para o `apps/web`
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** planejar e executar a etapa (b) do Bloco 0.2 (`D-028`).
+- **Decisão:**
+  1. **`apps/web/public/brand/` é cópia derivada** do pacote `docs/design/identidade-visual/`, gerada por `make brand` (`apps/web/scripts/build-brand.ts`, com o plano em `scripts/brand.ts`). Nada é redesenhado (`identity.md` §2.6). Um teste do Vitest falha se o conteúdo divergir do pacote ou se sobrar ou faltar arquivo.
+  2. **O que se copia:** os 30 logos-mestre SVG (`fonte/`, 5 peças × 6 cores) em `logo/`, os 6 ornamentos em `ornamentos/`, o favicon (SVG, `.ico` e PNG 16/32/48) e o ícone do app (SVG e PNG 180/192/512). Os 30 logos entram de uma vez, mesmo os que a interface ainda não usa (`salvia` para o escuro, `preto` e `carvao` para o Dossiê), para a regra não mudar a cada etapa (~190 KB estáticos).
+  3. **O que não se copia:** PNG dos logos (servem a documentos), ícone de 1024 px (loja de apps), favicons PNG 192 e 512 (o ícone do app cobre) e o restante de `componentes/` (guia, usos incorretos, paletas). Se um arquivo esperado faltar no pacote, o script falha em voz alta.
+  4. **`index.html`:** favicon SVG com `.ico` de reserva, `apple-touch-icon` de 180 px e `theme-color` `#F9F5EC`, do tema claro. Um teste exige que cada link aponte para arquivo existente e que a cor seja a de `tokens.json` (`marca.app_icon.theme_color_claro`). A variante escura acompanha o tema escuro (adiado, `D-028`).
+  5. **Biome ignora `public/brand`:** a cópia é derivada, como o `tokens.css`, e as regras de acessibilidade do Biome não se aplicam a SVG de marca editado fora do app.
+  6. **Adiados:** o manifesto (vem com o PWA, restante do Bloco 0.1) e o componente `Logo` (nasce na casca de navegação, etapa (d)).
+- **Razão:** dar ao app a marca oficial sem segunda fonte de verdade: o pacote continua sendo o único lugar onde ela muda, e o teste barra a cópia defasada.
+- **O que ficou rejeitado:**
+  - Copiar só os logos usados hoje: obrigaria a revisitar o script a cada tela nova.
+  - Importar os SVGs do pacote direto em `src/`: o app passaria a depender de um caminho em `docs/` para renderizar.
+  - Criar o manifesto e o `Logo` agora: dependem de decisões do PWA e da casca.
+
+---
+
+## D-046 — Bloco 0.2, Etapa (c): Abordagem dos 15 Primitivos, em 3 Lotes; Lote 1 (Campos)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** plano detalhado da etapa (c), quebrado em lotes, e execução (`D-028`).
+- **Decisão:**
+  1. **Três lotes, um PR cada:** (1) campos: `Button`, `Input`, `Textarea`, `Select`, `Checkbox`; (2) exibição: `Badge`, `Card`, `Table`, `Money`, `PageHeader`, `EmptyState`; (3) sobreposições: `Dialog`, `Tabs`, `Tooltip`, `Toast`. Este registro vale para a etapa inteira; o lote 1 está feito.
+  2. **`radix-ui` unificado** (`import { Checkbox } from 'radix-ui'`) em vez de um pacote por componente, e `lucide-react` para os ícones (`identity.md` §7).
+  3. **`Select` é o `<select>` nativo estilizado**, não o Radix Select: o celular abre o seletor do sistema, teclado e leitor de tela vêm de graça e o jsdom testa bem. A versão pesquisável e a "folha inferior" são do `Combobox`, adiado em `D-028`. Desvio consciente de "Radix re-estilizado".
+  4. **`Toast` com Radix Toast** (região `aria-live="polite"`, 4 s, ação "Desfazer" opcional) e uma API mínima `useToast()`; sem `sonner`.
+  5. **`Field` interno** (`components/ui/field.tsx`): rótulo acima, ajuda, erro com ícone, "obrigatório" escrito no rótulo e `aria-describedby` e `aria-invalid` ligados ao controle. Reusado por `Input`, `Textarea` e `Select`; não é um 16º primitivo da vitrine.
+  6. **Convenções:** sem `forwardRef` (React 19), importação direta por arquivo e sem *barrel*; só classes de token; botão só de ícone **exige `aria-label` no tipo**, verificado pelo `tsc`; o `Button` tem `type="button"` por padrão; o `Money` (lote 2) é um formatador puro em `lib/money.ts` que só aceita inteiros em centavos.
+  7. **Testes:** por papel e teclado (`getByRole`, `user-event`), escritos antes do código; o `setup.ts` limpa o DOM entre casos (com `globals: false` o Testing Library não o faz sozinho) e traz um *stub* de `ResizeObserver` para o jsdom.
+  8. **Página de conferência provisória** (`src/app/Conferencia.tsx`) mostra os primitivos de cada lote para conferência com `make dev`; a vitrine `/design-system` a substitui na etapa (e).
+  9. **Foco:** o anel duplo usa o espaçador `--focus-gap` (padrão `canvas`); `Card` e `Dialog` o redefinem para `surface`.
+  10. **Acessibilidade:** teclado, nomes e `aria-*` são cobertos por teste; 320 px, zoom de 200%, leitor de tela e "reduzir movimento" seguem a checklist manual de `altare-acessibilidade`, a cargo do usuário em cada PR.
+- **Ajustes em arquivos aprovados:** `design-system.md` §8 (notas sobre o `Select` nativo e o `Field`).
+- **Razão:** dividir a maior etapa do Bloco 0.2 em entregas revisáveis, com o mecanismo de campos acessível definido uma vez.
+- **O que ficou rejeitado:**
+  - Radix Select no Bloco 0.2: custo de teste e de mobile sem ganho antes de existir lista pesquisável.
+  - Um pacote Radix por componente: mais dependências para o mesmo resultado.
+  - `sonner` para os *toasts*: segunda biblioteca de acessibilidade a conferir.
+  - Rótulo e erro repetidos em cada campo: três cópias do mesmo `aria-describedby`.
+
+---
+
+## D-047 — `Select` com Lista Própria do App (Revisa o Item 3 de `D-046`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** ao conferir o lote 1, viu que o `Select` abria o seletor do sistema (macOS) e queria que a lista de opções fosse do próprio app, com a identidade do Altare.
+- **Decisão:**
+  1. **O `Select` passa a ser o Radix Select estilizado** (`radix-ui`), com a lista aberta pelo app: superfície `surface` com *hairline* e sombra de nível 1, opção realçada em `surface-muted`, marca de escolhida em `primary`, opção desabilitada a 40%, alvo de 44 px no toque. Teclado (Enter abre, setas navegam, Enter escolhe, Esc fecha) e leitor de tela vêm do Radix.
+  2. **API:** os filhos `<option>` dão lugar à prop `options` (`{ value, label, disabled? }`), e `onValueChange` substitui `onChange`. `value` não pode ser vazio; o *placeholder* é o texto da prop `placeholder`.
+  3. **Testes:** o `setup.ts` ganha polyfills de `hasPointerCapture`, `setPointerCapture`, `releasePointerCapture` e `scrollIntoView`, que o jsdom não tem.
+  4. **Continua adiado** o `Combobox` pesquisável e a "folha inferior" no celular (`D-028`, `design-system.md` §8).
+- **Ajustes em arquivos aprovados:** `design-system.md` §8 (linha de `Select / Combobox`). O item 3 de `D-046` fica como histórico; vale esta decisão.
+- **Razão:** a lista do sistema ignora a tipografia, a cor e os cantos do Altare, e destoava do restante dos campos.
+- **O que ficou rejeitado:**
+  - Manter o `<select>` nativo: seletor do sistema, fora da identidade, rejeitado pelo usuário.
+  - Escrever a lista do zero, sem Radix: perderia o teclado, o foco e a semântica de `listbox` prontos.
+  - Antecipar o `Combobox` pesquisável: não há lista longa para pesquisar antes do Bloco 3.1.
+
+---
+
+## D-048 — Etapa (c), Lote 2 (Exibição): `Money` sem o Modo `none` e Convenção de Classes de Texto
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** perguntou em que caso de uso o `Money` precisaria arredondar e, sem caso concreto, preferiu **tirar o modo `none`**.
+- **Decisão:**
+  1. **`Money` tem só `precision` `auto` e `always`.** O modo `none` de `design-system.md` §9 não foi construído: nenhuma feature o usa, o `auto` já cobre os resumos ("sem centavos se inteiro", §14, item 4) e arredondar na exibição faria um total divergir da soma das linhas, que o casal confere à mão. Se uma tela futura precisar de um resumo sem centavos, a regra de arredondamento se decide naquele momento. As regras de arredondamento de cálculo (`F-ORC-03`, `F-CTR`) continuam só no backend.
+  2. **Formatador puro `lib/money.ts`:** só inteiros seguros de centavos (qualquer outra coisa lança `RangeError`), `R$` + U+00A0, milhares com ponto, vírgula decimal, menos tipográfico (U+2212) nos negativos e `+` apenas com `signed`, nunca no zero.
+  3. **`Badge`:** as variantes `consensus` e `attention` **exigem `icon` no tipo**, verificado pelo `tsc`, para a cor nunca ser o único sinal.
+  4. **`Table`:** região rolável com `section` nomeada e focável por teclado (única supressão do Biome do lote, com o motivo na linha); cabeçalho de coluna fixo no topo, primeira coluna fixa opcional e duas densidades. A densidade chega às células **por contexto**, não por variantes de grupo.
+  5. **Convenção:** as classes de texto do Altare (`text-body`, `text-eyebrow`, `text-num-*`…) definem família, tamanho, peso e entrelinha. Uma **variante** do Tailwind (`group-data-…:`, `md:`) que as use sobrescreve família e peso, porque as variantes vêm depois no CSS. Componentes escolhem a classe de texto em código (por *prop* ou contexto) e deixam a variante para tamanho e posição. A ordem entre `text-*` e utilitários do Tailwind (`font-medium`, `normal-case`) foi conferida no CSS gerado, não é garantida pelo Tailwind.
+  6. **`PageHeader`** traz o único `h1` da tela; o `App` provisório já o usa.
+- **Ajustes em arquivos aprovados:** `design-system.md` §9 (linha do `Money`, `none` riscado).
+- **Razão:** manter o `Money` pequeno e sem arredondamento de exibição até haver um caso real, e registrar a armadilha das classes de texto antes de os próximos componentes repetirem o erro.
+- **O que ficou rejeitado:**
+  - `none` arredondando ao real mais próximo: risco de total divergente das parcelas.
+  - `none` truncando: subestima valores e também diverge da soma.
+  - Variantes `group-data` para a densidade da `Table`: sobrescreviam o estilo do cabeçalho e o mono das células.
+
+---
+
+## D-049 — Etapa (c) Concluída: Lote 3 (Sobreposições) e Balanço dos 15 Primitivos
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** plano e execução do lote 3 da etapa (c) (`D-028`, `D-046`).
+- **Decisão:**
+  1. **Etapa (c) concluída:** os 15 primitivos de `components/ui` existem: `Button`, `Input`, `Textarea`, `Select`, `Checkbox` (lote 1, `D-046`, `D-047`), `Badge`, `Card`, `Table`, `Money`, `PageHeader`, `EmptyState` (lote 2, `D-048`) e `Dialog`, `Tabs`, `Tooltip`, `Toast` (lote 3), mais o `Field` interno e o formatador `lib/money.ts`.
+  2. **Desvios da especificação de referência (§8 e §9), todos registrados:** `Select` com a lista do próprio app em vez do `<select>` nativo (`D-047`, revisa `D-046`); `Money` sem o modo `none` (`D-048`).
+  3. **`Dialog`:** exige `title` no tipo (nome acessível) e tem o botão "Fechar" sempre; é centralizado a partir de `md` e **folha inferior** abaixo disso. `AlertDialog`, `Sheet`/gaveta lateral e `Popover` seguem adiados.
+  4. **Movimento:** `@keyframes` e `@utility` em `src/styles/index.css` (`animate-overlay-*`, `animate-sheet-*`, `animate-dialog-*`, `animate-toast-*`), com `--duration-base` e as curvas `--ease-standard` (entrada) e `--ease-exit` (saída); `prefers-reduced-motion` segue zerando tudo em `tokens.css`. Sem *bounce*, *parallax* nem animação em *loop* (exceto o indicador de carregamento do `Button`).
+  5. **`Tooltip`** inclui o provedor, atraso de 300 ms, aparece em hover e foco, some com Esc e ao afastar o ponteiro; o gatilho precisa ter nome acessível.
+  6. **`Toast`:** `ToastProvider` e `useToast()`; 4 s; anúncio `aria-live="polite"` (o Radix o renderiza num `<span role="status">` oculto, fora da região visível); pausa ao passar o mouse ou focar; **`action.altText` obrigatório no tipo**; tons `success`, `attention` e `info` com cor, ícone e texto; topo à direita no desktop e base no celular, com a variável `--shell-bottom-offset` para a futura barra inferior. O `ToastProvider` envolve o `App`.
+  7. **`Tabs`:** ativação por setas, `Home` e `End`, lista rolável no celular e anel de foco **interno** (o contêiner rolável cortaria o externo).
+  8. **Acessibilidade:** cobertos por teste teclado, nomes, papéis e `aria-*` de todos os primitivos; **pendentes da passada manual do usuário** (`altare-acessibilidade`): 320 px e zoom de 200%, leitor de tela, "reduzir movimento" e alvo de 44 px em tela de toque, em cada lote. O que depende de layout e de animação reais fica fora do alcance do jsdom.
+  9. **Próximo:** etapa (d), casca de navegação com seletor de lente e as 7 áreas-esqueleto; depois a (e), vitrine `/design-system`, que apaga a página de conferência provisória.
+- **Ajustes em arquivos aprovados:** `design-system.md` §13 (etapa (c) marcada como concluída).
+- **Razão:** fechar a etapa com o registro dos desvios e das pendências manuais, para a casca e a vitrine partirem de um conjunto completo e conhecido.
+- **O que ficou rejeitado:**
+  - Antecipar `AlertDialog`, `Sheet` e `Popover`: nenhuma tela do Nível 0 os usa (`D-028`).
+  - `sonner` para as notificações: segunda biblioteca de acessibilidade a conferir, sem ganho sobre o Radix Toast.
+  - Limite de fila de notificações: sem caso real ainda.
+
+---
+
+## D-050 — Assistente como 8ª Área da Navegação e Ícone Flutuante, Já na Casca (Resolve o Item 1 de `OQ-IA-001`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (etapa (d) do Bloco 0.2)
+- **Pedido do usuário:** ao planejar a casca de navegação, o usuário decidiu que o assistente entra **já na casca**: "Incluir a área \"Assistente\", e o ícone flutuante."
+- **Decisão:**
+  1. **A navegação tem 8 áreas:** as 7 de `D-025` e o **Assistente** (o "módulo de chat" de `D-042`). No desktop e no tablet fica **ao fim da lista, separado das demais por uma *hairline***; no celular a barra inferior continua com 4 destinos mais "Mais", e o Assistente entra dentro de "Mais".
+  2. **O ícone flutuante do assistente** fica no canto inferior direito das demais áreas, **recolhido por padrão, nunca abre sozinho e nunca cobre o conteúdo principal**; fica **oculto na própria área Assistente** (seria redundante). No celular fica acima da barra inferior.
+  3. **Só a casca nasce agora.** A área Assistente é uma página-esqueleto como as outras, e o ícone abre um painel provisório que diz, com calma e sem prometer prazo, que o assistente ainda não está disponível. O chat de verdade (mensagens, campo de texto, prévia de `ChangeProposal` com Confirmar e Rejeitar) é do Bloco 5.3 (`D-008`, `D-042`).
+  4. **Item 5 da `OQ-IA-001` (canto compartilhado com o "+ Registrar Rápido") continua aberto, com gatilho no Bloco 3.1:** até lá o assistente é o único dono do canto; ao construir o `QuickAddFab`, decide-se como convivem (ex.: o assistente dentro do menu "Novo"). Os itens 2 a 4 seguem para o Bloco 5.3.
+  5. **Ícone da área:** `message-square-text` (Lucide), que evita `message-circle` (WhatsApp) e `messages-square` (divergência), os dois reservados em `identity.md` §7. Os ícones das demais áreas estão em `design-system.md` §10.1.
+- **Ajustes em arquivos aprovados:** `experience.md` §3.1 (8ª área); `design-system.md` §5 e §10.1 (barra lateral, "Mais" e tabela de ícones); `roadmap.md` (Blocos 0.2 e 5.3); `stack.md` §11 (item 4); `open-questions.md` (item 1 resolvido, item 5 com gatilho); skills `altare-ui-ux`, `altare-frontend`, `altare-agente-dados` e `altare-engenharia-de-ia` (a regra "não nasce antes do Bloco 5.3, nem como placeholder" passa a valer só para o chat, não para a casca).
+- **Razão:** o usuário quer o assistente visível na estrutura do app desde o início, para a navegação e o canto inferior direito nascerem já contando com ele, em vez de serem refeitos no Nível 5.
+- **O que ficou rejeitado:**
+  - Manter a `OQ-IA-001` inteira em aberto e construir só as 7 áreas (recomendação do agente): o usuário preferiu decidir agora.
+  - Só o ícone flutuante, sem área própria: não dá lugar ao histórico e à tela do módulo de chat de `D-042`.
+  - Só a 8ª área, sem o ícone: perde o acesso ao assistente com o contexto da tela atual.
+
+---
+
+## D-051 — Etapa (d), Lote 1: Roteador, Casca de Navegação e Seletor de Lente
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** plano e execução da etapa (d) do Bloco 0.2, em 2 lotes (`D-028`, `D-050`).
+- **Decisão:**
+  1. **TanStack Router em modo *code-based*** (árvore escrita à mão em `src/routes/router.tsx`, sem plugin nem arquivo gerado), com rotas tipadas, página carregada sob demanda por rota (cada área vira um *chunk*) e `defaultPreload: 'intent'`. O modo por arquivos exigiria o plugin e um `routeTree.gen.ts` conferido contra defasagem, cerimônia desproporcional para 10 rotas (`stack.md` §2, princípio 5); migrar depois é mecânico.
+  2. **URLs em pt-BR:** `/`, `/planejamento`, `/cronograma`, `/possibilidades`, `/orcamento`, `/contatos`, `/convidados`, `/assistente`, mais `/design-system`, que mantém a página de conferência provisória **fora da navegação** até a etapa (e). Uma rota desconhecida mostra "Não encontramos esta página" com a saída para a Visão Geral.
+  3. **A lente fica na URL:** `?lente=minha` (ausente é `Casal`), validada na rota raiz (qualquer outro valor vira `Casal`) e preservada pelos links da navegação. Sem `localStorage`: a preferência por usuário vem com o login. **O efeito real de "Minha visão" depende do login e das features**; hoje só o estado e o seletor existem.
+  4. **Casca em `src/app/shell/`:** `nav-config.ts` é a fonte única das 8 áreas (ordem, nome, ícone, posição na barra inferior). Responsivo por **CSS**: ≥ 1024 barra lateral de 256 px; 768 a 1023 trilho de 72 px (o nome fica `sr-only`); < 768 barra superior compacta e barra inferior com 4 destinos mais "Mais", cuja folha é o `Dialog` abaixo de `md`. O conteúdo tem no máximo 1200 px. O hook `useMediaQuery` só decide se as dicas do trilho aparecem (na barra larga o nome já está visível).
+  5. **Espaço da barra inferior:** a variável `--shell-bottom-offset` (4 rem mais a *safe area* no celular, 0 acima de `md`) fica em `:root`, em `index.css`, para o `Toast` (fora da casca) e o conteúdo a lerem.
+  6. **Novo primitivo `SegmentedControl`** (Radix `ToggleGroup`, `radiogroup` com itens `radio`): sempre com uma opção marcada, Tab entra na selecionada, setas movem o foco e Espaço escolhe. É o primeiro dos "demais primitivos" de `design-system.md` §8 a ser pedido por uma tela (`D-028`).
+  7. **Nome curto "Opções" na barra inferior do celular** para a área Possibilidades & Decisões: "Possibilidades" não cabe em ~70 px por destino (5 colunas em 390 px) em nenhum tamanho legível. Na barra lateral e na folha "Mais" vale o nome completo. **Desvio consciente de `design-system.md` §10.1 ("Possibilidades")**, reversível trocando uma linha de `nav-config.ts`.
+  8. **Acessibilidade da casca:** link "Ir para o conteúdo" como primeiro foco; `header`, dois `nav` com nomes distintos ("Navegação principal" e "(celular)"), `aside` e `main#conteudo`; `aria-current="page"` na área ativa, mais uma faixa no destino atual da barra inferior (a cor não é o único sinal). **Ao trocar de área**, o título do documento vira "Área · Altare" e o foco vai ao `h1`, que ganhou `tabIndex={-1}`; a primeira página e a troca só da lente não movem o foco.
+  9. **Textos dos esqueletos** em `features/<módulo>/copy.ts`, no tom de `altare-conteudo-copy`, tirados de `experience.md` §3.1, **sem botão de ação** (nada funciona ainda): exceção consciente à regra "estado vazio com uma ação". A revisão do texto é do usuário no PR.
+  10. **Gate de limites próprio no lugar do `dependency-cruiser`:** o gatilho de `D-043` (a primeira `feature`) ocorreu, mas o `dependency-cruiser` **não suporta o Node 25** em uso (só as versões LTS: 22, 24 e 26 em diante). As mesmas regras viraram `apps/web/scripts/architecture.ts`, testado em `src/architecture.test.ts` e rodado pelo `make test`: `components/ui` não importa `features` nem `lib/api`; uma feature só importa outra pelo `index.ts`; features não importam `app` nem `routes`; sem ciclos (imports só de tipo não contam). Conferido com violações reais, depois removidas. **Reavaliar ao adotar um Node LTS.**
+  11. **Ícones de navegação** (Lucide, 24 px, traço 1,5): `house`, `compass`, `calendar-days`, `columns-3`, `wallet`, `contact`, `users` e `message-square-text` (Assistente), em `design-system.md` §10.1.
+  12. **Acessibilidade e layout:** teclado, nomes, `aria-current`, lente e navegação cobertos por teste; **pendentes da passada manual do usuário** (`altare-acessibilidade`): os 3 tamanhos de tela, o trilho e a barra inferior reais, 320 px e zoom de 200%, leitor de tela e "reduzir movimento". O jsdom não carrega o CSS, então não prova nenhum *breakpoint*.
+  13. **Próximo:** lote 2, o ícone flutuante do assistente (`D-050`), e depois a etapa (e), a vitrine.
+- **Ajustes em arquivos aprovados:** `stack.md` §7 e `architecture.md` §9, §13 e §14 (o gate de limites no lugar do `dependency-cruiser`); `design-system.md` §13; skills `altare-testes-qa`, `altare-frontend`, `altare-devops`, `altare-pull-request` e `altare-escrita-de-codigo` (referência ao gate).
+- **Razão:** dar ao `apps/web` a estrutura que as áreas vão ocupar, com a navegação e a lente prontas e acessíveis, e manter os limites entre camadas verificados por máquina desde a primeira `feature`.
+- **O que ficou rejeitado:**
+  - Roteamento por arquivos com plugin e `routeTree.gen.ts`: cerimônia sem ganho para 10 rotas.
+  - `localStorage` para a lente: o estado vai na URL, compartilhável, e a preferência por usuário vem com o login.
+  - Truncar "Possibilidades" na barra inferior: rótulo cortado deixaria o destino ilegível.
+  - Instalar outro Node só para rodar o `dependency-cruiser`: mudaria o ambiente do usuário sem ele pedir.
+  - Esperar o Bloco 1.1 para ter limites verificados: a primeira feature já chegou.
+
+---
+
+## D-052 — Casca de Navegação Alinhada ao Guia de Identidade (Revisa os Itens 7 e 11 de `D-051`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** ao comparar a casca com a aplicação "Visão Geral no desktop" do guia (`altare-identidade-visual.pdf`, gerada por `build/componentes.py`), apontou que o espaçamento e as opções do canto superior direito estavam diferentes.
+- **Decisão:**
+  1. **O guia é a referência visual da casca** (aprovado em `D-025`), com as medidas lidas do próprio gerador: barra lateral com itens de 40 px a cada 46 px, ícone de 20 px, rótulo de 12 px, ativo em `surface-muted` com ícone `primary` e rótulo em seminegrito; marca de 26 px; barra superior de 72 px com o título em `ink` seminegrito; conteúdo com recuo de 34 px.
+  2. **Ícones das áreas voltam aos do guia:** `layout-dashboard`, `map`, `calendar`, `scale`, `wallet`, `users` e `gift`; no celular, `house`, `scale`, `wallet`, `users` e `ellipsis`. Os ícones escolhidos em `D-050`/`D-051` (`house`, `compass`, `calendar-days`, `columns-3`, `contact`) foram um erro do agente, que não conferiu o guia. O Assistente, ausente do guia, segue com `message-square-text`.
+  3. **Seletor de lente como no guia:** trilho `surface-sunken` com a opção ativa em `surface`, contornada por *hairline* e em seminegrito (não mais oliva cheio), com os rótulos **"Visão do Casal"** e "Minha visão". É o novo visual do primitivo `SegmentedControl`.
+  4. **Celular como no guia:** barra de 72 px, ícone de 22 px, rótulo de 12 px, ativo em `primary` e seminegrito (sem a faixa superior), **rótulos abreviados "Possib." e "Orçam."** (o leitor de tela lê "Possibilidades" e "Orçamento", que contêm o texto visível) e a **ordem do guia: Início, Possib., Orçam., Contatos, Mais**. Isso substitui o nome "Opções" de `D-051` (item 7) e diverge da ordem de `design-system.md` §10.1, que foi atualizado. O guia não mostra a lente no celular, então ela vai para o topo da folha "Mais".
+  5. **Textura de papel** sobre o canvas no tema claro (`identity.md` §6), com a opacidade do `tokens.json` (`--texture-opacity`, gerada), num pseudo-elemento fixo abaixo do conteúdo, desligada em impressão e com transparência reduzida.
+  6. **Tamanhos fora da escala:** o guia usa 15 px no título da barra superior, 13 px no seletor e 11 px nos rótulos do celular; o app usa os tokens mais próximos (16, 14 e 12 px), porque só classes de token entram nos componentes.
+  7. **Fica para o login:** o bloco "Noivo · sessão individual" no pé da barra lateral. O selo "conteúdo ilustrativo" é marcação do guia, não da interface.
+- **Ajustes em arquivos aprovados:** `design-system.md` §10.1 (tabela com os ícones e o celular do guia e as medidas).
+- **Razão:** a casca é a primeira tela que o casal vê, e o guia aprovado já define como ela deve parecer; divergir dele sem decisão contraria `AGENTS.md` §1.
+- **O que ficou rejeitado:**
+  - Manter os ícones e o nome "Opções" escolhidos pelo agente: contrariam o guia aprovado.
+  - Manter a ordem de §10.1 no celular (Contatos antes de Orçamento): o usuário pediu fidelidade ao guia.
+  - Valores de 15, 13 e 11 px escritos à mão: quebrariam a regra de só usar tokens; se a diferença incomodar, o caminho é acrescentar o tamanho ao `tokens.json`.
+
+---
+
+## D-053 — Atalho Discreto para o Design System, só em Desenvolvimento
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** "Inclua uma forma não tão invasiva de visualizar o design system", depois de a página de conferência sair da raiz para `/design-system` e ficar sem link.
+- **Decisão:**
+  1. **Um link "Design system" no pé da barra lateral**, separado do menu por uma *hairline*, **visível só com `import.meta.env.DEV`** (`make dev`). O Vite o remove do *build* de produção, conferido no pacote gerado. Vale também para o trilho do tablet, onde mostra só o ícone (`palette`) com dica.
+  2. **Não faz parte das 8 áreas** (`NAV_ITEMS`) nem do `nav` principal; é um item à parte, `DESIGN_SYSTEM_ITEM`. A navegação aprovada (`D-025`, `D-050`) fica intacta na versão publicada, e o celular não ganha o atalho.
+  3. **Etapa (e):** a vitrine definitiva herda a rota e o atalho; se o casal precisar vê-la na versão publicada, é decisão nova.
+- **Ajustes em arquivos aprovados:** `design-system.md` §2 (nota sobre o acesso à vitrine).
+- **Razão:** o catálogo é ferramenta de quem desenvolve; um link só em desenvolvimento o deixa a um clique sem poluir a navegação do casal nem exigir mudança de produto.
+- **O que ficou rejeitado:**
+  - Link permanente no menu: altera a navegação aprovada e mostra ao casal uma ferramenta de desenvolvimento.
+  - Atalho de teclado escondido: ninguém o descobre, e um atalho global precisaria de decisão sobre conflitos (`design-system.md` §10, item 8).
+  - Item na folha "Mais" do celular: o desenvolvimento dos primitivos é feito no desktop.
+
+---
+
+## D-054 — Auditoria do `apps/web` contra o Guia de Identidade: Tamanhos 15, 13 e 11 px, Alturas de Campo e Alinhamento dos Primitivos e da Casca (Revisa o Item 6 de `D-052`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** auditar tudo o que existe no `apps/web` (15 primitivos, vitrine, casca, esqueletos, tokens, tipografia, ícones, movimento, textura) contra o guia de identidade visual e corrigir o que divergir, porque a casca e os primitivos nasceram sem conferência com as páginas de aplicação do guia (`D-052`).
+- **Método:** hierarquia de verdade explícita (1. `tokens.json`, valores; 2. o guia, composição e medidas, lidas em `build/componentes.py` e `medidas.json`; 3. `identity.md`; 4. `design-system.md`, onde diverge o guia vence; 5. o código nunca é fonte). Cada item foi classificado em A (guia claro, corrigir), B (ambíguo ou fora da escala, decisão do usuário), C (guia não cobre) ou D (já decidido); capturas do app em 1440, 768, 390 e 320 px foram comparadas com os PNGs do guia. Resultado: 17 itens A, 7 B, 4 C e 12 D; tokens, marca, cores semânticas, foco, superfícies, movimento e as medidas da casca já estavam conformes.
+- **Decisão:**
+  1. **Três tamanhos entram no `tokens.json`** (revisa o item 6 de `D-052`): `ui` 15/22 (botões, linhas de cartão e descrições de estado), `ui-sm` 13/18 (selos, lente) e `ui-xs` 11/14 (rótulo da barra inferior). Os 12,5 px do guia viram 13 e o título de 38 px fica em `display` (40). O guia (página 26) e o `tokens.css` foram regenerados; os SVGs de componentes cujo desenho não mudou foram restaurados, porque o subconjunto de fonte embutido muda de bytes a cada execução do pipeline.
+  2. **Alturas de controle como no guia:** campos (`Input`, `Select`) com **44 px** em qualquer tela, botão `md` com 40 px no desktop e **44 px no celular** (antes 48); `lg` segue em 48. Revisa `design-system.md` §5 (`D-025`).
+  3. **Tipografia:** a Newsreader passa a carregar o eixo óptico (`opsz.css`, +74 KB no arquivo latin), como a fonte do guia; *preload* da Newsreader 400 e da Plus Jakarta Sans 400 no `index.html`; reservas de métrica `"<Família> Fallback"` com `size-adjust`, `ascent-override` e `descent-override` medidos com `fontTools` (Georgia 90,5%, Arial 106,2%, Courier New 100%), geradas no `tokens.css` (`identity.md` §4, guia pág. 29).
+  4. **Ícones:** todo ícone Lucide com traço de **1,5 px que não escala** (`LucideProvider` com `strokeWidth` 1,5 e `nonScalingStroke` em `providers.tsx`), porque os tamanhos vêm de classes CSS e `absoluteStrokeWidth` mede pela prop `size`. Antes valia o padrão 2 (guia pág. 33).
+  5. **Primitivos:** `Button` em seminegrito, 15 px, e `ghost` em `ink-muted`; rótulo de campo em seminegrito; `Badge` em **pílula** de 26 px, 13 px, seminegrito, neutro em `ink-muted`; `EmptyState` com ramo de 64 px, título `name` e opção `ramo-grande` (a do 404, pág. 31); `Toast` com título em seminegrito; `SegmentedControl` em 13 px; `Tooltip` no **nível 1** da pág. 32 (Marfim, *hairline*, sombra suave) no lugar do escuro; `Table` com `isolate`, para o canto fixo não passar por cima da barra superior; **`Money` com espaço depois do sinal** (`+ R$ 1.200,00`, `− R$ 3.100`).
+  6. **Casca:** *wordmark* de 29 px de altura (versal de 26 px) e símbolo de 27 px no celular, com as posições do guia; rótulos da barra lateral numa linha só; barra inferior com rótulos de `ui-xs`; ícones da folha "Mais" em `ink-muted` e o ativo em `primary`; as páginas-esqueleto com o estado vazio dentro de um `Card`.
+  7. **Títulos editoriais nas 8 áreas** (padrão das págs. 38 a 40): o rótulo nomeia a área e o `h1` diz o que a página é; o título do documento e a barra superior seguem com o nome da área. Visão Geral usa o texto exato do guia ("O momento de vocês"). As outras sete são textos propostos e aprovados nesta decisão:
+
+     | Área | Rótulo | Título (h1) |
+     | :--- | :--- | :--- |
+     | Visão Geral | Visão geral | O momento de vocês |
+     | Planejamento & Caminhos | Planejamento | O rumo de vocês |
+     | Cronograma & Dependências | Cronograma | O que pode andar agora |
+     | Possibilidades & Decisões | Possibilidades | Comparar propostas |
+     | Orçamento & Simulador | Orçamento | O orçamento de vocês |
+     | Contatos & Fornecedores | Contatos | Quem vocês estão consultando |
+     | Convidados, Enxoval & Dia D | Convidados | Quem estará com vocês |
+     | Assistente | Assistente | Conversem com o assistente |
+
+  8. **Custo comparável como no guia** (págs. 34 e 40): o total sai em `ink`, mono de 24 px, e a terracota fica só nos custos extras, com ícone e sinal `+`. Corrige `design-system.md` §9 e `visual-direction.md` §2.3 e §3. O tom `comparable` do `Money` passa a ser o dos extras.
+  9. **Vitrine `/design-system`:** ganha as seções Cores (as 17 do `tokens.json`, com a função) e Tipografia (a escala inteira, com a amostra), o `SegmentedControl` e os estados que faltavam (carregando e desabilitado em todas as variantes do botão, `Textarea`, `Select` e `Checkbox` desabilitados, aba desabilitada, ramo grande). Um teste falha se um arquivo de `components/ui` não aparecer na vitrine.
+  10. **Desvios aceitos, registrados:** cabeçalho de `Table` com fundo `surface-muted` e linha em sans (o guia, pág. 28, é a linha de orçamento, componente de domínio, revista quando o `BudgetRow` nascer); `Toast` com raio de 10 px e *hairline* (precisa se separar do conteúdo, nível 1); barra superior opaca, sem a textura de 3,5% (evita o conteúdo aparecer por baixo ao rolar); `Dialog`, `Tabs`, `Checkbox`, lista do `Select`, folha "Mais" e tom `info` do `Toast` aprovados como estão, por não terem página no guia; lupa do celular (pág. 39) adiada até a busca global do Bloco 3.1 (`D-034`); rótulo de 11 px na barra inferior por fidelidade ao guia, abaixo dos 12 px da escala anterior.
+  11. **Ícone flutuante do Assistente** (lote 2 da etapa (d), `D-050`), que o guia não mostra: **pílula secundária de 48 px** com `message-square-text` e o texto "Assistente" (`surface`, borda `border-strong`, sombra de nível 1), no canto inferior direito e acima da barra inferior no celular, para ficar mais calma que o "Registrar" primário da pág. 39. A construção segue como lote 2.
+- **Ajustes em arquivos aprovados:** `tokens.json` (três tamanhos) e o guia regenerado (HTML, PDF, página 26); `design-system.md` §4 (escala), §5 (raios e alturas), §8 (`Badge`) e §9 (`Money` e `ComparableCostBreakdown`); `visual-direction.md` §2.3 e §3 (custo comparável).
+- **Razão:** o guia foi aprovado em `D-024` e `D-025`, e o app divergia dele em detalhes que o casal vê todo dia: traço dos ícones, peso dos títulos, quebra de linha na barra lateral, forma dos selos e alturas. Corrigir por medida lida do gerador do guia, e não a olho, evita repetir o `D-052`.
+- **O que ficou rejeitado:**
+  - Aproximar 15, 13 e 11 px dos tokens existentes: o usuário preferiu acrescentar os tamanhos para ficar fiel ao desenho do guia.
+  - Manter campos de 40 px e botões de 48 px no celular: o guia mostra 44 px nos dois.
+  - `absoluteStrokeWidth` do Lucide: mede pela prop `size`, e aqui o tamanho vem de classes.
+  - Manter o título de cada área igual ao nome dela: repete a barra superior e destoa das páginas do guia.
+  - Manter o total comparável em terracota: o guia reserva a terracota aos extras.
+  - Reabrir o regenerar dos 53 SVGs de componentes sem mudança de desenho: só enchia o diff de ruído.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` (teclado, zoom de 200%, VoiceOver e "reduzir movimento"); o reflow de 320 px sem rolagem horizontal foi verificado por script nas 10 rotas.
+
+---
+
+## D-055 — O Guia de Identidade como Referência Obrigatória do Front: Mapa guia → Componente, Regra nas Skills e Teste de Regras de Design (Revisa o Gatilho do Script Anti-*hex* de `D-028`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** garantir que, de agora em diante, qualquer trabalho de front seja feito com o guia de identidade como referência obrigatória, ajustando a documentação para agentes e os gates de revisão, para o próximo agente não precisar ouvir o usuário reclamar para consultar o guia.
+- **Causa (da auditoria de `D-054`):** nenhuma skill nem doc mandava abrir as páginas de **aplicação** do guia (32 a 42) antes de construir; `altare-design` citava a pasta só para tokens e pipeline, e `altare-frontend`, `altare-ui-ux` e `altare-code-review` nem a citavam. Os primitivos (`D-046` a `D-049`) saíram do texto de `design-system.md`, sem conferência, e a casca nasceu diferente do guia (`D-052`). A auditoria achou 17 divergências corrigíveis.
+- **Decisão:**
+  1. **Mapa guia → componente** em `design-system.md` §15, fora da pasta gerada do guia (que o pipeline sobrescreve): uma tabela com cada componente, tela ou padrão do app, a página do guia (PNG e SVG de aplicação), as linhas de `build/componentes.py` com as medidas e o estado (conforme, desvio com `D-xxx`, sem página ou pendente). É o índice único para o qual as skills apontam, com a hierarquia de verdade explícita (1. `tokens.json`; 2. o guia; 3. `identity.md`; 4. `design-system.md`; 5. o código nunca é fonte).
+  2. **Definição de pronto de UI** (`design-system.md` §12): todo componente ou tela só está pronto depois de **comparado com a página do guia**, com cada divergência registrada.
+  3. **`AGENTS.md`:** regra inegociável nova em §2 (item 6, curta) e um passo obrigatório em "Como Retomar" (item 4: achar a linha no mapa, abrir o PNG, ler a medida, comparar ao terminar). O `CLAUDE.md` da raiz continua sem regras, só apontando.
+  4. **Skills,** que apontam para o mapa e não copiam o conteúdo: `altare-design` ganha a seção "Fonte visual: o guia", antes dos princípios, com o fluxo (ache a página no mapa, abra o PNG, leia a medida em `componentes.py`, só então implemente, compare ao terminar); `altare-frontend` e `altare-ui-ux` (fluxo e estados contra as págs. 34, 35, 37 a 40 e 42) remetem a ele; `altare-code-review` passa a **bloquear** "UI sem conferência contra a página do guia, ou valor divergente sem decisão registrada"; `altare-pull-request` ganha o item "comparado com o guia, com captura quando houver mudança visual". As `description` de `altare-design`, `altare-frontend` e `altare-ui-ux` passam a disparar em pedidos de UI e visual mesmo sem a palavra "guia" ("ajusta o espaçamento", "cria a tela de X").
+  5. **Teste de regras de design ativado, revisando o gatilho de `D-028`** (`apps/web/scripts/design-rules.ts`, `src/design-rules.test.ts`, rodado pelo `make test`): falha com *hex*, `rgb()`/`hsl()` e afins literais, classe arbitrária de cor, fonte, traço ou sombra que não leia um token com `var(--…)` (`bg-[…]`, `text-[15px]`, `font-[600]`) e valor solto de cor ou fonte em `style`. Layout arbitrário (`min-w-[36rem]`, `grid-cols-[…]`, `calc()`) segue livre. Avaliação que levou à ativação: o código tinha **0 *hex*** e só valores arbitrários de layout, de modo que o gatilho de `D-028` ("*hex* mais de uma vez") não disparou, mas o risco real mostrado por `D-054` é o desvio de valor sem *hex* (`text-[15px]` seria a saída fácil para o que acabou virando token). Custo: um teste de milissegundos, sem infraestrutura. O gate foi conferido com violações reais, depois desfeitas. `D-028` fica como histórico.
+  6. **Limite assumido:** o teste barra valor solto, mas **não prova que a composição bate com o guia**. Isso continua sendo a conferência com o mapa (itens 1 a 4) e o bloqueio da revisão.
+- **Ajustes em arquivos aprovados:** `design-system.md` §12 (linha "Só token em componentes", definição de pronto), §13 (gatilho cumprido), cabeçalho e §15 (novo mapa); `AGENTS.md` §1, §2, §4 e "Como Retomar"; `roadmap.md` (Bloco 0.2); skills `altare-design`, `altare-frontend`, `altare-ui-ux`, `altare-code-review`, `altare-pull-request` e `altare-testes-qa` (tabela de gates). A ordem das etapas do roadmap não muda.
+- **Razão:** o guia foi aprovado, mas só valia se alguém o abrisse. Um mapa único, uma regra curta e um bloqueio na revisão põem a conferência no caminho de quem constrói e de quem revisa, e o teste tira da memória a regra "só token".
+- **O que ficou rejeitado:**
+  - Copiar as medidas do guia para as skills: criaria uma segunda verdade que diverge da primeira (`AGENTS.md` §5: skills apontam).
+  - Colocar o mapa dentro da pasta do guia: o pipeline (`uv run build.py`) a sobrescreve.
+  - Regra no `CLAUDE.md` da raiz: `AGENTS.md` é a fonte única das regras operacionais.
+  - *Snapshots* visuais contra os PNGs do guia: continuam adiados (`D-028`), por custo e sem o gatilho de regressões recorrentes.
+  - Manter o script anti-*hex* adiado: o risco não é o *hex*, e o teste custa quase nada.
+  - Proibir todo valor arbitrário, inclusive de layout: obrigaria tokens de espaço sem ganho para o casal.
+- **Pendente:** o mapa precisa de manutenção na mesma mudança que constrói um componente novo, e as linhas de `componentes.py` que ele cita acompanham o guia se ele for regenerado.
+
+---
+
+## D-056 — Etapa (d), Lote 2: Ícone Flutuante do Assistente, Cartão Provisório e o Primitivo `Popover` (Conclui o Item 11 de `D-054`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** construir o lote 2 da etapa (d), o ícone flutuante do Assistente (`D-050`), com o desenho de `D-054` (item 11). O guia não desenha esse elemento nem o seu painel; as duas escolhas abaixo foram feitas pelo usuário com recomendação do agente (`AGENTS.md` §3).
+- **Conferência com o guia (`AGENTS.md` §1, item 4):** pág. 39 (o "Registrar" flutuante: 144 × 48 px, 16 px da borda direita e 16 px acima da barra de 72 px, `build_mobile` `:963`) para posição e geometria; pág. 32 (`build_superficies` `:611-628`) para o raio `pill`, a borda `border-strong` do controle e a sombra de nível 1 (popover). Capturas do app em 1440, 768, 390 e 320 px comparadas com as duas páginas: a pílula mede 146 × 48 px (o texto "Assistente" é mais largo que "Registrar"), fica a 16 px da borda e da barra no celular e a 34 px da borda e 24 px do pé no desktop.
+- **Decisão:**
+  1. **Pílula secundária de 48 px** (o `Button` `secondary` `lg` com raio `pill` e sombra nível 1) com `message-square-text` e o texto "Assistente", em `features/assistant/components/assistant-launcher.tsx`. Monta na casca (`AppShell`), **oculta na própria área `/assistente`** e visível nas demais rotas, inclusive `/design-system` e a página não encontrada. **Nunca abre sozinha.** No celular fica a `--shell-bottom-offset` mais 1 rem do pé, ou seja, acima da barra inferior.
+  2. **Recolhe ao rolar para baixo e volta ao rolar para cima ou no topo** (escolha do usuário, para a pílula nunca cobrir o que se lê em tela curta). Hook `useHiddenOnScrollDown` em `lib/` (limite de 12 px contra tremida). O recolhimento é **só visual** (opacidade e 16 px de deslocamento em 220 ms, que o `prefers-reduced-motion` zera): a pílula continua na ordem de Tab e no leitor de tela, e **reaparece quando recebe foco** por teclado, para ninguém a perder. Com o cartão aberto ela fica à vista. Conferido no Chrome: opacidade 0, sem clique e deslocada ao rolar; opacidade 1 e clicável com foco.
+  3. **O conteúdo reserva 6 rem no fim** (`pb` de `--shell-bottom-offset` mais 6 rem, antes 2 rem) para o ícone nunca cobrir a última linha ao fim da rolagem (medido nos 4 tamanhos: sem sobreposição).
+  4. **Painel provisório como cartão ancorado no canto** (escolha do usuário, entre o diálogo central e o cartão): título "O assistente ainda não está disponível" e duas frases calmas, sem prometer prazo, que explicam que a inteligência chega depois das áreas manuais e que, até lá, tudo continua nas áreas do Altare. Textos em `features/assistant/copy.ts`. Sem campo de texto, sem botão de enviar e sem simular chat; o chat de verdade segue no Bloco 5.3 (`D-008`, `D-042`).
+  5. **Novo primitivo `Popover`** (`components/ui/popover.tsx`, Radix), o primeiro dos "demais primitivos" de §8 pedido por esta tela (`D-028`): cartão ancorado no gatilho, **nível 1 de profundidade da pág. 32** (Marfim, *hairline*, raio 10, sombra suave), **não modal** (não escurece nem trava a página), com título (`aria-labelledby`), descrição opcional (`aria-describedby`), botão Fechar com nome, Esc e clique fora para fechar, foco para dentro ao abrir e de volta ao gatilho ao fechar. Entra na vitrine (o teste de completude exige) e no mapa §15.
+  6. **A feature do assistente deixa de ser carregada sob demanda:** a casca já a importa, então o `chunk` próprio da página não existia mais e o build avisava `INEFFECTIVE_DYNAMIC_IMPORT`. A rota `/assistente` importa `AssistantPage` direto (a página tem 0,6 kB). As demais áreas seguem sob demanda.
+  7. **Desvios do guia, registrados:** a pílula é **secundária** (o "Registrar" da pág. 39 é primário), para ficar mais calma, e **se recolhe ao rolar** (o guia não mostra a flutuante em movimento). O cartão não tem página no guia: segue o nível 1 da pág. 32.
+  8. **Convivência com o "+ Registrar Rápido" segue a `OQ-IA-001`, item 5** (gatilho no Bloco 3.1): até lá o assistente é o dono do canto.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§8 `Popover`, §13 etapa (d) e lista de primitivos adiados, §15 linha do ícone e nova linha do `Popover`); `AGENTS.md` §1 e "Como Retomar"; `roadmap.md` (Bloco 0.2).
+- **Razão:** dar ao assistente o seu lugar na casca desde já (`D-050`), no espírito calmo do guia e sem cobrir o que o casal lê, e criar só o primitivo que a tela pede, com a conferência feita contra as páginas 32 e 39.
+- **O que ficou rejeitado:**
+  - Diálogo central como painel (recomendado pelo agente): o usuário preferiu o cartão no canto, mais próximo do chat futuro.
+  - Manter a pílula fixa mesmo cobrindo texto em tela curta (recomendado pelo agente): o usuário preferiu recolher ao rolar.
+  - Recolher com `visibility: hidden` ou `tabindex="-1"`: tiraria o assistente do teclado e do leitor de tela enquanto a página está rolada.
+  - Pílula primária como o "Registrar" do guia: disputaria a atenção com a ação principal do Bloco 3.1.
+  - Esconder a pílula também na vitrine e na página não encontrada: não há razão, e a vitrine é onde ela se confere.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` no ícone e no cartão (Tab até a pílula com a página rolada, Esc, VoiceOver, zoom de 200%, "reduzir movimento"); o jsdom não prova layout nem animação. **Pendente de desenho:** o `Toast` no celular ocupa a mesma faixa do pé e pode cobrir a pílula por 4 s; revisar quando a primeira notificação real existir.
+
+---
+
+## D-057 — Etapa (e): Vitrine `/design-system` Definitiva, Só em Desenvolvimento, e Conclusão do Bloco 0.2 (Revisa o Item 3 de `D-053`)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0
+- **Pedido do usuário:** concluir a vitrine `/design-system` como definitiva (nome e rótulo ainda provisórios), conferir o critério de conclusão do Bloco 0.2 (`design-system.md` §13) e decidir se ela aparece na versão publicada. Resposta do usuário, com recomendação do agente: **só em desenvolvimento**.
+- **Fato que motivou a escolha:** em `D-053` só o **link** do menu era exclusivo de desenvolvimento; a **rota** `/design-system` existia em qualquer *build*, então abria na versão publicada a quem digitasse a URL, sem ninguém ter decidido isso.
+- **Decisão:**
+  1. **A vitrine só existe em desenvolvimento, rota e link** (revisa o item 3 de `D-053`). Na versão publicada a rota `/design-system` cai na página não encontrada (`beforeLoad` com `notFound()`), e, como o Vite troca `import.meta.env.DEV` por `false`, o `import()` da vitrine é descartado do pacote: conferido no *build*, que não tem mais o *chunk* `design-system` nem nenhuma de suas cadeias de texto. Um teste cobre a rota em produção (`routes.test.tsx`) e o já existente cobre o link (`app-shell.test.tsx`).
+  2. **Nome e cabeçalho definitivos:** o arquivo `Conferencia.tsx` virou `primitives-showcase.tsx` (`PrimitivesShowcase`); o rótulo "Exemplo · conferência" virou **"Vitrine · dados de exemplo"** e a descrição provisória ("Espaço Exemplo A · texto de interface") virou "Cores, tipografia e os componentes do Altare, com variantes e estados. Os exemplos são fictícios." (a regra de rotular dados de exemplo, `AGENTS.md` §2, continua cumprida). Um teste exige o cabeçalho e que a palavra "conferência" não volte. **Texto proposto pelo agente, para revisão do usuário no PR** (`altare-conteudo-copy`).
+  3. **Critério de conclusão do Bloco 0.2 (`design-system.md` §13) conferido** com captura em 1440, 768, 390 e 320 px: a vitrine mostra as 17 cores com a função, a escala tipográfica inteira e os 17 primitivos (os 15 de `D-028`, mais `SegmentedControl`, de `D-051`, e `Popover`, de `D-056`) com variantes e estados visíveis (botão em 5 variantes e 3 tamanhos, mais ícone, carregando e desabilitado; campos com erro e desabilitado; os 5 tons de `Money`; 3 cartões; 2 densidades de tabela; 3 estados vazios; diálogo, cartão, abas, dica e as 4 notificações); **sem rolagem horizontal em nenhum dos 4 tamanhos** (medido) e sem elemento fora da largura; as 8 áreas navegáveis como esqueletos (testes de rota); o app segue a identidade (`design-rules.test.ts`; no mapa §15 não sobra componente do Bloco 0.2 pendente, só o login, que é do restante do Bloco 0.1). O que é estado vivo (hover, ativo, foco, tooltip, cartão e diálogo abertos) se confere interagindo, como a própria vitrine diz.
+  4. **Bloco 0.2 concluído** (etapas (a) a (e), `D-043` a `D-057`). **O Nível 0 do `apps/web` está fechado;** o que resta do Bloco 0.1 (API, banco, login e PWA) segue **fora de escopo até o usuário pedir** (`D-028`).
+  5. **Limite assumido:** o teste de completude garante que cada **arquivo** de `components/ui` aparece na vitrine, não que cada **variante** apareça; isso é conferência visual (item 3). Vale revisar se um primitivo ganhar variante nova.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§2 acesso e vitrine, §12, §13 etapa 5 e critério, que dizia 7 áreas e agora diz 8); `roadmap.md` (Bloco 0.2); `AGENTS.md` §1 e "Como Retomar".
+- **Razão:** a vitrine é ferramenta de quem desenvolve; deixá-la só em desenvolvimento, sem rota na versão publicada, fecha uma exposição que ninguém decidiu, não pesa no pacote do casal e dispensa manter dois estados da página. O critério do Bloco 0.2 foi conferido por medida e captura, não por inspeção do código.
+- **O que ficou rejeitado:**
+  - Manter a rota aberta por URL, sem link (como estava): exposição não decidida de uma ferramenta de desenvolvimento.
+  - Vitrine visível com link no menu: muda a navegação aprovada (`D-025`, `D-050`) e mostra ao casal uma ferramenta que não é para ele.
+  - Esconder só o link e manter o *chunk* no pacote: peso morto na versão publicada.
+  - Um teste que exige cada variante na vitrine: custo de manutenção alto para um app de duas pessoas; a conferência visual por tamanho cobre.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` sobre o Nível 0 (teclado, zoom de 200%, VoiceOver e "reduzir movimento": casca, primitivos, ícone e cartão do Assistente e a vitrine), que o jsdom não prova; e a revisão do texto do cabeçalho da vitrine. **Em aberto para decisão do usuário:** abrir o release `develop → main` do Bloco 0.2 (`altare-git-fluxo`, regra 4), que depende do esquema de versionamento ainda não confirmado.
+
+---
+
+## D-058 — Vitrine `/design-system`: Catálogo da Identidade (Arranjos, Arco, Ramo, Ícones, Favicon e Ícone do App, Dossiê) e Índice em Duas Partes
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (pós-Bloco 0.2)
+- **Pedido do usuário:** o guia (`altare-identidade-visual.pdf`) tem seções que a vitrine não mostrava: "Quatro arranjos, nenhum lado a lado", "O arco de volta perfeita", "O ramo de oliveira", "Ícones com significado fixo", "Favicon e ícone do app" e "Dossiê do Dia D". Pediu-as **em formato de catálogo**, não de apresentação. (O pedido dizia 3 seções, mas listava 6; as 6 foram feitas.)
+- **Conferência com o guia (`AGENTS.md` §1, item 4):** páginas 12, 30, 31, 33, 36 e 42, abertas em PNG, e as medidas e os textos lidos em `build/componentes.py` (`build_lockups` `:226`, `build_arco` `:555`, `build_ramo` `:577`, `build_iconografia` `:643-661`, `build_favicon_app` `:784-819`, `build_dossie` `:1055-1103`). Capturas do app em 1440, 768, 390 e 320 px comparadas com as páginas: sem rolagem horizontal, sem imagem quebrada, âncora do índice a 96 px do topo (abaixo da barra de 72 px).
+- **Decisão:**
+  1. **Seis seções novas** em `src/app/identity-showcase.tsx`, todas com os **ativos reais** de `public/brand` (nada redesenhado) e os valores do `tokens.json` (traço de 1,25 px, opacidade de 70%, raio do favicon de 22%, versal de 43% e de 40%, nome e valor do Musgo e da Amêndoa Forte), e cada uma citando a página do guia de origem: **Arranjos da marca** (os 4 arranjos, uso e arquivo, e o aviso de que não existe lockup horizontal), **Arco** (simples, duplo e arcada, com proporção, traço, cor e leitura), **Ramo de oliveira** (grande, pequeno e faixa, com desenho, traço, cor e limite), **Ícones com significado fixo** (os 12 ícones do mapa de `identity.md` §7, com a cor semântica e o nome no Lucide, e os tamanhos de 16, 20 e 24 px), **Favicon e ícone do app** (aba clara, favicon em 16, 32, 48, 64 e 96 px, e o ícone do app como entregue e como o sistema o exibe) e **Dossiê do Dia D**.
+  2. **Dossiê: peças reais e as 6 regras de impressão, sem montar o documento** (escolha do usuário, com recomendação do agente): assinatura formal, *hairline*, rótulo e arcada, mais as 6 regras da pág. 42 e o aviso de que **o documento nasce no Bloco 4.2** (`F-DOS`). Não há folha A4 nem campos "[a definir]": seria antecipar componente de domínio (`D-028`).
+  3. **Mesma página, com índice em duas partes** (escolha do usuário, com recomendação do agente): "Identidade" (Cores, Tipografia e as 6 novas) e "Componentes" (as 8 de antes), com um `nav` "Índice da vitrine" no topo (`showcase-index.tsx`). Um teste exige que o índice liste toda seção da página, na ordem, e que cada link leve ao título certo. Uma regra de CSS (`scroll-margin-top`) impede o título de parar sob a barra superior fixa.
+  4. **Desvios do guia, registrados:** (a) a **aba escura** da pág. 36 fica de fora, porque o tema escuro está adiado (`D-028`) e a regra de só usar token proíbe cor solta; (b) o **celular com a grade de apps** da pág. 36 vira o par "como entregue" e "como o sistema exibe", que mostra a mesma regra (quadrado cheio, o sistema arredonda) sem fundo de cor solta; (c) os **nomes de arquivo** saem em `ink-muted`, não em `ink-subtle` como no desenho, porque `ink-subtle` só é aprovado sobre Marfim (`identity.md` §3.4); (d) os **títulos** são nomes de catálogo ("Arco", não "O arco de volta perfeita"), com a página do guia no subtítulo; (e) as **seis versões de cor** da marca (pág. 14) não entram: não foram pedidas.
+  5. **Teste:** `identity-showcase.test.tsx` cobre cada seção (nomes, arquivos, ícones, tamanhos e percentuais), que todo ativo de marca mostrado existe em `public/brand` e que toda imagem tem texto alternativo. O teste de regras de design (`D-055`) acusou um falso positivo (um campo `color:` numa lista de dados, que não é `style`); o campo foi renomeado para `tone` em vez de afrouxar a regra.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§2 vitrine, §12, §15 com a linha do catálogo); `AGENTS.md` §1; `roadmap.md` (Bloco 0.2).
+- **Razão:** o catálogo é o lugar onde quem constrói confere os ativos e as regras da identidade sem abrir um PDF de 25 MB; usar os ativos e os valores reais evita uma segunda versão deles.
+- **O que ficou rejeitado:**
+  - Montar a folha A4 do Dossiê com campos "[a definir]": antecipa o Bloco 4.2.
+  - Copiar a página do Dossiê do guia como imagem: exigiria copiar mais um arquivo gerado (~290 KB) e estender o `make brand` por uma figura de referência.
+  - Rota separada `/design-system/marca`: outra rota só de desenvolvimento e mais um caso de teste de produção.
+  - Reproduzir a aba escura com cor solta: quebra a regra de só token (`D-055`) por um tema que não existe ainda.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na vitrine (a navegação por âncoras do índice, o foco e o zoom de 200%) e a revisão dos textos do catálogo, que são do guia, com os subtítulos de origem propostos pelo agente.

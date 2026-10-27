@@ -24,7 +24,7 @@ A interface combina a **atmosfera de um caderno/revista autoral de casamento con
 
 1. **Calma Visual em Dados Densos:** Orçamentos em paralelo e comparativos de 3 a 5 fornecedores exibem muitos números. A interface usa espaçamento generoso, caixas de resumo em tom areia (`#F5EFE2`) e alinhamento tabular rigoroso, abrindo detalhes extensos (como leitura de PDFs e histórico completo) em painéis laterais ou gavetas.
 2. **Consenso e Divergência sem Ansiedade:** Nas comparações entre `Noivo` e `Noiva`, o acordo visual (*"Consenso Favorito"*) aparece em verde-oliva/sálvia suave (`#E4ECE4` com texto `#2B422E`), enquanto divergências (*"Conversar juntos"*) ou alertas de custo extra aparecem em terracota suave (`#F6E6E0` com texto `#8A3C27`) — sempre como convite ao diálogo, nunca como "erro vermelho".
-3. **Custo Real Comparável em Primeiro Plano:** O **Custo Total Comparável** (preço base + custos extras obrigatórios) recebe destaque em terracota escuro (`#98442D`), impedindo que um preço de capa artificialmente baixo engane o casal.
+3. **Custo Real Comparável em Primeiro Plano:** O **Custo Total Comparável** (preço base + custos extras obrigatórios) recebe destaque pelo **tamanho e pelo mono** (`ink`, 24 px), enquanto os **custos extras** que o compõem aparecem em terracota escuro (`#98442D`) com ícone e sinal `+`, como na aplicação "Comparar propostas" do guia (págs. 34 e 40, `D-054`), impedindo que um preço de capa artificialmente baixo engane o casal.
 4. **Dupla Postura (Desktop Confortável vs. Mobile Focado — `D-003`):**
    - **No Computador:** Layout multi-colunas para planejar juntos, comparar propostas e cenários de orçamento lado a lado e visualizar dependências do cronograma.
    - **No Celular:** Cartões verticais escaneáveis com alvos de toque amplos (mínimo 44px), priorizando o *Próximo Passo*, o *Custo Comparável* e o atalho direto para abrir conversa no WhatsApp.
@@ -43,12 +43,14 @@ A interface combina a **atmosfera de um caderno/revista autoral de casamento con
 | **Texto Secundário / Apoio** | Musgo Acinzentado | `#5C6158` | Subtítulos, categorias, datas e observações secundárias. |
 | **Cor Primária / Estrutura & Consenso** | Oliva Profundo | `#3A4B3C` | Botões primários, abas ativas, marcos concluídos e orçamento oficial ativo. |
 | **Superfície de Consenso / Sucesso** | Sálvia Suave | `#E4ECE4` (texto `#2B422E`) | Selo *"Consenso Favorito"*, itens dentro do teto do orçamento e parcelas quitadas. |
-| **Cor de Destaque / Custo Real & Atenção** | Terracota | `#B5563C` / `#98442D` | Valor do Custo Total Comparável, alertas de custos extras, divergências para conversar e próximos passos urgentes. |
+| **Cor de Destaque / Custo Real & Atenção** | Terracota | `#B5563C` / `#98442D` | Custos extras do Custo Total Comparável, alertas de custo, divergências para conversar e próximos passos urgentes. |
 | **Superfície de Atenção / Divergência** | Argila Clara | `#F6E6E0` (texto `#8A3C27`) | Selos de atenção (*"1 extra pendente"*, *"Avaliações divergentes"*, *"Acima do teto"*). |
 
 ---
 
 ## 4. Tipografia e Hierarquia (`D-015` + `D-016`)
+
+> **Fontes definitivas (`D-025`):** Newsreader, Plus Jakarta Sans e JetBrains Mono. As demais citadas abaixo são as referências originais de `D-015`/`D-016` e não são mais candidatas.
 
 1. **Família Editorial (`Serif`) — Títulos e Protagonistas:**
    - *Referências de fonte:* `Instrument Serif`, `Newsreader`, `Playfair Display` ou `Lora` (com fallback `Georgia, serif`).
