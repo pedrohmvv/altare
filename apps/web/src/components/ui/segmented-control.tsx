@@ -41,8 +41,9 @@ export function SegmentedControl({
         setInner(next)
         onValueChange?.(next)
       }}
+      // Como no seletor de lente do guia: trilho afundado e a opção ativa em marfim, com hairline.
       className={cn(
-        'inline-flex gap-0.5 rounded-control border border-border-strong bg-surface p-0.5',
+        'inline-grid auto-cols-fr grid-flow-col gap-0.5 rounded-thumb bg-surface-sunken p-0.75',
         className,
       )}
       {...props}
@@ -53,10 +54,10 @@ export function SegmentedControl({
           value={option.value}
           disabled={option.disabled}
           className={cn(
-            'inline-flex min-h-9 items-center justify-center rounded-control px-3 whitespace-nowrap',
-            'text-body-sm font-medium text-ink transition-colors duration-fast ease-standard',
-            'pointer-coarse:min-h-11 hover:bg-surface-muted disabled:cursor-default disabled:opacity-40',
-            'data-[state=on]:bg-primary data-[state=on]:text-primary-ink',
+            'inline-flex h-7 items-center justify-center rounded-control border border-transparent px-4',
+            'text-body-sm font-medium whitespace-nowrap text-ink-muted transition-colors duration-fast ease-standard',
+            'pointer-coarse:min-h-11 hover:text-ink disabled:cursor-default disabled:opacity-40',
+            'data-[state=on]:border-border data-[state=on]:bg-surface data-[state=on]:font-semibold data-[state=on]:text-ink',
           )}
         >
           {option.label}
