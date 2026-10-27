@@ -29,6 +29,16 @@ const DESKTOP_BREAKPOINT = '48rem'
 // O Fontsource publica as fontes variáveis como "<Família> Variable".
 const FONTSOURCE_VARIABLE_SUFFIX = ' Variable'
 
+// Reserva de métrica (identity.md §4, guia pág. 29, D-054): enquanto a fonte carrega, uma fonte local de
+// largura parecida assume o lugar com `size-adjust`, para o texto não saltar quando a troca acontece.
+// Medido com fontTools: largura média das letras do português (ponderada pela frequência) de cada fonte
+// contra a local; `ascent` e `descent` da fonte divididos pelo `size-adjust`, como a regra CSS exige.
+const FALLBACK_FACES = {
+  serif: { local: 'Georgia', sizeAdjust: 90.5, ascent: 81.2, descent: 29.3 },
+  sans: { local: 'Arial', sizeAdjust: 106.2, ascent: 97.7, descent: 20.9 },
+  mono: { local: 'Courier New', sizeAdjust: 100, ascent: 102, descent: 30 },
+} as const
+
 const rem = (px: number) => `${px / 16}rem`
 
 function parseMobileSize(mobile: string): { px: number; lh: number } {
@@ -89,7 +99,20 @@ export function buildTokensCss(tokens: Tokens): string {
   if (!primaryInk) throw new Error('apoio.primary-ink ausente no tokens.json')
   const motion = parseMotion(movimento)
   const font = (key: 'serif' | 'sans' | 'mono') =>
-    `  --font-${key}: "${tipografia[key].familia}${FONTSOURCE_VARIABLE_SUFFIX}", "${tipografia[key].familia}", ${tipografia[key].fallback};`
+    `  --font-${key}: "${tipografia[key].familia}${FONTSOURCE_VARIABLE_SUFFIX}", "${tipografia[key].familia}", "${tipografia[key].familia} Fallback", ${tipografia[key].fallback};`
+  const fallbackFaces = (['serif', 'sans', 'mono'] as const).map((key) => {
+    const face = FALLBACK_FACES[key]
+    return [
+      '@font-face {',
+      `  font-family: "${tipografia[key].familia} Fallback";`,
+      `  src: local("${face.local}");`,
+      `  size-adjust: ${face.sizeAdjust}%;`,
+      `  ascent-override: ${face.ascent}%;`,
+      `  descent-override: ${face.descent}%;`,
+      '  line-gap-override: 0%;',
+      '}',
+    ].join('\n')
+  })
 
   const root = [
     ':root, [data-theme="light"] {',
@@ -134,5 +157,5 @@ export function buildTokensCss(tokens: Tokens): string {
   const header =
     '/* Gerado de docs/design/identidade-visual/tokens.json por `pnpm tokens:build`. Não edite. */'
 
-  return `${[header, root, theme, ...tipografia.escala.map(textUtility), reducedMotion].join('\n\n')}\n`
+  return `${[header, root, ...fallbackFaces, theme, ...tipografia.escala.map(textUtility), reducedMotion].join('\n\n')}\n`
 }
