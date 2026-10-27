@@ -1,6 +1,6 @@
 export const copy = {
   eyebrow: 'Assistente',
-  title: 'Assistente',
+  title: 'Conversem com o assistente',
   description: 'Perguntem e peçam mudanças em linguagem natural.',
   empty: {
     title: 'O assistente ainda não está disponível',

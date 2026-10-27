@@ -1,6 +1,6 @@
 export const copy = {
   eyebrow: 'Orçamento',
-  title: 'Orçamento & Simulador',
+  title: 'O orçamento de vocês',
   description: 'O Orçamento Oficial Ativo, cenários em paralelo e o fluxo de pagamentos.',
   empty: {
     title: 'Ainda sem orçamento',

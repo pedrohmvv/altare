@@ -41,7 +41,7 @@ describe('casca de navegação', () => {
 
   it('marca a área atual com aria-current="page"', async () => {
     await renderRoute('/orcamento')
-    await screen.findByRole('heading', { level: 1, name: 'Orçamento & Simulador' })
+    await screen.findByRole('heading', { level: 1, name: 'O orçamento de vocês' })
 
     expect(within(sidebar()).getByRole('link', { name: 'Orçamento & Simulador' })).toHaveAttribute(
       'aria-current',
@@ -54,14 +54,14 @@ describe('casca de navegação', () => {
 
   it('troca de área ao clicar e mantém só a nova como atual', async () => {
     await renderRoute('/')
-    await screen.findByRole('heading', { level: 1, name: 'Visão Geral' })
+    await screen.findByRole('heading', { level: 1, name: 'O momento de vocês' })
 
     await userEvent.click(
       within(sidebar()).getByRole('link', { name: 'Cronograma & Dependências' }),
     )
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Cronograma & Dependências' }),
+      await screen.findByRole('heading', { level: 1, name: 'O que pode andar agora' }),
     ).toBeVisible()
     expect(
       within(sidebar()).getByRole('link', { name: 'Cronograma & Dependências' }),
@@ -133,7 +133,7 @@ describe('seletor de lente', () => {
 
     await userEvent.click(within(sidebar()).getByRole('link', { name: 'Contatos & Fornecedores' }))
 
-    await screen.findByRole('heading', { level: 1, name: 'Contatos & Fornecedores' })
+    await screen.findByRole('heading', { level: 1, name: 'Quem vocês estão consultando' })
     expect(router.state.location.search).toMatchObject({ lente: 'minha' })
     expect(screen.getByRole('radio', { name: 'Minha visão' })).toBeChecked()
   })
@@ -201,7 +201,9 @@ describe('barra inferior do celular', () => {
 
     await userEvent.click(within(dialog).getByRole('link', { name: 'Assistente' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Assistente' })).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Conversem com o assistente' }),
+    ).toBeVisible()
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
