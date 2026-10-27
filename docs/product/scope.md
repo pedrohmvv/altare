@@ -1,6 +1,6 @@
 # Escopo por Território (`scope.md`)
 
-> **Status:** Aprovado na Fase 2 (Conceito) em 2026-10-24 (incluindo decisões `D-001` a `D-011`).
+> **Status:** Aprovado na Fase 2 (Conceito) em 2026-10-24 (incluindo decisões `D-001` a `D-011`). **Em revisão por área** (`D-029`): o detalhamento por feature está em `docs/product/features/`, e ele prevalece sobre este documento onde houver diferença.
 
 Este documento detalha cada território do produto em quatro dimensões: **o trabalho real do casal**, **o que entra na primeira versão (v1 — Agora)**, **o que entra depois (Backlog de Futuro: v1.1+)** e **o que fica explicitamente de fora**. Nenhuma funcionalidade mapeada para o futuro deve ser perdida.
 
@@ -17,6 +17,12 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
     - `Em discussão` $\rightarrow$ quando Noivo e Noiva ainda têm opiniões diferentes.
     - `Fica de fora` $\rightarrow$ fica arquivado com o motivo do descarte, sem poluir o planejamento ativo.
   - **Visão de Alinhamento do Casal:** cada perfil (`Noivo` e `Noiva`) pode marcar sua prioridade individual por categoria antes de baterem o martelo juntos.
+  - **Revisado em `D-029`** (detalhamento em `docs/product/features/planejamento-e-caminhos.md`):
+    - **Tipo de cerimônia** (religiosa, civil, simbólica ou mais de uma) como campo das Definições Base, nunca presumido (`D-026`).
+    - **Estimativa inicial de valor** por categoria no Mapa de Escopo, lida depois pelo Orçamento (coluna *Estimado*).
+    - **Nota livre** por categoria e por perfil.
+    - **Referências por categoria** (links e imagens de inspiração), sem leitura automática de páginas.
+    - Prioridade individual em três níveis (`Quero muito`, `Se couber`, `Dispenso`). Qualquer um dos dois pode mudar o status conjunto, com histórico de autoria.
 - **Entra depois (v1.1+ — Futuro):**
   - **Entrevistas Guiadas por IA para Rascunho Inicial (`D-010`):** conversa estruturada conduzida por IA (individualmente com Noivo e Noiva ou em conjunto) sobre o perfil, gostos, referências, prioridades e limites do casal. Ao final, a IA gera uma **proposta completa de rascunho do casamento** (sugestão de formato/caminhos macro, classificação inicial de categorias que entram/ficam de fora e distribuição percentual sugerida do orçamento) para revisão e confirmação do casal.
 - **Fica de fora:**
@@ -37,6 +43,7 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
   - **Dependências explícitas (Bloqueios):** indicação clara de quais decisões travam outras (ex.: *"Fechar Decoração"* depende de *"Fechar Espaço"*), separando visualmente o que está **Destravado (Pronto para agir)** do que está **Bloqueado**.
   - **Modo Sem Data vs. Modo Com Data:** funciona por sequência lógica enquanto a data exata do casamento ainda está em aberto e recalcula janelas/prazos automaticamente assim que a data oficial é definida.
   - **Atribuição de Responsável:** `Noivo`, `Noiva` ou `Ambos`.
+  - **Revisado em `D-031`** (detalhamento em `docs/product/features/cronograma.md`): **catálogo inicial de 29 marcos** editável, ligado ao Mapa de Escopo; edição total de marcos, fases e dependências; **janelas sugeridas** relativas à data (editáveis); **tarefas avulsas**, **checklist**, **anexos e links** e **calendário mensal**.
 - **Entra depois (v1.1+ — Futuro):**
   - Sincronização com agendas externas (Google Calendar / Apple Calendar).
   - **Notificações personalizadas por IA (`D-008`):** avisos inteligentes adaptados ao momento do cronograma e às pendências individuais do Noivo e da Noiva.
@@ -59,7 +66,9 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
     3. **Contratado:** valor real fechado (preço base + adicionais/taxas da possibilidade escolhida).
     4. **Realizado (Pago):** soma das parcelas já pagas vs. saldo pendente a pagar.
   - **Cronograma de Pagamentos (Parcelas / Fluxo de Desembolso):** registro de cada pagamento de contrato fechado (data de vencimento, valor, meio de pagamento como PIX/boleto/cartão, status `Pendente`/`Pago`, comprovante e quem pagou: `Noivo`, `Noiva` ou `Conta Conjunta`).
+  - **Revisado em `D-036`** (detalhamento em `docs/product/features/contratos-e-parcelas.md`): contrato **por decisão ou direto**; Contratado conta desde a criação do contrato; parcelas com **valor pago editável**, vencimento "no dia do evento", **assistente de plano de pagamento**, Fluxo de Pagamentos com exportação em Excel/CSV e indicador **"A pagar"**.
   - **Cálculo variável por convidado:** categorias com custo *per capita* (ex.: buffet, bar, convites/lembrancinhas) calculam automaticamente com base na contagem da lista de convidados (ou da premissa do cenário simulado).
+  - **Revisado em `D-032`** (detalhamento em `docs/product/features/orcamento-e-simulador.md`): **base de convidados escolhida por cenário** com arredondamento para cima; **fator da criança pagante** por linha; linhas **derivadas do Mapa de Escopo**; Contratado e Realizado como fatos do casamento, exibidos só no cenário ativo; **reserva para imprevistos**, **indicador de uso do teto** e **exportação em Excel/CSV**.
 - **Entra depois (v1.1+ — Futuro):**
   - Alertas proativos e notificações personalizadas de vencimento de parcelas e desvios de orçamento.
   - Projeção de fluxo de caixa mensal comparada à capacidade de poupança mensal do casal.
@@ -81,6 +90,7 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
   - Captura rápida via encaminhamento de mensagem/contato do WhatsApp ou atalho mobile.
 - **Fica de fora:**
   - Integração direta com a API do WhatsApp para ler conversas privadas automaticamente em tempo real.
+  - **Revisado em `D-034`** (detalhamento em `docs/product/features/contatos.md`): dois tipos (**Fornecedor** e **Pessoa**); funil de 6 estados confirmado, com transição livre e motivo de descarte opcional; **visitas agendadas com data e hora** no calendário; **aviso de duplicidade**; **busca global do app**.
 
 ---
 
@@ -94,6 +104,8 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
   - **Normalizador de Custo Comparável:** soma **Preço Base da Proposta** + **Custos Extras/Ocultos Necessários** (ex.: gerador, ECAD, taxa de rolha, horas extras, deslocamento, mobiliário complementar) = **Custo Total Real Comparável**.
   - **Visão de Comparação Lado a Lado:** tabela comparativa mostrando preço base, custos extras, custo total comparável, condições de pagamento (à vista vs. parcelado), itens inclusos, itens não inclusos e PDFs originais.
   - **Avaliação Dupla (`Noivo` & `Noiva`):** nota/favorito e comentário individual de cada perfil em cada possibilidade, evidenciando convergências e divergências.
+  - **Revisado em `D-033`** (detalhamento em `docs/product/features/possibilidades-e-decisoes.md`): custo do Caminho Macro **derivado do cenário vinculado**; **selo de consenso** derivado (nota só informa); decisão macro com **efeitos sugeridos e confirmados** (Definições Base, orçamento e cronograma); decisão **reversível**; referências no caminho.
+  - **Revisado em `D-035`** (detalhamento em `docs/product/features/propostas-por-categoria.md`): preço base **por pessoa ou total**; **Custo Total Real Comparável** derivado (extras `Necessário`/`Opcional`, fixos ou por pessoa); pagamento em texto livre; quadro de 2 a 5 propostas **sem destacar a melhor**; **uma decisão por categoria**; Contratado derivado; o Estimado **não** é alimentado por propostas (só faixa de referência).
   - **Registro de Decisão:** ao bater o martelo, uma possibilidade vira `Escolhida / Contratada` (atualizando as Definições Base ou o Orçamento + Dossiê do Dia D) e as demais viram `Descartadas`, com registro obrigatório do **Motivo da escolha / Motivo do descarte**.
 - **Entra depois (v1.1+ — Futuro):**
   - Preenchimento assistido por IA da tabela comparativa a partir da leitura de múltiplos PDFs/textos (com revisão humana).
@@ -109,10 +121,12 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
   - **Lista Nominal de Convidados:**
     - Cadastro agrupado por **Núcleo/Família** (ex.: *"Família Tio João"*), lado (`Noivo`, `Noiva`, `Comum`), faixa (`Adulto`, `Criança pagante`, `Criança isenta`), grau de prioridade/probabilidade (`Essencial / Certeza`, `Provável`, `Lista de espera / Fase 2`) e status do convite (`Rascunho`, `Convidado`, `Confirmado`, `Não irá`).
     - **Painel de Contagem Automática:** exibe *Total Nominal*, *Estimado Ponderado* e *Confirmados*, alimentando diretamente os cálculos por pessoa no Orçamento.
+  - **Revisado em `D-030`** (detalhamento em `docs/product/features/convidados-enxoval-e-dia-d.md`): estimado ponderado por **pesos editáveis** (vazios até o casal definir); restrição alimentar, contatos, **acompanhante (+1)** e idade da criança por convidado; endereço postal por núcleo; **convite enviado por núcleo** (data e canal); motivo opcional em `Não irá`; **exportação em Excel, com CSV como opção**. Importação de planilha segue em v1.1+.
   - **Gestão de Enxoval & Lista de Presentes com Exportação (`D-006`):**
     - Cadastro de itens da casa nova e cotas: cômodo/categoria (Cozinha, Quarto, Sala, Eletros, Cotas Lua de Mel, etc.), nome do item, prioridade, valor estimado, link/loja de referência, destino (`Para pedir na lista de presentes` vs. `Comprar nós mesmos`) e status (`Precisamos`, `Na lista de presentes`, `Já ganhamos`, `Já compramos`), além de campo para anotar **quem presenteou**.
     - **Exportação e Formatação:** exportar a seleção de presentes em planilha/CSV (para importar/cadastrar rapidamente em site externo de presentes) ou gerar visão/texto formatado para enviar diretamente aos convidados.
 - **Entra depois (v1.1+ — Futuro):**
+  - **Revisado em `D-037`** (detalhamento na parte Enxoval de `docs/product/features/convidados-enxoval-e-dia-d.md`): itens **por unidade e cotas em dinheiro**, com **quantidade e recebimentos** (status e totais derivados), enxoval **separado do Orçamento**, exportação em Excel/CSV e **lista formatada em texto** para os convidados.
   - Organização de mesas/grupos de assento para a recepção.
   - Importação em lote de listas antigas e apoio de IA para redigir mensagens personalizadas de agradecimento para quem deu presente.
 - **Fica de fora:**
@@ -125,6 +139,7 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
 - **Trabalho do casal:** Como não há assessoria durante o planejamento, entregar ao(à) cerimonialista do dia uma visão consolidada, sem precisar montar um documento do zero na véspera do casamento.
 - **Entra na v1 (Agora):**
   - **Visão e Exportação "Dossiê do Dia D":** consolida automaticamente todos os fornecedores com status `Contratado`, contatos dos responsáveis no dia, resumo do escopo contratado, links para os contratos/PDFs, saldos a pagar no dia do evento, resumo quantitativo de convidados (adultos, crianças, restrições) e observações operacionais críticas registradas durante o planejamento.
+- **Revisado em `D-038`** (detalhamento na parte Dossiê de `docs/product/features/convidados-enxoval-e-dia-d.md`): **Local do evento** e **horários-chave** (lista curta), **checklist de itens físicos**, **versões entregues** com "o que mudou", impressão pelo navegador e valor dos contratos desligado por padrão.
 - **Entra depois (v1.1+ — Futuro):**
   - Roteiro minuto a minuto do Dia D (timeline de montagem, cerimônia e festa) e acesso de leitura/colaboração pontual para o(a) cerimonialista do dia.
 - **Fica de fora:**
