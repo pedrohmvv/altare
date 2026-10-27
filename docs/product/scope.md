@@ -164,6 +164,8 @@ Este documento detalha cada território do produto em quatro dimensões: **o tra
    - Analisa o casamento de ponta a ponta em busca de inconsistências, riscos ou pontas soltas (ex.: *"O espaço escolhido comporta até 150 pessoas, mas a lista nominal atual soma 172 convidados (148 prováveis)"*; *"Vocês fecharam fotografia e vídeo, mas não há previsão de alimentação de staff no orçamento do buffet"*; *"As parcelas de novembro somam mais que a média mensal planejada"*).
 5. **Notificações e Resumos Personalizados (`D-008` + `D-013`) *[Somente-leitura / Proativa]*:**
    - Envia resumos semanais ou alertas personalizados para o perfil do **Noivo** e da **Noiva** — via **Painel In-App, Notificações Push (celular/web) e WhatsApp** — com base nas responsabilidades de cada um, próximos passos vencendo com fornecedores, divergências de avaliação que precisam de conversa no fim de semana, parcelas próximas do vencimento e marcos recém-destravados no cronograma.
+6. **Assistente Conversacional (`D-042`) *[Leitura livre; escrita com confirmação]*:**
+   - Permite consultar e propor mudanças por linguagem natural em **três canais** sobre o mesmo núcleo: módulo de chat, ícone flutuante nas demais áreas e WhatsApp (conversa entre o casal e o Altare, nunca com fornecedores). Toda alteração vira rascunho com confirmação (`D-008`).
 
 ---
 

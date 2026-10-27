@@ -152,4 +152,9 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
 - **O que é construído:**
   - **Revisor Geral do Planejamento:** auditoria completa e não-destrutiva do casamento (cruzando capacidade de espaço vs. lista de convidados, categorias essenciais sem cotação, desvios de orçamento e lacunas operacionais nos contratos para o Dia D).
   - **Motor de Notificações Personalizadas (`D-013`):** envio de lembretes, resumos e alertas direcionados individualmente ao `Noivo` e à `Noiva` via **Painel In-App**, **Notificações Push (Mobile/PWA)** e **WhatsApp**.
+### Bloco 5.3 — Assistente Conversacional (`D-042`)
+- **O que é construído:**
+  - **Servidor de *tools* do Altare:** cada *tool* chama um caso de uso da camada de aplicação, com a mesma autorização da API; escritas só por `ChangeProposal` (`D-008`).
+  - **Três canais finos sobre o mesmo núcleo:** módulo de chat, ícone flutuante no canto inferior direito das demais áreas e WhatsApp (número vinculado a um dos dois usuários).
+  - **Schema legível por agente:** descrições em tabelas e colunas, *views* de leitura e busca aproximada. Pendências em `OQ-IA-001`.
 - **Critério de conclusão do Nível 5:** O produto passa a contar com um "assessor inteligente" completo que elimina digitação braçal de propostas e audita proativamente o planejamento do casal.

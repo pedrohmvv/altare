@@ -202,7 +202,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 | PDF do Dossiê do Dia D | Bloco 4.2 | CSS de impressão (zero dependência) vs. WeasyPrint no backend |
 | Jobs agendados (lembretes, parcelas) | Bloco 5.2 | APScheduler in-process → fila (ARQ/Celery) só se necessário |
 | Web Push | Bloco 5.2 | `pywebpush` + service worker do PWA |
-| WhatsApp (envio) | Bloco 5.2 | API oficial do WhatsApp Business (exige conta e aprovação; custo a levantar) |
+| WhatsApp (envio de notificações no Bloco 5.2 e canal de entrada do assistente no Bloco 5.3, `D-042`) | Blocos 5.2 e 5.3 | API oficial do WhatsApp Business (exige conta e aprovação; custo a levantar); o *webhook* de entrada exige o app na nuvem |
 | Camada de IA (extração, entrevista, revisor) | Bloco 5.1 | Provedor de LLM e biblioteca (saída estruturada com Pydantic); toda mutação via rascunho (`D-008`) |
 | Observabilidade / erros | Antes do deploy | Sentry (plano gratuito) |
 | Passkeys/WebAuthn | Após deploy | Evolução do login próprio |
