@@ -11,7 +11,7 @@ dev:
 	$(MAKE) -j2 dev-api dev-web
 
 dev-api:
-	cd $(API) && uv run uvicorn wedding.main:app --reload --host 127.0.0.1 --port 8000
+	cd $(API) && SESSION_COOKIE_SECURE=false uv run uvicorn wedding.main:app --reload --host 127.0.0.1 --port 8000
 
 dev-web:
 	pnpm dev

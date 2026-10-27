@@ -1,11 +1,25 @@
 import copy
 from datetime import datetime, timedelta
+from types import SimpleNamespace, TracebackType
 from uuid import UUID
 
 import pytest
+from fastapi.testclient import TestClient
 
+from wedding.modules.identity.application.commands.create_user import CreateUser, CreateUserCommand
+from wedding.modules.identity.application.commands.login import Login
+from wedding.modules.identity.application.commands.logout import Logout
+from wedding.modules.identity.application.commands.set_password import SetPassword
+from wedding.modules.identity.application.queries.current_user import GetCurrentUser
+from wedding.modules.identity.application.queries.resolve_session import ResolveSession
+from wedding.modules.identity.application.use_cases import IdentityUseCases
 from wedding.modules.identity.domain.entities import User, UserSession
 from wedding.modules.identity.domain.value_objects import hash_token
+from wedding.platform.bootstrap.app import build_app
+from wedding.platform.bootstrap.tables import load_tables
+from wedding.platform.config import Settings
+from wedding.platform.db.engine import create_db_engine
+from wedding.platform.db.metadata import metadata
 from wedding.shared_kernel.actor import Actor
 from wedding.shared_kernel.profile import ProfileKind
 
@@ -71,7 +85,12 @@ class _UnitOfWork:
     def __enter__(self) -> "_UnitOfWork":
         return self
 
-    def __exit__(self, *_: object) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         return None
 
     def commit(self) -> None:
@@ -143,6 +162,16 @@ class World:
     def uow_factory(self) -> _UnitOfWork:
         return _UnitOfWork(self.store)
 
+    def use_cases(self) -> IdentityUseCases:
+        return IdentityUseCases(
+            login=Login(self.uow_factory, self.hasher, self.attempts, self.clock, self.ids),
+            logout=Logout(self.uow_factory),
+            current_user=GetCurrentUser(self.uow_factory),
+            resolve_session=ResolveSession(self.uow_factory, self.clock),
+            create_user=CreateUser(self.uow_factory, self.hasher, self.ids),
+            set_password=SetPassword(self.uow_factory, self.hasher),
+        )
+
     def add_user(
         self, username: str = "exemplo.noivo", profile: ProfileKind = ProfileKind.NOIVO
     ) -> User:
@@ -177,3 +206,29 @@ class World:
 @pytest.fixture
 def world(clock) -> World:
     return World(clock)
+
+
+CSRF = {"X-Altare-CSRF": "1"}
+
+
+@pytest.fixture
+def api(tmp_path, world):
+    """O app inteiro contra um SQLite temporário, com o relógio e o hasher falsos do `world`."""
+    load_tables()
+    settings = Settings(database_url=f"sqlite:///{tmp_path / 'api.db'}", session_cookie_secure=True)
+    engine = create_db_engine(settings.database_url)
+    metadata.create_all(engine)
+    engine.dispose()
+    app = build_app(settings, clock=world.clock, hasher=world.hasher)
+    client = TestClient(app, base_url="https://testserver", headers=CSRF)
+    return SimpleNamespace(
+        app=app,
+        client=client,
+        world=world,
+        settings=settings,
+        criar_usuario=lambda username="exemplo.noivo", profile=ProfileKind.NOIVO: (
+            app.state.identity.use_cases().create_user.execute(
+                CreateUserCommand(username, profile, world.password)
+            )
+        ),
+    )
