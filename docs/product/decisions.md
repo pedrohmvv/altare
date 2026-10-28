@@ -1305,3 +1305,42 @@
   | `openapi-react-query` | mais de duas features com consulta |
 - **Riscos conhecidos:** o `env.py` usa o engine com `foreign_keys` ligado, e migração em *batch* no SQLite costuma exigir desligá-lo (a `0002` só cria tabelas; trata-se na primeira migração com `ALTER`); `/api/v1/docs` fica aberto sem autenticação, inclusive em produção (decide-se no deploy); os textos de erro do login e de `platform/http/messages.py` são propostas do agente.
 - **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na tela de entrada e no bloco de sessão (teclado, zoom de 200%, VoiceOver e "reduzir movimento"; a conferência visual por captura contra as págs. 37 e 38 foi feita, em 1440, 768, 390 e 320 px); revisar os textos propostos; exigir o check `CI` na proteção de `develop` e `main` (`D-041`, item 6); `pre-commit install` neste clone.
+
+---
+
+## D-063 — Arquivos: módulo `files`, `LocalFileStorage` e as rotas de envio e leitura (Bloco 0.1, PR 3)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 3 de 4)
+- **Pedido do usuário:** seguir o plano da `D-059` com o módulo `files`, que nenhuma tela do Nível 0 usa mas que os blocos de cronograma, contatos, propostas e contratos vão precisar para anexos.
+- **Escolhido pelo usuário (2026-10-27):**
+  1. **Tamanho máximo:** 20 MB.
+  2. **Tipos aceitos:** PDF, JPG, PNG e WebP, exatamente o que as specs de feature listam (HEIC fica de fora).
+  3. **Arquivo repetido (mesmo SHA-256):** o conteúdo fica **uma vez** em disco, e cada envio tem o seu registro, com o nome original e quem enviou; excluir um anexo não apaga o arquivo dos outros.
+  4. **Download:** abre no navegador, com `X-Content-Type-Options: nosniff`.
+- **Decisão:**
+  1. **`LocalFileStorage` (`platform/storage`):** endereçado pelo conteúdo, com o SHA-256 como nome em duas pastas (`ab/ab12…`), de modo que o nome enviado **nunca vira caminho**; recusa qualquer chave que não seja um SHA-256 em minúsculas (fecha o *path traversal*); grava num temporário da mesma pasta e troca de nome, então ninguém lê um arquivo pela metade e uma falha não deixa resto; gravar o mesmo conteúdo de novo não faz nada; só o dono do computador lê (`0600`). A pasta vem de `FILES_DIR` (padrão `data/files`; o `make dev-api` a deixa absoluta).
+  2. **Domínio:** o tipo vem da **assinatura real** do começo do arquivo, nunca da extensão nem do tipo informado (um HTML renomeado para `.pdf` continua HTML); o tamanho é conferido antes do tipo; arquivo vazio tem erro próprio; o nome é saneado para só o nome final, sem pasta, sem caractere de controle e sem ponto no começo (os controles saem antes da normalização, o que mantém o saneamento idempotente), e só serve para exibir e sugerir no download.
+  3. **Casos de uso:** `UploadFile` grava o conteúdo no storage **antes** do registro: se o banco falhar depois, sobra um arquivo órfão, inofensivo e reaproveitado num novo envio, o que é melhor que um registro sem arquivo. `GetFile` trata como não encontrado tanto o registro ausente quanto o que perdeu o conteúdo em disco. A UnitOfWork chega como fábrica que recebe o ator, porque é ele que vai para o histórico.
+  4. **Banco:** `file_assets` com o histórico completo (`D-061`), `CHECK` que só admite os quatro tipos e outro que barra tamanho não positivo, e índice **não único** no `sha256` (cada envio tem o seu registro). Migração `0003` escrita à mão. O vínculo a contatos, propostas, contratos e parcelas (`ATTACHMENT`) **não** entra aqui: nasce no bloco que anexa.
+  5. **HTTP:** `POST /api/v1/files` (multipart, `upload_file`, 201) e `GET /api/v1/files/{file_id}` (`download_file`), ambos só com sessão, e o envio exige o header de CSRF. O envio lê no máximo 20 MB mais um byte, o que basta para recusar sem carregar o excedente. O download devolve em pedaços, com o tipo da assinatura validada, `Content-Length`, `Cache-Control: private, no-store` e o nome sugerido em RFC 5987 (acento seguro e sem aspas ou barras escapando do cabeçalho). O casal lê os arquivos um do outro; o que a sessão garante é que ninguém de fora os leia.
+  6. **Composição:** `Database` compartilhado no `bootstrap` (engine único, aberto sob demanda) para os módulos `identity` e `files`; `FilesContainer` monta os casos de uso só quando alguém os pede.
+  7. **Contrato:** `openapi.json` e `schema.d.ts` regenerados no mesmo commit da rota; os quatro tipos binários aparecem como respostas do download, e `FileKind` é um enum fechado.
+- **Ajustes em arquivos aprovados:** `stack.md` §3 (arquivos e validação de upload); `architecture.md` §12 (`FileAsset` por envio; `ATTACHMENT` adiado); `AGENTS.md` §1; `roadmap.md`; skills `altare-seguranca-privacidade` e `altare-devops`.
+- **Razão:** o produto vai guardar propostas, contratos e comprovantes do casal, que são dado sensível e entrada hostil em potencial. Fechar a assinatura, o limite, o nome e o caminho antes de qualquer tela evita descobrir isso depois, com anexos reais.
+- **O que ficou rejeitado:**
+  - Confiar na extensão ou no tipo informado pelo cliente: é o que um arquivo disfarçado explora.
+  - Reusar o mesmo registro para o mesmo conteúdo: o nome e o autor do primeiro envio passariam a valer para todos os anexos.
+  - Decodificar o `%22` que os navegadores põem no nome do multipart: mexeria em nomes legítimos com `%`; o nome é saneado e só exibido.
+  - `Content-Disposition: attachment` sempre: quebraria o visualizador nativo de PDF e a prévia de imagem das telas.
+  - HEIC e uma biblioteca de conversão: não está nas specs, e o navegador não exibe HEIC.
+  - Um segundo engine só para os arquivos: um banco, uma conexão compartilhada.
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | `ATTACHMENT` (vínculo polimórfico a contatos, propostas, contratos, parcelas) | o primeiro bloco que anexa (cronograma, `F-CRN-08`) |
+  | `S3FileStorage` e `STORAGE_BACKEND` | decisão de deploy (`stack.md` §9) |
+  | Purga administrativa dos arquivos excluídos | o produto ter exclusão de anexo |
+  | Limite de corpo no proxy | decisão de deploy |
+- **Riscos conhecidos:** o Starlette processa o *multipart* antes da rota, então o limite de 20 MB protege o disco mas não a memória de um envio muito maior; no uso local com duas pessoas isso é irrelevante, e a defesa real é o limite do proxy no deploy. Um envio que falha depois de gravar o conteúdo deixa um arquivo órfão (inofensivo). A pasta `FILES_DIR` precisa entrar no backup junto do banco (`D-038`, item 4). As mensagens de erro novas (`platform/http/messages.py`) são propostas do agente.
+- **Pendente (do usuário):** revisar os textos das três mensagens novas; a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.

@@ -67,6 +67,16 @@ def test_a_migracao_de_identidade_cria_e_remove_as_tabelas(tmp_path):
     assert {"users", "user_sessions"}.isdisjoint(_estado(url)[0])
 
 
+def test_a_migracao_de_arquivos_cria_e_remove_a_tabela(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    assert "file_assets" in _estado(url)[0]
+    command.downgrade(config, "0002")
+    assert "file_assets" not in _estado(url)[0]
+    assert {"users", "user_sessions"} <= _estado(url)[0]
+
+
 def test_banco_migrado_nao_difere_do_modelo(tmp_path):
     load_tables()
     url = f"sqlite:///{tmp_path / 'migracao.db'}"

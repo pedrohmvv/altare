@@ -65,6 +65,7 @@ bom : log.info("whatsapp.recebido", extra={"user_id": uid, "message_id": mid, "c
 - Métricas de uso: o que pode ser medido sem expor dados de casal e de convidados (nada sai do banco para rastreadores de terceiros) é de `altare-analytics-metricas`; a regra de minimização continua desta skill.
 
 ## Em aberto
+- **Limite de corpo no proxy:** o servidor recusa arquivo acima de 20 MB, mas o *multipart* é processado antes da rota; a defesa real contra um envio enorme é o limite do proxy no deploy (`D-063`).
 - **Backup automático e implantação** são requisito de hospedagem ainda não decidido (`D-038`, `stack.md` §9): sem backup, o risco de perda de dados do casal fica registrado.
 - Provedor de nuvem, Postgres gerenciado e storage S3-compatível (candidatos em `stack.md` §9) definem onde os dados ficam e o contrato com o operador.
 - Provedor de LLM e conta do WhatsApp Business: quais dados saem e sob que termos (Bloco 5.1 e `OQ-IA-001`).

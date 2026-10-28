@@ -19,3 +19,13 @@ def test_cookie_da_sessao_e_seguro_por_padrao(monkeypatch):
 def test_cookie_seguro_pode_ser_desligado_so_para_o_desenvolvimento_local(monkeypatch):
     monkeypatch.setenv("SESSION_COOKIE_SECURE", "false")
     assert Settings().session_cookie_secure is False
+
+
+def test_arquivos_vao_para_uma_pasta_local_por_padrao(monkeypatch):
+    monkeypatch.delenv("FILES_DIR", raising=False)
+    assert Settings().files_dir == "data/files"
+
+
+def test_a_pasta_dos_arquivos_vem_da_variavel_de_ambiente(monkeypatch):
+    monkeypatch.setenv("FILES_DIR", "/dados/arquivos")
+    assert Settings().files_dir == "/dados/arquivos"

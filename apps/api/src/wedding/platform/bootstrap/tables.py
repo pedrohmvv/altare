@@ -1,7 +1,10 @@
 from importlib import import_module
 
 # Cada módulo com tabelas entra aqui ao nascer.
-_TABLE_MODULES = ("wedding.modules.identity.infrastructure.tables",)
+_TABLE_MODULES = (
+    "wedding.modules.identity.infrastructure.tables",
+    "wedding.modules.files.infrastructure.tables",
+)
 
 
 def load_tables() -> None:
