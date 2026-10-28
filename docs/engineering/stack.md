@@ -128,11 +128,11 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Formatação monetária | `Intl.NumberFormat('pt-BR')` sobre centavos inteiros | Sem aritmética de float | — |
 | Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016`; **aprovadas em `D-025`** | Instrument Serif / DM Sans / Geist Mono |
 | PDFs | Início: visualização nativa (`<object>`/nova aba). Evolução: `react-pdf` (pdf.js) para o painel lateral no desktop e no iOS | Evita dependência pesada antes de ser necessária | — |
-| PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell* | `D-003` | — |
+| PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell*; `registerType: 'prompt'` (a versão nova entra na próxima abertura); `/api/` fora do *fallback* e sem `runtimeCaching` | `D-003`, `D-064` | — |
 | Lint / format | **Biome** (um único binário para lint + format) + o gate de limites (`apps/web/src/architecture.test.ts`, `D-051`) para limites entre `features` (no lugar do `dependency-cruiser`, que não suporta o Node 25) | Menos configuração | ESLint + Prettier |
 | Vitrine do Design System | Rota interna `/design-system` (tokens, tipografia, componentes, estados) | Cumpre o Bloco 0.2 sem o peso do Storybook | Storybook |
 
-**Fronteira explícita do PWA na v1:** instalável e com *app shell* em cache; **sem modo offline de escrita** e sem sincronização offline de dados (não está no escopo aprovado). Se vocês quiserem consulta offline do último estado, isso vira nova decisão.
+**Fronteira explícita do PWA na v1 (implementada em `D-064`):** instalável e com *app shell* em cache (o service worker só existe no build de produção); **sem modo offline de escrita** e sem sincronização offline de dados (não está no escopo aprovado). Se vocês quiserem consulta offline do último estado, isso vira nova decisão.
 
 ### 5.1 Onde mora cada cálculo
 Simulador de orçamento, contadores de convidados, custo comparável e destravamento de cronograma são calculados **no backend**. O frontend chama endpoints de leitura/simulação com *debounce* ao editar premissas. Para 2 usuários a latência é irrelevante, e ganhamos **uma só implementação** das regras, testada em Python.
@@ -158,7 +158,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Arquitetura Python | **`import-linter`** com os contratos de `architecture.md` §9 |
 | Testes backend | **pytest** + `httpx2`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
-| E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
+| E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Existe desde `D-064` (`make e2e`): build de produção e API de verdade com banco temporário, no Chrome instalado, *desktop* e *mobile*, e é um job do CI. Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
 | Hooks locais | `pre-commit` com hooks locais que chamam os alvos do Makefile (`make lint-api`, `make typecheck-api`, `make lint-web`: ruff, import-linter, pyright e biome); `pre-commit install` é feito por clone (`D-043`, `D-059`, `D-060`) |
 | CI (GitHub Actions, criado no PR 1, `D-059`) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
 | Comandos | **Makefile** na raiz: `make dev`, `build`, `lint`, `typecheck`, `test` (os três com variantes `-api` e `-web`) e `migrate`; `api-types` (`D-061`) |
@@ -219,7 +219,7 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 3. Modelo de domínio **inicial mínimo** do Nível 0: `User`, `Session`, `FileAsset` (`Profile` é enum de domínio — `architecture.md` §12), com o *mixin* de histórico básico e módulos `identity` e `files` nas 4 camadas. As demais entidades entram **junto de cada bloco que as usa** (evita modelar 10 objetos no escuro).
 4. Login para os dois usuários (CLI de criação), logout, sessão e CSRF.
 5. SPA com `openapi-fetch` + geração de tipos, roteamento, guarda de rota autenticada e **seletor de lente**.
-6. PWA instalável (manifesto + *app shell*).
+6. PWA instalável (manifesto + *app shell*), com o E2E que o prova (`D-064`).
 
 **Bloco 0.2 — Design System (enxuto, `D-028`)** — ordem de construção em `docs/design/design-system.md` §13
 1. Tokens do **tema claro** gerados do `tokens.json` e mapeados em `@theme`, com nomes semânticos; fontes autohospedadas. Tema escuro adiado até o usuário pedir.
