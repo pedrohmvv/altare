@@ -1470,7 +1470,8 @@
 | Porte derivado ao lado da contagem da lista de convidados | Bloco 1.2 (`guests`) |
 | Regra "Definido recalcula o cronograma" valendo de fato | Bloco 1.3 |
 | `public.py` do módulo `wedding` | Outro módulo precisar ler uma definição |
-- **Pendente:** aprovação do usuário. Revisar os textos novos: `baseline_value_required` e `invalid_baseline_value` em `messages.py` e o `copy.ts` da feature.
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário, com os limites de validação propostos e os textos novos de `messages.py` (`baseline_value_required`, `invalid_baseline_value`) e do `copy.ts`.
+- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o painel, com o usuário.
 
 ---
 
