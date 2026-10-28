@@ -27,3 +27,11 @@ class GroupNotEmpty(DomainRuleViolated):
 
 class DuplicateScopeName(Conflict):
     default_code = "duplicate_scope_name"
+
+
+class InvalidReferenceUrl(DomainRuleViolated):
+    default_code = "invalid_reference_url"
+
+
+class ReferenceFileNotImage(DomainRuleViolated):
+    default_code = "reference_file_not_image"

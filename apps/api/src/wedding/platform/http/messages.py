@@ -107,6 +107,14 @@ MESSAGES: dict[str, Message] = {
         "Nome já usado",
         "Já existe uma frente ou um grupo com este nome. Escolha outro.",
     ),
+    "invalid_reference_url": Message(
+        "Endereço não aceito",
+        "Cole um endereço completo, começando com http:// ou https://.",
+    ),
+    "reference_file_not_image": Message(
+        "Só imagens",
+        ("Referências aceitam imagens JPG, PNG ou WebP. Um PDF não entra como referência."),
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",
