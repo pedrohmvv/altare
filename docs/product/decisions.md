@@ -1304,7 +1304,8 @@
   | Dispatcher de eventos | o primeiro evento de domínio |
   | `openapi-react-query` | mais de duas features com consulta |
 - **Riscos conhecidos:** o `env.py` usa o engine com `foreign_keys` ligado, e migração em *batch* no SQLite costuma exigir desligá-lo (a `0002` só cria tabelas; trata-se na primeira migração com `ALTER`); `/api/v1/docs` fica aberto sem autenticação, inclusive em produção (decide-se no deploy); os textos de erro do login e de `platform/http/messages.py` são propostas do agente.
-- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na tela de entrada e no bloco de sessão (teclado, zoom de 200%, VoiceOver e "reduzir movimento"; a conferência visual por captura contra as págs. 37 e 38 foi feita, em 1440, 768, 390 e 320 px); revisar os textos propostos; exigir o check `CI` na proteção de `develop` e `main` (`D-041`, item 6); `pre-commit install` neste clone.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na tela de entrada e no bloco de sessão (teclado, zoom de 200%, VoiceOver e "reduzir movimento"; a conferência visual por captura contra as págs. 37 e 38 foi feita, em 1440, 768, 390 e 320 px); exigir o check `CI` na proteção de `develop` e `main` (`D-041`, item 6); `pre-commit install` neste clone.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário, e os textos de erro propostos (`platform/http/messages.py` e os de erro de `features/identity/copy.ts`), como estão.
 
 ---
 
@@ -1343,7 +1344,8 @@
   | Purga administrativa dos arquivos excluídos | o produto ter exclusão de anexo |
   | Limite de corpo no proxy | decisão de deploy |
 - **Riscos conhecidos:** o Starlette processa o *multipart* antes da rota, então o limite de 20 MB protege o disco mas não a memória de um envio muito maior; no uso local com duas pessoas isso é irrelevante, e a defesa real é o limite do proxy no deploy. Um envio que falha depois de gravar o conteúdo deixa um arquivo órfão (inofensivo). A pasta `FILES_DIR` precisa entrar no backup junto do banco (`D-038`, item 4). As mensagens de erro novas (`platform/http/messages.py`) são propostas do agente.
-- **Pendente (do usuário):** revisar os textos das três mensagens novas; a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.
+- **Pendente (do usuário):** a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário, e as três mensagens novas de `platform/http/messages.py` (`unsupported_file_type`, `file_too_large` e `empty_file`), como estão.
 
 
 ---
@@ -1385,4 +1387,26 @@
   | Web Push no service worker | Bloco 5.2 |
   | E2E dos fluxos de negócio | cada bloco acrescenta os seus (`altare-testes-qa`) |
 - **Riscos conhecidos:** o service worker só se prova no build, então um erro de configuração não aparece no `make dev`; o E2E depende do Chrome da máquina (no CI, o da imagem do runner); a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só.") é proposta do agente; o aviso de *chunk* grande no `make build` já existia e segue como está.
-- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta") e revisar a `description` do manifesto; a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.
+- **Pendente (do usuário):** a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário, e a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só."), como está.
+
+---
+
+## D-065 — Nível 0 concluído e o check `CI` exigido nas proteções
+- **Data:** 2026-10-27
+- **Fase:** Implementação — fechamento do Nível 0
+- **Pedido do usuário:** fechar o Nível 0 depois do PR 4 do Bloco 0.1: conferir o critério, registrar a conclusão e preparar o release.
+- **Confirmado pelo usuário (2026-10-27):** a passada manual de `altare-acessibilidade` (teclado, zoom de 200%, VoiceOver e "reduzir movimento") sobre o Nível 0, pendente desde a `D-049`, foi **feita** ("Feito. Confirmo."). O usuário não detalhou o resultado por tela, e este registro não o inventa.
+- **Decisão:**
+  1. **O Nível 0 está concluído.** O Bloco 0.2 está concluído desde a `D-057` e o Bloco 0.1 completou-se com os 4 PRs da `D-059` (`D-060`, `D-061`, `D-063`, `D-064`). O critério do `roadmap.md`, "abrir o app no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta", está **cumprido**: o app é instalável, e o E2E o prova no *desktop* e no celular, no build de produção e contra a API de verdade (`D-064`); a acessibilidade foi conferida à mão.
+  2. **As pendências de passada manual de acessibilidade** das decisões do Nível 0 (`D-049`, `D-051`, `D-054`, `D-056`, `D-057`, `D-058`, `D-061`, `D-063` e `D-064`) ficam **resolvidas** por este registro. A regra de `altare-acessibilidade` não muda: cada tela e componente novo continua pedindo a sua passada antes do PR (o `axe` segue adiado, `D-028`).
+  3. **O check `CI` passa a ser exigido** na proteção de `develop` e de `main` (`D-041`, item 6), aplicado no GitHub em 2026-10-27 a pedido do usuário. É só o agregador `CI`, porque um job pulado pelo filtro conta como verde (`D-060`); o `strict` fica desligado, então a branch não precisa estar atualizada com a base. Os demais valores seguiram como estavam: PR obrigatório com 0 aprovações, administradores incluídos, sem *push* direto, *force push* nem exclusão.
+  4. **Release:** o próximo passo é o PR `develop → main` (`chore(release): conclui o Nível 0`) e, depois do merge do usuário, a tag anotada `v0.2.0` na `main` (`D-041`, item 5; `D-059`). Só então começa o Bloco 1.1.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e "Como Retomar"; `roadmap.md` (Bloco 0.1 e critério do Nível 0); skill `altare-git-fluxo` (proteção).
+- **Razão:** o Nível 0 era o alicerce técnico e visual de tudo o que vem depois; fechá-lo com um registro e uma tag deixa claro o que já está pronto e dá um ponto de volta, antes de o Nível 1 começar a guardar dados do casamento.
+- **O que ficou rejeitado:**
+  - Criar a tag antes do merge na `main`: a tag marca o que está na `main` (`D-041`).
+  - Exigir cada job do CI pelo nome: o agregador já os cobre e não quebra quando um job é pulado pelo filtro.
+  - Ligar o `strict` (branch atualizada com a base): com uma pessoa e PRs em sequência, só criaria *rebases* sem ganho.
+  - Detalhar na decisão um resultado de acessibilidade que o usuário não relatou.
+- **Pendente (do usuário):** aprovar esta decisão; dar o merge do PR de release e autorizar a tag `v0.2.0`. A `D-062` (skills carregadas sozinhas) segue como proposta, com a conferência pelo `/context` em uma sessão nova.
