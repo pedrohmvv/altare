@@ -8,6 +8,7 @@ from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, inspect, text
 
+from wedding.platform.bootstrap.tables import load_tables
 from wedding.platform.db.metadata import metadata
 
 API_DIR = Path(__file__).parents[2]
@@ -57,7 +58,17 @@ def test_migracoes_sobem_descem_e_sobem(tmp_path):
     assert subiu_de_novo == subiu
 
 
+def test_a_migracao_de_identidade_cria_e_remove_as_tabelas(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    assert {"users", "user_sessions"} <= _estado(url)[0]
+    command.downgrade(config, "0001")
+    assert {"users", "user_sessions"}.isdisjoint(_estado(url)[0])
+
+
 def test_banco_migrado_nao_difere_do_modelo(tmp_path):
+    load_tables()
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     command.upgrade(_config(url), "head")
     engine = create_engine(url)

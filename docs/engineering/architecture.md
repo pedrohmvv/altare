@@ -94,7 +94,7 @@ apps/api/src/wedding/
 │  ├─ bootstrap/           composição, DI, registro de handlers de eventos
 │  ├─ db/                  engine, sessão, UnitOfWork, PRAGMAs, convenção de nomes
 │  ├─ http/                app factory, middlewares, tratamento de erros, CSRF, sessão
-│  ├─ security/            Argon2, sessões server-side
+│  ├─ security/            (vazio por ora: Argon2 e sessões ficam no módulo `identity`, `D-061`)
 │  ├─ storage/             LocalFileStorage, S3FileStorage
 │  ├─ events/              dispatcher em processo
 │  └─ config.py            pydantic-settings
@@ -213,6 +213,7 @@ Todo registro persistente herda um *mixin* padrão:
 - Repositórios **filtram `deleted_at IS NULL` por padrão**; restaurar é um caso de uso explícito.
 - Unicidade com exclusão lógica via **índices únicos parciais** (`WHERE deleted_at IS NULL`), suportados em SQLite e PostgreSQL.
 - Arquivos excluídos mantêm o *blob* até um comando administrativo de purga.
+- A sessão de login (`UserSession`) não leva o histórico (`D-061`): é efêmera, e o logout apaga a linha.
 - **Fora de escopo agora:** trilha completa de auditoria com valores anterior/novo (opção "Completo" rejeitada em `D-022`; pode ser adicionada depois via eventos pós-commit, sem alterar os agregados).
 
 ---

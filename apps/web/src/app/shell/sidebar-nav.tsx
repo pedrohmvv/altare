@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { Tooltip } from '@/components/ui/tooltip'
+import { SessionBlock } from '@/features/identity'
 import { cn } from '@/lib/cn'
 import { useMediaQuery } from '@/lib/use-media-query'
 import { keepLens } from './keep-lens'
@@ -75,12 +76,12 @@ export function SidebarNav() {
           ))}
         </ul>
       </nav>
-      {/* Só em desenvolvimento: um atalho discreto para ver os primitivos (D-053). */}
-      {import.meta.env.DEV && (
-        <div className="border-t border-border pt-3">
-          <SidebarLink item={DESIGN_SYSTEM_ITEM} withTooltip={!isWide} />
-        </div>
-      )}
+      {/* O pé da barra (pág. 38 do guia): uma *hairline* e a sessão individual. */}
+      <div className="flex flex-col gap-1.5 border-t border-border pt-3">
+        {/* Só em desenvolvimento: um atalho discreto para ver os primitivos (D-053). */}
+        {import.meta.env.DEV && <SidebarLink item={DESIGN_SYSTEM_ITEM} withTooltip={!isWide} />}
+        <SessionBlock variant={isWide ? 'sidebar' : 'rail'} />
+      </div>
     </aside>
   )
 }

@@ -86,7 +86,14 @@ describe('regras de design em src (D-055)', () => {
     const srcDir = join(import.meta.dirname)
     const sources: Sources = {}
     for (const entry of listFiles(srcDir)) {
-      if (!/\.tsx?$/.test(entry) || /\.test\.tsx?$/.test(entry) || entry.startsWith('test/'))
+      // Os tipos do OpenAPI são saída de máquina (make api-types), não código escrito à mão.
+      const generated = /\.d\.ts$/.test(entry)
+      if (
+        !/\.tsx?$/.test(entry) ||
+        /\.test\.tsx?$/.test(entry) ||
+        generated ||
+        entry.startsWith('test/')
+      )
         continue
       sources[`src/${entry}`] = readFileSync(join(srcDir, entry), 'utf-8')
     }

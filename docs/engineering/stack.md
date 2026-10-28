@@ -117,7 +117,7 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Gerenciador de pacotes | **pnpm** | Rápido e determinístico | npm |
 | Roteamento | **TanStack Router** (rotas tipadas, search params tipados) | Filtros por perfil/categoria/cenário viram estado de URL tipado | React Router |
 | Dados do servidor | **TanStack Query** | Cache, invalidação após mutações | SWR |
-| Contrato da API | **`openapi-typescript` + `openapi-fetch`** (+ `openapi-react-query`) gerados do OpenAPI do FastAPI | Tipos nunca divergem; `make api-types` regenera; CI falha se houver drift | Orval, hey-api, tipos escritos à mão |
+| Contrato da API | **`openapi-typescript` + `openapi-fetch`** (`openapi-react-query` adiado, `D-061`) gerados do OpenAPI do FastAPI | Tipos nunca divergem; `make api-types` regenera; CI falha se houver drift | Orval, hey-api, tipos escritos à mão |
 | Tabelas | **TanStack Table** | Comparador lado a lado, orçamento 4 colunas, convidados | AG Grid (pesado/licença) |
 | Formulários | **React Hook Form** + **Zod** (validação de UX; a regra final é do backend) | Padrão estável | Formik |
 | Estilo | **Tailwind CSS v4** com tokens em CSS variables (`@theme`) mapeados de `docs/design/visual-direction.md` | Tokens oficiais viram classes (`bg-canvas`, `text-ink`, `bg-olive`…) | CSS Modules |
@@ -144,7 +144,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 - Dois usuários criados por CLI, cada um vinculado a um `Profile` (`Noivo` ou `Noiva`). `Ambos` é um valor de responsabilidade/visão, não um login.
 - **Autoria** de avaliações, interações, tarefas e comprovantes vem **sempre da sessão**, nunca de um campo enviado pelo cliente.
 - **Seletor de lente** (barra superior): `Visão do Casal` · `Minha visão`. Ele altera foco e destaques, **não** a autoria.
-- Parâmetros de sessão, cookie, CSRF e *rate limit* do login: `D-059`, item 3.
+- Parâmetros de sessão, cookie, CSRF e *rate limit* do login: `D-059`, item 3; implementados em `D-061`, com a sessão, o Argon2 e as tentativas no módulo `identity`.
 - Questões de produto abertas por essa decisão: `OQ-ENG-004`.
 
 ---
@@ -161,8 +161,8 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
 | Hooks locais | `pre-commit` com hooks locais que chamam os alvos do Makefile (`make lint-api`, `make typecheck-api`, `make lint-web`: ruff, import-linter, pyright e biome); `pre-commit install` é feito por clone (`D-043`, `D-059`, `D-060`) |
 | CI (GitHub Actions, criado no PR 1, `D-059`) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
-| Comandos | **Makefile** na raiz: `make dev`, `build`, `lint`, `typecheck`, `test` (os três com variantes `-api` e `-web`) e `migrate`; `make api-types` entra no PR 2 (`D-060`) |
-| Contrato OpenAPI | `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`; o drift é `make api-types && git diff --exit-code` (`D-059`) |
+| Comandos | **Makefile** na raiz: `make dev`, `build`, `lint`, `typecheck`, `test` (os três com variantes `-api` e `-web`) e `migrate`; `api-types` (`D-061`) |
+| Contrato OpenAPI | `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`; o gerador mora em `tools/api-types` (`openapi-typescript` com o TypeScript 5, que o web, no 7, não roda); o drift é o job `contract` do CI: `make api-types` e `git status --porcelain` vazio (`D-059`, `D-061`) |
 
 ---
 

@@ -34,3 +34,11 @@ class Conflict(DomainError): ...
 
 class VersionConflict(Conflict):
     default_code = "version_conflict"
+
+
+class TooManyAttempts(DomainError):
+    default_code = "too_many_attempts"
+
+    def __init__(self, retry_after: int) -> None:
+        super().__init__()
+        self.retry_after = retry_after

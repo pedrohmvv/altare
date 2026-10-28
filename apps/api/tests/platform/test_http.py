@@ -6,12 +6,15 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from wedding.platform.bootstrap.app import build_app
+from wedding.platform.http.errors import status_for
 from wedding.platform.http.messages import MESSAGES, message_for
 from wedding.shared_kernel.errors import (
     Conflict,
+    DomainError,
     DomainRuleViolated,
     Forbidden,
     NotFound,
+    TooManyAttempts,
     Unauthenticated,
     VersionConflict,
 )
@@ -32,6 +35,7 @@ def _com_rotas_de_teste() -> FastAPI:
             "regra": DomainRuleViolated("proposal_already_decided"),
             "conflito": Conflict("duplicate_contact"),
             "versao": VersionConflict(),
+            "excesso": TooManyAttempts(retry_after=120),
         }
         if nome == "inesperado":
             raise RuntimeError("segredo interno: SELECT * FROM users")
@@ -68,6 +72,7 @@ def test_health_so_existe_sob_api_v1(client):
         ("regra", 422, "proposal_already_decided"),
         ("conflito", 409, "duplicate_contact"),
         ("versao", 409, "version_conflict"),
+        ("excesso", 429, "too_many_attempts"),
     ],
 )
 def test_erro_de_dominio_vira_problem_json_com_status_e_code(client, rota, status, code):
@@ -80,6 +85,27 @@ def test_erro_de_dominio_vira_problem_json_com_status_e_code(client, rota, statu
     assert corpo["type"] == "about:blank"
     assert corpo["title"]
     assert corpo["detail"]
+
+
+def test_excesso_de_tentativas_diz_em_quantos_segundos_tentar_de_novo(client):
+    resposta = client.get("/api/v1/_teste/erro/excesso")
+    assert resposta.headers["retry-after"] == "120"
+
+
+def _erros_concretos(base=DomainError):
+    for erro in base.__subclasses__():
+        yield erro
+        yield from _erros_concretos(erro)
+
+
+def test_todo_erro_de_dominio_tem_status_http_e_mensagem_em_portugues():
+    import wedding.modules.identity.domain.errors  # noqa: F401  (registra as subclasses)
+
+    erros = [e for e in _erros_concretos() if e.default_code is not None]
+    assert len(erros) >= 8
+    for erro in erros:
+        assert status_for(erro) is not None, erro.__name__
+        assert erro.default_code in MESSAGES, erro.__name__
 
 
 def test_detail_de_conflito_de_versao_diz_o_que_fazer(client):
@@ -100,7 +126,7 @@ def test_rota_inexistente_vira_problem_json(client):
 
 
 def test_metodo_nao_permitido_vira_problem_json(client):
-    resposta = client.post("/api/v1/health")
+    resposta = client.post("/api/v1/health", headers={"X-Altare-CSRF": "1"})
     assert resposta.status_code == 405
     assert resposta.json()["code"] == "method_not_allowed"
 
@@ -132,6 +158,9 @@ def test_todo_code_conhecido_tem_mensagem_em_portugues():
         "validation_error",
         "method_not_allowed",
         "internal_error",
+        "csrf_missing",
+        "invalid_credentials",
+        "too_many_attempts",
     }
     assert conhecidos <= MESSAGES.keys()
     assert all(m.title and m.detail for m in MESSAGES.values())

@@ -1,4 +1,5 @@
 from sqlalchemy import MetaData
+from sqlalchemy.orm import registry
 
 # Necessária para o Alembic gerar ALTER reproduzível em batch mode (stack.md §4, regra 6).
 NAMING_CONVENTION: dict[str, str] = {
@@ -10,3 +11,6 @@ NAMING_CONVENTION: dict[str, str] = {
 }
 
 metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+# Mapeamento imperativo: as tabelas (infraestrutura) ligam-se às dataclasses do domínio.
+mapper_registry = registry(metadata=metadata)

@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { Plus } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
@@ -8,7 +9,7 @@ import { Providers } from './providers'
 describe('Providers', () => {
   it('desenha todo ícone Lucide com traço de 1,5 px', () => {
     render(
-      <Providers>
+      <Providers queryClient={new QueryClient()}>
         <Plus aria-label="Adicionar" />
       </Providers>,
     )
@@ -17,7 +18,7 @@ describe('Providers', () => {
 
   it('mantém o traço do mesmo tamanho ao redimensionar o ícone', () => {
     render(
-      <Providers>
+      <Providers queryClient={new QueryClient()}>
         <Plus aria-label="Adicionar" className="size-5" />
       </Providers>,
     )

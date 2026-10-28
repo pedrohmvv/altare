@@ -23,7 +23,7 @@ api=false
 web=false
 while IFS= read -r file; do
   case "$file" in
-    Makefile | .github/* | pnpm-workspace.yaml | scripts/ci-changes.sh | apps/api/openapi.json)
+    Makefile | .github/* | pnpm-workspace.yaml | tools/* | scripts/ci-changes.sh | apps/api/openapi.json)
       api=true
       web=true
       ;;

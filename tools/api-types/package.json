@@ -1,0 +1,14 @@
+{
+  "name": "@altare/api-types",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Gera apps/web/src/lib/api/schema.d.ts a partir de apps/api/openapi.json. Fica fora do apps/web porque o openapi-typescript exige o TypeScript 5 e o web usa o 7.",
+  "type": "module",
+  "scripts": {
+    "generate": "openapi-typescript ../../apps/api/openapi.json -o ../../apps/web/src/lib/api/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

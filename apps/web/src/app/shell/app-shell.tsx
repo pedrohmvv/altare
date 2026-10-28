@@ -1,7 +1,6 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
 import { AssistantLauncher } from '@/features/assistant'
 import { BottomNav } from './bottom-nav'
-import { RouteAnnouncer } from './route-announcer'
 import { SidebarNav } from './sidebar-nav'
 import { TopBar } from './top-bar'
 
@@ -24,7 +23,6 @@ export function AppShell() {
       >
         Ir para o conteúdo
       </a>
-      <RouteAnnouncer />
       <SidebarNav />
       <div className="flex min-h-dvh min-w-0 flex-col">
         <TopBar />

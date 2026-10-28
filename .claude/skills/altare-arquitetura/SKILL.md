@@ -71,5 +71,6 @@ def pay(id: UUID, uc: PayInstallment = Depends(...), actor: Actor = Depends(...)
 - Estilo de código dentro de cada arquivo: `altare-escrita-de-codigo`. Estrutura do frontend: `altare-frontend`. Estrutura de apps e CI: `altare-monorepo`.
 
 ## Em aberto
-- Mapeamento imperativo do SQLAlchemy pode atritar com o Pyright; o plano B (`to_domain`/`to_row` só nos agregados ricos) está em `architecture.md` §3 item 2 e §14. Só acione com atrito comprovado.
+- Mapeamento imperativo do SQLAlchemy pode atritar com o Pyright; no `identity` (`D-061`) não houve atrito, e o plano B (`to_domain`/`to_row` só nos agregados ricos, `architecture.md` §3 item 2 e §14) segue em reserva.
+- **Onde moram (`D-061`):** o `UnitOfWork` base e as colunas do histórico em `platform/db`; o `Protocol` da UoW na aplicação do módulo, com os casos de uso recebendo uma **fábrica**; Argon2 e sessão no módulo, não em `platform/security`; a composição em `platform/bootstrap`, por um *container* que monta sob demanda.
 - Biblioteca de orquestração de agentes: adiada para o Bloco 5.1 (`architecture.md` §7).
