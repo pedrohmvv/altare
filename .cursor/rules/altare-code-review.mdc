@@ -1,0 +1,9 @@
+---
+description: "Checklist de revisão de diff ou PR do Altare, por severidade (bloqueia, corrija, sugestão), somente leitura. Use ao revisar, dar parecer ou conferir um diff, branch ou PR, e antes de sugerir o merge de qualquer mudança."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-code-review/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-code-review/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

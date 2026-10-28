@@ -1,0 +1,10 @@
+---
+description: "Estrutura do monorepo do Altare: apps/api (uv) e apps/web (pnpm), Makefile e scripts na raiz, contrato OpenAPI, tipos gerados com checagem de drift, sem git submodules (D-040). Use ao criar ou mexer em pastas de topo, Makefile, workspace pnpm, pyproject, geração de tipos, ou em mudança que atravessa API e web."
+globs: Makefile,package.json,pnpm-workspace.yaml
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-monorepo/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-monorepo/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

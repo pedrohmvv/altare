@@ -1,7 +1,10 @@
 ---
 name: altare-testes-qa
 description: >-
-  Estratégia de testes e qualidade automatizada do Altare, em Python e TypeScript. Cobre a pirâmide por camada, TDD (RED antes de GREEN), Hypothesis para invariantes numéricas, Vitest com Testing Library, Playwright desktop e mobile, SQLite temporário, o portão em PostgreSQL antes do primeiro deploy e a configuração e os gates de Ruff, Pyright, Biome, tsc, import-linter, o gate de limites do frontend e pre-commit. Use sempre que for implementar feature, regra de negócio, correção de bug ou refatoração (o teste vem primeiro), ao decidir que teste escrever, ao configurar linter, formatter, tipos ou quality gate, mesmo que o usuário só diga implemente isso. NÃO use para rodar ou manter o pipeline no CI (use altare-devops), para o checklist manual de acessibilidade (use altare-acessibilidade) nem para revisar um diff (use altare-code-review).
+  Testes e qualidade do Altare em Python e TypeScript: pirâmide, TDD (RED antes de GREEN), Hypothesis,
+  Vitest, Playwright, SQLite temporário, gates Ruff, Pyright, Biome, tsc e import-linter. Use ao
+  implementar feature, regra de negócio, bugfix ou refatoração (o teste vem primeiro), ao decidir que
+  teste escrever ou ao configurar linter e gates.
 ---
 
 # Testes e qualidade
@@ -31,9 +34,9 @@ Dinheiro, parcelas e contagem de convidados são o que o casal confere à mão. 
 | Domínio | Regras puras e **invariantes numéricas** (orçamento, contadores de convidados, parcelas, arredondamento de F-ORC-03) | pytest + Hypothesis |
 | Aplicação | Casos de uso com **fakes das portas**, sem banco e sem rede; um caso de uso = uma transação | pytest |
 | Infraestrutura | Repositórios, mapeamento e migrations Alembic (sobe, desce, sobe) em SQLite real e temporário | pytest |
-| Adaptadores HTTP | `TestClient` com app composto; status e `code` de erro (`problem+json`); snapshot do OpenAPI | pytest, httpx |
+| Adaptadores HTTP | `TestClient` com app composto; status e `code` de erro (`problem+json`); snapshot do OpenAPI | pytest, httpx2 |
 | Frontend | Componentes, hooks de tela e utilitários; navegação da casca; validação Zod | Vitest + Testing Library |
-| Ponta a ponta | Fluxos críticos de `experience.md` §4 em projeto *desktop* e *mobile*; entra **com o login** | Playwright |
+| Ponta a ponta | Fluxos críticos de `experience.md` §4 em projeto *desktop* e *mobile*, contra o build de produção e a API de verdade (`make e2e`, `D-064`); cada bloco acrescenta os seus | Playwright |
 | Portabilidade | A suíte de integração também contra **PostgreSQL** (contêiner efêmero) **antes do primeiro deploy** | Docker ou testcontainers |
 
 Hypothesis serve onde há **propriedade**, não exemplo: soma das parcelas fecha o total, per capita arredondado nunca perde nem inventa centavo, contador ponderado nunca fica negativo. Exemplo isolado cobre o caso, a propriedade cobre a classe.
@@ -52,7 +55,7 @@ Hypothesis serve onde há **propriedade**, não exemplo: soma das parcelas fecha
 | Regras de design | **Teste de regras** (`design-rules.test.ts`, `D-055`): cor, fonte e traço só por token | `apps/web` | Sim |
 | Testes web | Vitest, inclusive o que falha se `tokens.css` estiver defasado | `apps/web` | Sim |
 | Build do web e drift do OpenAPI | `make api-types` sem diff | monorepo | Sim |
-| E2E | Playwright desktop e mobile | após o login | Sim, quando existir |
+| E2E | Playwright desktop e mobile (`make e2e`, `D-064`) | monorepo | Sim |
 | Suíte em PostgreSQL | pytest contra Postgres | `apps/api` | Bloqueia o **deploy** |
 | Acessibilidade | verificação manual (`altare-acessibilidade`) | PR que toca UI | Sim, via checklist do PR |
 
@@ -97,4 +100,4 @@ def test_parcelas_somam_o_total(parts):
 
 ## Em aberto
 
-- **Hooks do `pre-commit`:** `stack.md` §7 lista Ruff, Pyright e Biome; `architecture.md` §2 e §14 acrescentam `import-linter` e o gate de limites do frontend. Decidido na `D-043`: o `pre-commit` e a verificação de limites do frontend ficam adiados (o primeiro, até o `apps/api`; o segundo, até a primeira `feature`). **A verificação de limites chegou com a primeira `feature` (`D-051`), como o gate próprio `apps/web/src/architecture.test.ts`**, porque o `dependency-cruiser` não suporta o Node 25. Ao criá-los, fechar a lista de hooks e registrar.
+- Nada em aberto sobre hooks: a lista foi fechada na `D-060` (Ruff e `import-linter`, Pyright e Biome, chamados pelos alvos do Makefile); o gate de limites do frontend é `apps/web/src/architecture.test.ts` (`D-051`).

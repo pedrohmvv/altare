@@ -1,0 +1,9 @@
+---
+description: "Convenções da API FastAPI do Altare: rotas /api/v1, problem+json, bloqueio otimista (version e 409), DTOs Pydantic, operationId, paginação, autoria vinda da sessão. Use ao criar ou alterar rota, router, schema, mapper, tratamento de erro ou contrato OpenAPI em apps/api."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-backend-api/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-backend-api/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

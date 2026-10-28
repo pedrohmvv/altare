@@ -1,0 +1,9 @@
+---
+description: "Critérios para decidir o que construir, adiar ou cortar no Altare: valor percebido, uso recorrente do casal, priorização na pirâmide de blocos. Use quando surgir ideia de feature, pedido de priorização, dúvida de escopo (v1, depois, fora), 'isso está bom?', ou antes de começar um bloco novo."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-produto/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-produto/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

@@ -1,0 +1,10 @@
+---
+description: "Tom de voz e textos em pt-BR do Altare: calmo, direto, fala com vocês, nomes fixos dos conceitos, formatos de valor e data, erros e estados vazios. Use ao escrever ou revisar qualquer texto que o casal lê: rótulo, botão, mensagem, estado vazio, toast, e-mail, resposta do assistente."
+globs: apps/web/src/**/copy.ts
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-conteudo-copy/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-conteudo-copy/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

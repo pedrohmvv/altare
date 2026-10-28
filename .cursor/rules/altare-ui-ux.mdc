@@ -1,0 +1,9 @@
+---
+description: "UI/UX do Altare: fluxos do casal, heurísticas, desktop (planejar) versus mobile (consultar), navegação das 8 áreas, estados vazio, carregando, erro e confirmações destrutivas. Use ao desenhar, montar ou revisar tela, fluxo, formulário, navegação ou estado de interface, e ao detalhar uma feature nova."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-ui-ux/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-ui-ux/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

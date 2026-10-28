@@ -1,0 +1,9 @@
+---
+description: "Camadas do Altare (domínio, aplicação, adaptadores, infraestrutura), limites entre módulos via public.py, CQRS leve, eventos, quando criar porta ou abstração. Use ao criar ou mover módulo, caso de uso, entidade, porta ou evento, ao decidir onde um código mora ou ao ver import cruzando camadas. Módulo novo nasce com CLAUDE.md."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-arquitetura/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-arquitetura/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

@@ -31,7 +31,7 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 - Web: `apps/web/src/features/<módulo>/` (quando existir).
 
 ## Como testar
-- `make test` e `make lint` na raiz (**pendente até o Bloco 0.1 criar o `Makefile`**, `stack.md` §7).
+- `make test-api` e `make lint-api` na raiz (`stack.md` §7).
 - Domínio: pytest puro. Aplicação: fakes das portas. Infraestrutura: SQLite real (`architecture.md` §9).
 - Contratos de import: `import-linter` no `make lint`.
 ````

@@ -1,0 +1,9 @@
+---
+description: "Engenharia de IA do Altare (Nível 5): agentes, prompts, descrições de tool, evals, custo e latência, guardrails de D-008, observabilidade. Use ao projetar ou alterar agente, prompt, tool, workflow de LLM, extrator de PDF, integração de WhatsApp ou avaliação de qualidade do assistente."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-engenharia-de-ia/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-engenharia-de-ia/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

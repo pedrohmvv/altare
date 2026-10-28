@@ -1,0 +1,10 @@
+---
+description: "Mantém a documentação viva do Altare: decisões D-xxx, features F-XXX-NN, open-questions, fase no AGENTS.md, CLAUDE.md de módulo. Use quando uma decisão for tomada ou revista, uma feature detalhada ou aprovada, um módulo criado, a fase avançar, ou ao ouvir 'registra', 'documenta', 'aprovado' ou 'atualiza os docs'."
+globs: docs/**
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-docs-vivas/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-docs-vivas/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

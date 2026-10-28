@@ -1,7 +1,9 @@
 ---
 name: altare-escrita-de-codigo
 description: >-
-  Como escrever código limpo, modular e sem cara de código gerado por IA no Altare (Python/FastAPI/SQLAlchemy/Pydantic em apps/api e TypeScript/React em apps/web). Cobre nomes, funções pequenas, erros de domínio, dinheiro em centavos, onde o arquivo mora e a lista de sinais de código de IA a evitar (comentário óbvio, abstração especulativa, try/except defensivo, arquivo solto, duplicação, nomes genéricos). Use sempre que for escrever, editar ou refatorar código de produção ou de teste neste repositório, mesmo que o usuário não peça estilo explicitamente. NÃO use para revisar um diff pronto (use altare-code-review), para decidir camadas ou limites de módulo (use altare-arquitetura) nem para convenções de rota e erro HTTP (use altare-backend-api).
+  Como escrever código limpo e sem cara de IA no Altare (Python em apps/api, TypeScript em apps/web):
+  nomes, funções pequenas, erros de domínio, dinheiro em centavos, onde o arquivo mora. Use ao
+  escrever, editar ou refatorar qualquer código de produção ou de teste do repositório.
 ---
 
 # Escrita de código

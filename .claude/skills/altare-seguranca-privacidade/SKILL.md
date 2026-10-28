@@ -1,7 +1,10 @@
 ---
 name: altare-seguranca-privacidade
 description: >-
-  Segurança e privacidade do Altare: LGPD (hoje boa prática por ser uso pessoal do casal; obrigação se abrir para outros casais), dados de convidados e minimização, autenticação própria (argon2, sessões server-side, cookie HttpOnly e SameSite, CSRF por header customizado, rate limit, sem cadastro público), validação de uploads (MIME, assinatura real, tamanho, hash), segredos em variável de ambiente, exportação e exclusão de dados, logs sem dados pessoais e dados enviados a terceiros (LLM, WhatsApp, hospedagem). Use ao mexer em login, sessão, permissões, upload, exportação, logs, variáveis secretas ou ao enviar dado do casal para fora, mesmo que o pedido seja só um campo novo com telefone ou endereço. NÃO use para implementação de colunas e purga (use altare-banco-de-dados), formato de rotas e erros (use altare-backend-api), pipeline e segredos de CI (use altare-devops) ou acessibilidade (use altare-acessibilidade).
+  Segurança e privacidade do Altare: LGPD, dados de convidados, login próprio (argon2, sessão server-
+  side, cookie, CSRF, rate limit), validação de upload, segredos, logs sem dado pessoal, dado enviado
+  a terceiros. Use ao mexer em login, sessão, permissões, upload, exportação, logs, segredos ou ao
+  enviar dado do casal para fora.
 ---
 
 # Segurança e privacidade do Altare
@@ -62,6 +65,7 @@ bom : log.info("whatsapp.recebido", extra={"user_id": uid, "message_id": mid, "c
 - Métricas de uso: o que pode ser medido sem expor dados de casal e de convidados (nada sai do banco para rastreadores de terceiros) é de `altare-analytics-metricas`; a regra de minimização continua desta skill.
 
 ## Em aberto
+- **Limite de corpo no proxy:** o servidor recusa arquivo acima de 20 MB, mas o *multipart* é processado antes da rota; a defesa real contra um envio enorme é o limite do proxy no deploy (`D-063`).
 - **Backup automático e implantação** são requisito de hospedagem ainda não decidido (`D-038`, `stack.md` §9): sem backup, o risco de perda de dados do casal fica registrado.
 - Provedor de nuvem, Postgres gerenciado e storage S3-compatível (candidatos em `stack.md` §9) definem onde os dados ficam e o contrato com o operador.
 - Provedor de LLM e conta do WhatsApp Business: quais dados saem e sob que termos (Bloco 5.1 e `OQ-IA-001`).

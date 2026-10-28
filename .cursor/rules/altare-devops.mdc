@@ -1,0 +1,10 @@
+---
+description: "CI/CD, ambientes, deploy e custos do Altare: pipeline de gates, variáveis de ambiente, Docker, migração SQLite para PostgreSQL, backup. Use ao criar ou alterar CI, Dockerfile, variáveis de ambiente, deploy, hospedagem ou backup, ou ao estimar custo de infraestrutura."
+globs: .github/**,Dockerfile
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-devops/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-devops/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

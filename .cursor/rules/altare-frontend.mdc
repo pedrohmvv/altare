@@ -1,0 +1,10 @@
+---
+description: "Convenções do apps/web do Altare (React 19, Vite, TanStack, React Hook Form + Zod, Tailwind v4): pastas e limites, onde mora cada estado, formulários, atualização otimista, testes Vitest. Use ao criar ou alterar tela, rota, componente, hook, formulário, estilo ou chamada de API no apps/web."
+globs: apps/web/src/**/*.ts,apps/web/src/**/*.tsx
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-frontend/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-frontend/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

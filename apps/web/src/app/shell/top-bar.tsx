@@ -4,7 +4,8 @@ import { LensSwitcher } from './lens-switcher'
 
 /**
  * Título da área e seletor de lente, com 72 px no desktop (guia de identidade). No celular a lente
- * fica na folha "Mais". O menu do usuário entra com o login (D-028).
+ * fica na folha "Mais". Não há menu do usuário aqui, como no guia: a sessão fica no pé da barra
+ * lateral e na folha "Mais" (D-061).
  */
 export function TopBar() {
   const title = useMatches({ select: (matches) => matches.at(-1)?.staticData.title })

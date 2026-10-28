@@ -1,0 +1,9 @@
+---
+description: "Como abrir e descrever PR no Altare com gh: base develop (main em hotfix e release), título no padrão de commit, corpo em pt-BR com o que muda e por quê, D-xxx, como testar, checklist de gates. Use quando pedirem para abrir, criar ou subir um PR, fechar a branch ou preparar a descrição de uma mudança."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-pull-request/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-pull-request/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

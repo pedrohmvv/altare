@@ -1,7 +1,10 @@
 ---
 name: altare-commit
 description: >-
-  Como commitar no Altare: commits atômicos por intenção, com plano mostrado e aprovado antes de executar, no formato Conventional Commits com tipo em inglês e descrição em pt-BR no presente (por exemplo docs(product) detalha as features da v1 manual), corpo em prosa citando as decisões D-xxx. É o único caminho de commit neste repositório (D-039). Use sempre que o usuário pedir para commitar, salvar as mudanças, fechar o trabalho, ou ao terminar um ciclo de mudanças antes do PR, mesmo que ele não diga commit. NÃO use para decidir branch, release ou hotfix (use altare-git-fluxo), para abrir o PR (use altare-pull-request) nem para merge, rebase ou revert, que o usuário conduz.
+  Como commitar no Altare: commits atômicos por intenção, plano aprovado antes de executar,
+  Conventional Commits com tipo em inglês e descrição em pt-BR (D-039). É o único caminho de commit do
+  repositório. Use quando pedirem para commitar, salvar as mudanças ou fechar o trabalho, ou ao
+  terminar um ciclo antes do PR.
 ---
 
 # Commits atômicos

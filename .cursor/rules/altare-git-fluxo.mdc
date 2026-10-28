@@ -1,0 +1,9 @@
+---
+description: "Fluxo de branches do Altare (D-041): trabalho sai da develop em tipo/assunto, merge commit sem squash, release develop para main com tag, hotfix. Use ao criar, nomear ou integrar branch, abrir release ou hotfix, e antes de começar qualquer feature ou correção."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-git-fluxo/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-git-fluxo/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

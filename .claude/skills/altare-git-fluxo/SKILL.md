@@ -1,7 +1,9 @@
 ---
 name: altare-git-fluxo
 description: >-
-  Fluxo de branches do Altare (D-041): main recebe só o que foi validado, develop integra, e todo trabalho sai da develop em branches tipo/assunto; hotfix sai da main e volta para main e develop; release é um PR develop para main ao concluir um bloco ou nível, com tag; merge commit sem squash para preservar commits atômicos; rebase local antes do PR; proteção de branches. Use sempre que for criar, nomear ou integrar uma branch, abrir release, aplicar um hotfix, decidir estratégia de merge ou perguntar em qual branch trabalhar, mesmo que o usuário só diga vou começar uma feature. NÃO use para montar mensagens e planos de commit (use altare-commit) nem para abrir ou descrever o PR (use altare-pull-request).
+  Fluxo de branches do Altare (D-041): trabalho sai da develop em tipo/assunto, merge commit sem
+  squash, release develop para main com tag, hotfix. Use ao criar, nomear ou integrar branch, abrir
+  release ou hotfix, e antes de começar qualquer feature ou correção.
 ---
 
 # Fluxo de branches
@@ -28,7 +30,7 @@ hotfix:    main ──▶ hotfix/yyy ──PR──▶ main (tag)
 2. **Volta à `develop` por PR**, com *merge commit* (`--no-ff`). **Nunca *squash* nem *rebase and merge***: apagariam os commits atômicos.
 3. **Rebase local antes do PR:** `git fetch && git rebase origin/develop` na branch de trabalho, para o PR chegar sem conflito. Rebase **só em branch que ninguém mais usa**. Se a branch já foi publicada, reescrever exige `--force-with-lease`: peça confirmação ao usuário antes.
 4. **Release:** quando um **bloco ou nível do roadmap** estiver concluído e passar em todos os gates de `altare-testes-qa`, abra um PR `develop → main` (`altare-pull-request`). Depois do merge, crie a *tag* anotada `vMAJOR.MINOR.PATCH` na `main`. Não há branch `release/*`: com um desenvolvedor, a `develop` já é a candidata.
-5. **Versão (sugestão a confirmar):** `MINOR` sobe por bloco concluído, `PATCH` por hotfix, e `1.0.0` marca o fim do Nível 4 (v1 manual completa, `roadmap.md`).
+5. **Versão (confirmada em `D-059`):** `MINOR` sobe por bloco concluído, `PATCH` por hotfix, e `1.0.0` marca o fim do Nível 4 (v1 manual completa, `roadmap.md`). `v0.1.0` marca o Bloco 0.2 e o fechamento do Nível 0 será `v0.2.0`.
 6. **Proteção** de `main` e `develop`: sem *push* direto, PR obrigatório, CI verde. Está ativa no GitHub desde 2026-10-27 (valores em `D-041`, item 6). Alterá-la, ou criar branch e tag no remoto, só com pedido do usuário.
 
 ## Hotfix, passo a passo

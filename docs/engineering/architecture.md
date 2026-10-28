@@ -94,7 +94,7 @@ apps/api/src/wedding/
 │  ├─ bootstrap/           composição, DI, registro de handlers de eventos
 │  ├─ db/                  engine, sessão, UnitOfWork, PRAGMAs, convenção de nomes
 │  ├─ http/                app factory, middlewares, tratamento de erros, CSRF, sessão
-│  ├─ security/            Argon2, sessões server-side
+│  ├─ security/            (vazio por ora: Argon2 e sessões ficam no módulo `identity`, `D-061`)
 │  ├─ storage/             LocalFileStorage, S3FileStorage
 │  ├─ events/              dispatcher em processo
 │  └─ config.py            pydantic-settings
@@ -190,7 +190,7 @@ Consequência: a decisão (`DecisionRecord`) **não precisa atualizar** orçamen
 | Domínio | Unitário puro + propriedades (invariantes numéricas de orçamento, contadores, parcelas) | pytest, Hypothesis |
 | Aplicação | Casos de uso com **fakes das portas** (sem banco, sem rede) | pytest |
 | Infraestrutura | Integração com SQLite real: repositórios, mapeamento, migrações Alembic (subir, descer, subir) | pytest |
-| Adaptadores HTTP | `TestClient` com a aplicação composta e SQLite temporário; *snapshot* do OpenAPI | pytest, httpx |
+| Adaptadores HTTP | `TestClient` com a aplicação composta e SQLite temporário; *snapshot* do OpenAPI | pytest, httpx2 |
 | Ponta a ponta | Fluxos críticos em *desktop* e *mobile* (`axe` automatizado adiado em `D-028`) | Playwright |
 | Portabilidade | Suíte de integração também contra PostgreSQL antes do primeiro deploy (`stack.md` §4) | Docker/testcontainers |
 
@@ -213,6 +213,7 @@ Todo registro persistente herda um *mixin* padrão:
 - Repositórios **filtram `deleted_at IS NULL` por padrão**; restaurar é um caso de uso explícito.
 - Unicidade com exclusão lógica via **índices únicos parciais** (`WHERE deleted_at IS NULL`), suportados em SQLite e PostgreSQL.
 - Arquivos excluídos mantêm o *blob* até um comando administrativo de purga.
+- A sessão de login (`UserSession`) não leva o histórico (`D-061`): é efêmera, e o logout apaga a linha.
 - **Fora de escopo agora:** trilha completa de auditoria com valores anterior/novo (opção "Completo" rejeitada em `D-022`; pode ser adicionada depois via eventos pós-commit, sem alterar os agregados).
 
 ---
@@ -279,7 +280,7 @@ erDiagram
   TROUSSEAU_ITEM }o--o| GUEST : "presenteado por"
 ```
 
-`ATTACHMENT` é a associação polimórfica (`owner_type`, `owner_id`) de arquivos a propostas, contatos, contratos e parcelas.
+`ATTACHMENT` é a associação polimórfica (`owner_type`, `owner_id`) de arquivos a propostas, contatos, contratos e parcelas. Ela nasce no bloco que anexa; o `FileAsset` já existe, com um registro por envio (`D-063`).
 
 ### Máquinas de estado (a validar nos respectivos blocos)
 

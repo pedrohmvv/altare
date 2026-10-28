@@ -1,0 +1,9 @@
+---
+description: "Segurança e privacidade do Altare: LGPD, dados de convidados, login próprio (argon2, sessão server- side, cookie, CSRF, rate limit), validação de upload, segredos, logs sem dado pessoal, dado enviado a terceiros. Use ao mexer em login, sessão, permissões, upload, exportação, logs, segredos ou ao enviar dado do casal para fora."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-seguranca-privacidade/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-seguranca-privacidade/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

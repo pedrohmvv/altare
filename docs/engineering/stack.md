@@ -58,8 +58,8 @@ Princípios que guiam as escolhas:
 | ORM | **SQLAlchemy 2.0** (estilo tipado `Mapped[...]`), **modo síncrono** | Maduro, funciona igual em SQLite e Postgres; síncrono evita complexidade de `aiosqlite` e é suficiente para 2 usuários | SQLModel (menos controle), Tortoise, SQLAlchemy async |
 | Migrações | **Alembic** (`render_as_batch=True` para SQLite) | Padrão do SQLAlchemy; histórico versionado | — |
 | Autenticação | **Própria e mínima**: `argon2-cffi`, **sessões server-side** em tabela, cookie `HttpOnly` + `SameSite=Lax` + `Secure` (em produção), proteção CSRF por header customizado, rate limit simples no login, **sem cadastro público** (usuários criados por comando CLI) | Só 2 contas; evita dependência de provedor externo e JWT em localStorage | `fastapi-users`, Supabase Auth, passkeys/WebAuthn (candidato a evolução futura) |
-| Arquivos | Interface **`FileStorage`** com `LocalFileStorage` (disco, nome por hash SHA-256, fora da pasta pública, servido por endpoint autenticado) e `S3FileStorage` (`boto3`, compatível com R2/Backblaze/Supabase Storage S3) | Troca de backend sem mexer em regra de negócio | Armazenar blob no banco |
-| Validação de upload | Tipo MIME + assinatura real do arquivo (PDF/imagem), limite de tamanho, hash para dedupe | Segurança básica | — |
+| Arquivos | Interface **`FileStorage`** com `LocalFileStorage` (disco em `FILES_DIR`, nome por hash SHA-256, fora da pasta pública, servido por endpoint autenticado, `D-063`) e `S3FileStorage` (`boto3`, compatível com R2/Backblaze/Supabase Storage S3) | Troca de backend sem mexer em regra de negócio | Armazenar blob no banco |
+| Validação de upload | Assinatura real do arquivo (PDF, JPG, PNG e WebP, nunca a extensão nem o tipo informado), limite de 20 MB, hash para dedupe (`D-063`) | Segurança básica | — |
 | Exportações | **Excel (`.xlsx`) via `openpyxl`** como formato padrão e **CSV via stdlib `csv`** como opção (UTF-8 com BOM e `;`); texto formatado via template Jinja2 | Atende `D-006` e `D-030`. `openpyxl` é a única dependência extra, adotada porque o uso diário é em Excel | Só CSV (rejeitado em `D-030`) |
 | CLI | **Typer** (`wedding create-user`, `wedding seed`, `wedding export-openapi`) | Operações administrativas sem endpoint público | — |
 | Logs | `logging` padrão com formatação JSON em produção | Suficiente agora | structlog (futuro) |
@@ -96,7 +96,7 @@ Cada módulo segue: `models.py` (SQLAlchemy) · `schemas.py` (Pydantic) · `rule
 
 Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a primeira migração** para a troca futura ser mecânica:
 
-1. **Dinheiro = inteiro em centavos** (`BIGINT`), nunca `float`. Helper `Money` em `core/money.py`; formatação `R$` apenas na borda (frontend). Cálculos *per capita* usam arredondamento definido e testado.
+1. **Dinheiro = inteiro em centavos** (`BIGINT`), nunca `float`. Helper `Money` em `shared_kernel/money.py`; formatação `R$` apenas na borda (frontend). Cálculos *per capita* usam arredondamento definido e testado.
 2. **Enums** como `VARCHAR` + `CHECK` (`native_enum=False`), nunca enum nativo do banco.
 3. **`PRAGMA foreign_keys=ON`**, `journal_mode=WAL` e `busy_timeout` configurados na conexão SQLite.
 4. **Timestamps em UTC** com `TypeDecorator` que preserva tz (SQLite descarta fuso); datas de vencimento e prazos como `DATE`; exibição em `America/Sao_Paulo`.
@@ -117,7 +117,7 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Gerenciador de pacotes | **pnpm** | Rápido e determinístico | npm |
 | Roteamento | **TanStack Router** (rotas tipadas, search params tipados) | Filtros por perfil/categoria/cenário viram estado de URL tipado | React Router |
 | Dados do servidor | **TanStack Query** | Cache, invalidação após mutações | SWR |
-| Contrato da API | **`openapi-typescript` + `openapi-fetch`** (+ `openapi-react-query`) gerados do OpenAPI do FastAPI | Tipos nunca divergem; `make api-types` regenera; CI falha se houver drift | Orval, hey-api, tipos escritos à mão |
+| Contrato da API | **`openapi-typescript` + `openapi-fetch`** (`openapi-react-query` adiado, `D-061`) gerados do OpenAPI do FastAPI | Tipos nunca divergem; `make api-types` regenera; CI falha se houver drift | Orval, hey-api, tipos escritos à mão |
 | Tabelas | **TanStack Table** | Comparador lado a lado, orçamento 4 colunas, convidados | AG Grid (pesado/licença) |
 | Formulários | **React Hook Form** + **Zod** (validação de UX; a regra final é do backend) | Padrão estável | Formik |
 | Estilo | **Tailwind CSS v4** com tokens em CSS variables (`@theme`) mapeados de `docs/design/visual-direction.md` | Tokens oficiais viram classes (`bg-canvas`, `text-ink`, `bg-olive`…) | CSS Modules |
@@ -128,11 +128,11 @@ Como o SQLite foi a escolha (`D-020`), estas regras são **obrigatórias desde a
 | Formatação monetária | `Intl.NumberFormat('pt-BR')` sobre centavos inteiros | Sem aritmética de float | — |
 | Fontes (autohospedadas via Fontsource) | **Newsreader** (serifa), **Plus Jakarta Sans** (interface), **JetBrains Mono** (números, com `tabular-nums`) | Concretiza as referências de `D-015`/`D-016`; **aprovadas em `D-025`** | Instrument Serif / DM Sans / Geist Mono |
 | PDFs | Início: visualização nativa (`<object>`/nova aba). Evolução: `react-pdf` (pdf.js) para o painel lateral no desktop e no iOS | Evita dependência pesada antes de ser necessária | — |
-| PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell* | `D-003` | — |
+| PWA | **`vite-plugin-pwa`** (Workbox): manifesto, instalável, cache do *app shell*; `registerType: 'prompt'` (a versão nova entra na próxima abertura); `/api/` fora do *fallback* e sem `runtimeCaching` | `D-003`, `D-064` | — |
 | Lint / format | **Biome** (um único binário para lint + format) + o gate de limites (`apps/web/src/architecture.test.ts`, `D-051`) para limites entre `features` (no lugar do `dependency-cruiser`, que não suporta o Node 25) | Menos configuração | ESLint + Prettier |
 | Vitrine do Design System | Rota interna `/design-system` (tokens, tipografia, componentes, estados) | Cumpre o Bloco 0.2 sem o peso do Storybook | Storybook |
 
-**Fronteira explícita do PWA na v1:** instalável e com *app shell* em cache; **sem modo offline de escrita** e sem sincronização offline de dados (não está no escopo aprovado). Se vocês quiserem consulta offline do último estado, isso vira nova decisão.
+**Fronteira explícita do PWA na v1 (implementada em `D-064`):** instalável e com *app shell* em cache (o service worker só existe no build de produção); **sem modo offline de escrita** e sem sincronização offline de dados (não está no escopo aprovado). Se vocês quiserem consulta offline do último estado, isso vira nova decisão.
 
 ### 5.1 Onde mora cada cálculo
 Simulador de orçamento, contadores de convidados, custo comparável e destravamento de cronograma são calculados **no backend**. O frontend chama endpoints de leitura/simulação com *debounce* ao editar premissas. Para 2 usuários a latência é irrelevante, e ganhamos **uma só implementação** das regras, testada em Python.
@@ -144,6 +144,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 - Dois usuários criados por CLI, cada um vinculado a um `Profile` (`Noivo` ou `Noiva`). `Ambos` é um valor de responsabilidade/visão, não um login.
 - **Autoria** de avaliações, interações, tarefas e comprovantes vem **sempre da sessão**, nunca de um campo enviado pelo cliente.
 - **Seletor de lente** (barra superior): `Visão do Casal` · `Minha visão`. Ele altera foco e destaques, **não** a autoria.
+- Parâmetros de sessão, cookie, CSRF e *rate limit* do login: `D-059`, item 3; implementados em `D-061`, com a sessão, o Argon2 e as tentativas no módulo `identity`.
 - Questões de produto abertas por essa decisão: `OQ-ENG-004`.
 
 ---
@@ -155,12 +156,13 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 | Lint/format Python | **Ruff** (lint + format) |
 | Tipos Python | **Pyright** (modo `standard`, endurecer gradualmente) |
 | Arquitetura Python | **`import-linter`** com os contratos de `architecture.md` §9 |
-| Testes backend | **pytest** + `httpx`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
+| Testes backend | **pytest** + `httpx2`/`TestClient`; regras puras testadas sem banco; **Hypothesis** para invariantes numéricas (orçamento, contadores, parcelas); banco de teste SQLite temporário |
 | Testes frontend | **Vitest** + Testing Library (componentes e utilitários) |
-| E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Entra com o login (restante do Bloco 0.1). Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
-| Hooks locais | `pre-commit` (ruff, pyright, biome); **adiado até o `apps/api`** (`D-043`) |
-| CI (quando houver remoto) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
-| Comandos | **Makefile** na raiz: `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` |
+| E2E | **Playwright** com projeto *desktop* e projeto *mobile* (viewport de celular). Existe desde `D-064` (`make e2e`): build de produção e API de verdade com banco temporário, no Chrome instalado, *desktop* e *mobile*, e é um job do CI. Verificação automatizada com `axe` **adiada** (`D-028`); acessibilidade verificada manualmente + regras do Biome |
+| Hooks locais | `pre-commit` com hooks locais que chamam os alvos do Makefile (`make lint-api`, `make typecheck-api`, `make lint-web`: ruff, import-linter, pyright e biome); `pre-commit install` é feito por clone (`D-043`, `D-059`, `D-060`) |
+| CI (GitHub Actions, criado no PR 1, `D-059`) | Pipeline com: lint, tipos, testes, build do web, **checagem de drift dos tipos OpenAPI** e, antes do deploy, testes contra PostgreSQL |
+| Comandos | **Makefile** na raiz: `make dev`, `build`, `lint`, `typecheck`, `test` (os três com variantes `-api` e `-web`) e `migrate`; `api-types` (`D-061`) |
+| Contrato OpenAPI | `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`; o gerador mora em `tools/api-types` (`openapi-typescript` com o TypeScript 5, que o web, no 7, não roda); o drift é o job `contract` do CI: `make api-types` e `git status --porcelain` vazio (`D-059`, `D-061`) |
 
 ---
 
@@ -169,7 +171,7 @@ Simulador de orçamento, contadores de convidados, custo comparável e destravam
 ```
 wedding-planner/
 ├─ apps/
-│  ├─ api/     (Python — ver §3.1)
+│  ├─ api/     (Python — ver `architecture.md` §4)
 │  └─ web/     (React — src/app, routes, features/<modulo>, components/ui, lib, styles)
 ├─ data/       (gitignored: SQLite e uploads em desenvolvimento)
 ├─ docs/
@@ -213,11 +215,11 @@ Supabase Auth e Vercel (de `D-019`) deixam de fazer parte do plano: o login é p
 
 **Bloco 0.1 — Fundação** *(executado em duas partes, `D-028`: primeiro só o item 1 na parte do `apps/web`, com Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`; os demais itens em outra sessão)*
 1. Monorepo `apps/api` + `apps/web`, Makefile, `uv`, `pnpm`, hooks e linters.
-2. FastAPI com `core/` (config, DB SQLite com PRAGMAs, `Money`, `FileStorage` local, erros padronizados) + Alembic + primeira migração.
+2. FastAPI com `shared_kernel/` (`Money`, erros base) e `platform/` (config, DB SQLite com PRAGMAs, `FileStorage` local, erros padronizados), conforme `architecture.md` §4 (`D-059`) + Alembic + primeira migração.
 3. Modelo de domínio **inicial mínimo** do Nível 0: `User`, `Session`, `FileAsset` (`Profile` é enum de domínio — `architecture.md` §12), com o *mixin* de histórico básico e módulos `identity` e `files` nas 4 camadas. As demais entidades entram **junto de cada bloco que as usa** (evita modelar 10 objetos no escuro).
 4. Login para os dois usuários (CLI de criação), logout, sessão e CSRF.
 5. SPA com `openapi-fetch` + geração de tipos, roteamento, guarda de rota autenticada e **seletor de lente**.
-6. PWA instalável (manifesto + *app shell*).
+6. PWA instalável (manifesto + *app shell*), com o E2E que o prova (`D-064`).
 
 **Bloco 0.2 — Design System (enxuto, `D-028`)** — ordem de construção em `docs/design/design-system.md` §13
 1. Tokens do **tema claro** gerados do `tokens.json` e mapeados em `@theme`, com nomes semânticos; fontes autohospedadas. Tema escuro adiado até o usuário pedir.

@@ -1,7 +1,10 @@
 ---
 name: altare-monorepo
 description: >-
-  Estrutura e disciplina do monorepo do Altare: apps/api (Python, uv) e apps/web (React, pnpm), Makefile e scripts na raiz, regra de dependência entre os apps (só pelo contrato OpenAPI), geração de tipos TypeScript com checagem de drift, arquivos gerados que nunca se editam à mão, packages/ só com segundo consumidor real, CI com path filters e a decisão D-040 de não usar git submodules, para que API e web mudem em PRs e commits atômicos. Use sempre que for criar ou mexer em pastas de topo, Makefile, workspace pnpm, pyproject, geração de tipos do OpenAPI, ou ao fazer uma mudança que atravessa API e web, mesmo que o usuário não fale em monorepo. NÃO use para hospedagem, Docker e deploy (use altare-devops), para camadas internas de um módulo (use altare-arquitetura) nem para rotas e erros HTTP (use altare-backend-api).
+  Estrutura do monorepo do Altare: apps/api (uv) e apps/web (pnpm), Makefile e scripts na raiz,
+  contrato OpenAPI, tipos gerados com checagem de drift, sem git submodules (D-040). Use ao criar ou
+  mexer em pastas de topo, Makefile, workspace pnpm, pyproject, geração de tipos, ou em mudança que
+  atravessa API e web.
 ---
 
 # Monorepo
@@ -27,13 +30,13 @@ wedding-planner/
 └─ AGENTS.md · CLAUDE.md
 ```
 
-**Estado atual:** só o `apps/web` existe (Etapa 0 concluída, `D-043`); `apps/api` vem depois (`D-028`); os alvos do Makefile crescem junto, sem stub de alvo para app inexistente.
+**Estado atual:** `apps/web`, `apps/api` e `tools/api-types` existem (`D-060`, `D-061`); os alvos do Makefile crescem junto, sem stub. O gerador dos tipos vive em `tools/api-types`, fora do `apps/web`, porque o `openapi-typescript` exige o TypeScript 5 e o web usa o 7.
 
 ## Princípios
 
 1. **Sem git submodules** (`D-040`). Não proponha, não adicione e remova se aparecer.
 2. **Os apps só se falam pelo OpenAPI.** `apps/web` não importa código de `apps/api` e o contrário também não. Enum, nome de campo e formato de erro chegam ao web pelos tipos gerados; copiar a lista de valores de um enum para o TypeScript cria a segunda verdade que o contrato existe para evitar.
-3. **Tarefas na raiz via `make`:** `make dev`, `make test`, `make lint`, `make api-types`, `make migrate` (`stack.md` §7). O Makefile só orquestra (`uv run`, `pnpm`); lógica não mora nele.
+3. **Tarefas na raiz via `make`:** `make dev`, `make lint`, `make typecheck`, `make test` (com variantes `-api` e `-web`), `make migrate`, `make api-types` e `make e2e` (`stack.md` §7). O Makefile só orquestra (`uv run`, `pnpm`); lógica não mora nele.
 4. **`packages/` só nasce com o segundo consumidor real.** Hoje não há nenhum. O `tokens.json` fica em `docs/design/identidade-visual/` e um script gera o `tokens.css`; isso não é motivo para criar pacote.
 5. **Arquivo gerado nunca se edita à mão:** `apps/web/src/styles/tokens.css` (de `tokens.json`) e os tipos do OpenAPI. Mude a fonte e regenere; o CI falha se o gerado divergir.
 6. **Contrato e tipos andam no mesmo commit.** Quem altera uma rota ou schema regenera os tipos (`make api-types`) no commit que muda o contrato. A tela que consome vem no commit seguinte do **mesmo PR**.
@@ -41,8 +44,9 @@ wedding-planner/
 ## Contrato OpenAPI para tipos TypeScript
 
 1. O backend exporta o OpenAPI (`wedding export-openapi`, CLI Typer, `stack.md` §3), com `operationId` estável por rota.
-2. `openapi-typescript` gera os tipos; `openapi-fetch` e `openapi-react-query` os consomem no web.
-3. **Checagem de drift:** o CI roda `make api-types` e falha se `git diff` não estiver vazio. Um teste de adaptador também guarda o *snapshot* do OpenAPI (`architecture.md` §9).
+2. `openapi-typescript` gera os tipos; `openapi-fetch` os consome no web (`openapi-react-query` adiado, `D-061`).
+3. **Checagem de drift:** o job `contract` do CI roda `make api-types` e falha se `git status --porcelain` não estiver vazio (o `git diff` não vê um arquivo gerado que nunca foi commitado). Um teste de adaptador também guarda o *snapshot* do OpenAPI (`architecture.md` §9).
+4. **Caminhos (`D-059`):** o artefato versionado é `apps/api/openapi.json` e os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`.
 
 ## CI com *path filters*
 
@@ -51,6 +55,8 @@ wedding-planner/
 | `apps/api/**` | gates do backend **e a checagem de drift** |
 | `apps/web/**`, artefato do OpenAPI e `docs/design/identidade-visual/tokens.json` | gates do frontend |
 | `Makefile`, arquivos de CI, `pnpm-workspace.yaml` | tudo |
+
+O filtro vive em `scripts/ci-changes.sh` (shell, sem ação de terceiros) e o workflow em `.github/workflows/ci.yml` (`D-060`).
 
 **Ressalva:** uma mudança em `apps/api/**` que altera o contrato **também precisa rodar o web**, porque o tipo gerado mudou. O drift check no job da API pega o esquecimento de regenerar, e o artefato versionado dispara o job do web. Se o provedor tratar job pulado por filtro como pendente e travar o merge, use um job final agregador. O pipeline em si é de `altare-devops`.
 
@@ -72,5 +78,4 @@ wedding-planner/
 
 ## Em aberto
 
-- **Caminho do artefato OpenAPI versionado e dos tipos gerados:** os docs não fixam. Defina na criação do `apps/api` e registre em `stack.md`.
-- **Provedor de CI** e sintaxe dos *path filters* dependem dele (`altare-devops`).
+- Nada em aberto: o caminho do OpenAPI e o provedor de CI (GitHub Actions) foram definidos em `D-059`.

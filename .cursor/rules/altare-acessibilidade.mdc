@@ -1,0 +1,9 @@
+---
+description: "Checklist manual WCAG 2.2 AA do Altare (o gate que substitui o axe, D-028): teclado, foco, nome acessível, contraste, toque, landmarks, reflow, movimento. Use ao concluir ou revisar qualquer componente, tela, formulário, diálogo ou tabela no apps/web, antes de pedir review."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-acessibilidade/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-acessibilidade/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

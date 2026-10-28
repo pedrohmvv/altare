@@ -1,0 +1,9 @@
+---
+description: "Como escrever código limpo e sem cara de IA no Altare (Python em apps/api, TypeScript em apps/web): nomes, funções pequenas, erros de domínio, dinheiro em centavos, onde o arquivo mora. Use ao escrever, editar ou refatorar qualquer código de produção ou de teste do repositório."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-escrita-de-codigo/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-escrita-de-codigo/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

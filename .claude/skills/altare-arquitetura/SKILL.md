@@ -1,7 +1,10 @@
 ---
 name: altare-arquitetura
 description: >-
-  Arquitetura do Altare: camadas (domínio, aplicação, adaptadores, infraestrutura, composição), regra de dependência, limites entre módulos via public.py, CQRS leve, eventos de domínio, quando criar porta, repositório ou abstração, e como registrar decisões como D-xxx em decisions.md. Use ao criar ou mover módulo, caso de uso, entidade, porta ou evento, ao decidir onde um código mora, ao ver import cruzando camadas ou módulos, ou ao pensar em introduzir abstração nova, mesmo que o usuário só peça uma funcionalidade. Todo módulo novo nasce com CLAUDE.md. NÃO use para rotas e erros HTTP (use altare-backend-api), tabelas e migrations (use altare-banco-de-dados), ferramentas de agente (use altare-agente-dados) ou formato do registro de decisão e do CLAUDE.md de módulo (use altare-docs-vivas).
+  Camadas do Altare (domínio, aplicação, adaptadores, infraestrutura), limites entre módulos via
+  public.py, CQRS leve, eventos, quando criar porta ou abstração. Use ao criar ou mover módulo, caso
+  de uso, entidade, porta ou evento, ao decidir onde um código mora ou ao ver import cruzando camadas.
+  Módulo novo nasce com CLAUDE.md.
 ---
 
 # Arquitetura do Altare
@@ -68,5 +71,6 @@ def pay(id: UUID, uc: PayInstallment = Depends(...), actor: Actor = Depends(...)
 - Estilo de código dentro de cada arquivo: `altare-escrita-de-codigo`. Estrutura do frontend: `altare-frontend`. Estrutura de apps e CI: `altare-monorepo`.
 
 ## Em aberto
-- Mapeamento imperativo do SQLAlchemy pode atritar com o Pyright; o plano B (`to_domain`/`to_row` só nos agregados ricos) está em `architecture.md` §3 item 2 e §14. Só acione com atrito comprovado.
+- Mapeamento imperativo do SQLAlchemy pode atritar com o Pyright; no `identity` (`D-061`) não houve atrito, e o plano B (`to_domain`/`to_row` só nos agregados ricos, `architecture.md` §3 item 2 e §14) segue em reserva.
+- **Onde moram (`D-061`):** o `UnitOfWork` base e as colunas do histórico em `platform/db`; o `Protocol` da UoW na aplicação do módulo, com os casos de uso recebendo uma **fábrica**; Argon2 e sessão no módulo, não em `platform/security`; a composição em `platform/bootstrap`, por um *container* que monta sob demanda.
 - Biblioteca de orquestração de agentes: adiada para o Bloco 5.1 (`architecture.md` §7).

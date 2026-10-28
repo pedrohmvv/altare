@@ -1,0 +1,9 @@
+---
+description: "Ponte entre os dados do Altare e o assistente (Nível 5, D-042): tools = casos de uso, escrita só por ChangeProposal com confirmação (D-008), schema legível por agente, canais de chat e WhatsApp. Use ao criar tool ou canal do assistente, expor dado ao agente ou desenhar tabela ou view que o agente lê."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-agente-dados/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-agente-dados/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

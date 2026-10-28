@@ -1,0 +1,9 @@
+---
+description: "Como commitar no Altare: commits atômicos por intenção, plano aprovado antes de executar, Conventional Commits com tipo em inglês e descrição em pt-BR (D-039). É o único caminho de commit do repositório. Use quando pedirem para commitar, salvar as mudanças ou fechar o trabalho, ou ao terminar um ciclo antes do PR."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-commit/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-commit/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

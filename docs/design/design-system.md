@@ -88,7 +88,7 @@ Valores de cada papel (claro e escuro) estão em `docs/design/identity.md` §3.3
 
 - Atributo **`data-theme`** no `<html>`; três modos do usuário: `claro`, `escuro`, `sistema` (padrão).
 - **Script inline mínimo no `index.html`** lê `localStorage.theme` e `prefers-color-scheme` **antes da primeira pintura** (evita *flash* de tema errado).
-- Alternador no **menu do usuário**; preferência salva **por dispositivo** (`localStorage`). Persistir por usuário no servidor fica como evolução.
+- Alternador no **cartão da sessão** (`D-061`) ou onde o usuário decidir quando o tema escuro entrar; preferência salva **por dispositivo** (`localStorage`). Persistir por usuário no servidor fica como evolução.
 - Atualizar `<meta name="theme-color">` a cada troca.
 - Textura de papel e sombras de overlay aplicadas só no claro (`[data-theme="light"]`).
 
@@ -139,7 +139,7 @@ Todo token mono aplica `font-variant-numeric: tabular-nums`. Largura máxima de 
 ### Casca do aplicativo (shell)
 | Faixa | Layout |
 | :--- | :--- |
-| **≥ 1024 (desktop)** | Barra lateral fixa de 256 px (marca, 7 áreas e, separado por uma hairline ao fim, o **Assistente**, `D-050`) + barra superior (título da área, **seletor de lente**, menu do usuário) + conteúdo (máx. 1200 px; tabelas comparativas usam largura total) |
+| **≥ 1024 (desktop)** | Barra lateral fixa de 256 px (marca, 7 áreas e, separado por uma hairline ao fim, o **Assistente**, `D-050`) + barra superior (título da área e **seletor de lente**; a sessão fica no pé da barra lateral, `D-061`) + conteúdo (máx. 1200 px; tabelas comparativas usam largura total) |
 | **768–1023 (tablet)** | Barra lateral recolhida em trilho de ícones (72 px) |
 | **< 768 (mobile)** | Barra superior compacta + **barra inferior** com 4 destinos + "Mais" + botão flutuante **"+ Registrar Rápido"** (Bloco 3.1). O **ícone flutuante do assistente** fica acima da barra inferior; a convivência dos dois é a `OQ-IA-001`, item 5 |
 
@@ -306,7 +306,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 | Demais primitivos de §8 (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`) e `MoneyInput` | Quando a primeira tela que o usa for construída |
 | Componentes de domínio de §9 | No bloco que os usa |
 | `QuickAddFab` ("+ Registrar Rápido") | Primeiro bloco com algo para registrar rápido (Bloco 3.1) |
-| Menu do usuário | Com o login (restante do Bloco 0.1) |
+| Menu do usuário | **Resolvido em `D-061`**: não há menu na barra superior; a sessão fica no pé da barra lateral, no trilho e na folha "Mais" |
 | E2E de navegação com Playwright | Com o login (restante do Bloco 0.1) |
 
 **Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos listados com variantes e estados, no tema claro, em desktop e mobile; as 8 áreas são navegáveis como esqueletos; o app segue a identidade do Altare. **Conferido e cumprido em `D-057`.**
@@ -367,7 +367,8 @@ O **guia de identidade** (`docs/design/identidade-visual/`, aprovado em `D-024` 
 | Comparador de propostas | 40 | `aplicacoes/comparador` | `build_comparador` `:1003-1053` | Pendente (Bloco 3.2) |
 | `QuickAddFab` ("Registrar") | 39 | `aplicacoes/mobile` | `:963` | Pendente (Bloco 3.1) |
 | Catálogo da identidade na vitrine | 12, 30, 31, 33, 36, 42 | `construcao/lockups`, `elementos/arco`, `elementos/ramo`, `elementos/iconografia`, `aplicacoes/favicon-e-icone-de-app`, `aplicacoes/dossie-do-dia-d` | `build_lockups` `:226`, `build_arco` `:555`, `build_ramo` `:577`, `build_iconografia` `:643-661`, `build_favicon_app` `:784-819`, `build_dossie` `:1055-1103` | Desvio: sem a aba escura nem a grade de apps; Dossiê só com as peças e as regras (`D-058`) |
-| Login | 37 | `aplicacoes/tela-de-login` | `build_login` `:821-841` | Pendente (restante do Bloco 0.1) |
+| Login | 37 | `aplicacoes/tela-de-login` | `build_login` `:821-841` | Conforme (`D-061`); campo de 44 e botão de 48 com texto 15 pelos primitivos (`D-054`), ramo pequeno, aviso de erro em argila, sem arco nem ramo no celular |
+| Sessão: pé da barra lateral, trilho e folha "Mais" | 38 | `aplicacoes/visao-geral` | `_visao_geral` `:863-864` | Conforme com desvios (`D-061`): o bloco virou botão com seta e abre o cartão com o Sair; ícone no trilho; a folha "Mais" termina com a sessão |
 | Dossiê do Dia D (impressão) | 42 | `aplicacoes/dossie-do-dia-d` | `build_dossie` `:1055-1103` | Pendente (Bloco 4.2) |
 
 **Manutenção:** componente ou tela nova entra no mapa **na mesma mudança** que a constrói; um desvio novo ganha `D-xxx` e a linha passa a "Desvio". Se o guia for regenerado (`uv run build.py`), confira as linhas citadas, que acompanham `componentes.py`.

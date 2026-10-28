@@ -1,7 +1,9 @@
 ---
 name: altare-devops
 description: >-
-  CI/CD, ambientes, deploy e custos do Altare: pipeline que executa os gates de qualidade, configuração por variáveis de ambiente (DATABASE_URL, STORAGE_BACKEND, SECRET_KEY, ALLOWED_HOSTS), imagem Docker multi-stage de um único container, caminho local para nuvem, migração dos dados de SQLite para PostgreSQL com contagem e somatório, backup como requisito de implantação e controle de custo. Use sempre que for criar ou alterar CI, Dockerfile, variáveis de ambiente, deploy, hospedagem, backup, migração de banco entre ambientes ou estimar custo de infraestrutura, mesmo que o usuário só diga vamos publicar o app. NÃO use para decidir quais gates existem ou escrever testes (use altare-testes-qa), para estrutura de pastas, Makefile e drift de OpenAPI (use altare-monorepo) nem para política de segredos e LGPD (use altare-seguranca-privacidade).
+  CI/CD, ambientes, deploy e custos do Altare: pipeline de gates, variáveis de ambiente, Docker,
+  migração SQLite para PostgreSQL, backup. Use ao criar ou alterar CI, Dockerfile, variáveis de
+  ambiente, deploy, hospedagem ou backup, ou ao estimar custo de infraestrutura.
 ---
 
 # DevOps
@@ -31,15 +33,15 @@ O pipeline roda, nesta ordem lógica, com *path filters* conforme `altare-monore
 2. Web: Biome, `tsc`, Vitest (inclui o gate de limites, `D-051`), build.
 3. Contrato: regenerar tipos do OpenAPI e falhar se houver diff.
 4. Antes do deploy: suíte de integração contra **PostgreSQL** em contêiner efêmero.
-5. E2E com Playwright (desktop e mobile), quando o login existir.
+5. E2E com Playwright (desktop e mobile) contra o build de produção e a API de verdade, com banco temporário: job `e2e` (`D-064`).
 
-O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`).
+O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`). O provedor é o GitHub Actions, e o workflow está em `.github/workflows/ci.yml` (`D-059`, `D-060`): jobs `changes`, `api`, `web`, `contract`, `e2e` e o agregador `CI`, o único check a exigir na proteção das branches.
 
 ## Ambientes
 
 | Ambiente | Banco | Arquivos | Notas |
 | :--- | :--- | :--- | :--- |
-| Desenvolvimento | SQLite em `data/` | disco local (`LocalFileStorage`) | `make dev` sobe Uvicorn (`:8000`) e Vite (`:5173`) com proxy de `/api` |
+| Desenvolvimento | SQLite em `data/` | disco local (`LocalFileStorage`, pasta `FILES_DIR`) | `make dev` sobe Uvicorn (`:8000`) e Vite (`:5173`) com proxy de `/api` |
 | Teste | SQLite temporário; Postgres efêmero no portão | temporário | Dados fictícios |
 | Produção | PostgreSQL gerenciado | S3-compatível (`S3FileStorage`) | Cookie `Secure` ligado |
 
@@ -78,6 +80,5 @@ Script único (SQLAlchemy lê um e escreve no outro), executado só depois do po
 ## Em aberto
 
 - **Provedor de aplicação** (Fly.io, Render ou Railway), **Postgres gerenciado** (Neon, Supabase só como Postgres, ou o do provedor) e **storage S3-compatível** (Cloudflare R2, Backblaze B2 ou Supabase Storage): não decididos (`stack.md` §9). Decidir quando o Nível 1 estiver utilizável.
-- **Provedor de CI:** os docs não nomeiam um. O repositório está no GitHub, mas a escolha deve ser registrada.
 - **Observabilidade de erros (Sentry, plano gratuito)** antes do deploy; **jobs agendados**, **Web Push** e **WhatsApp** (`stack.md` §10).
-- **Estratégia de backup e retenção:** depende da hospedagem (D-038).
+- **Estratégia de backup e retenção:** depende da hospedagem (D-038); a pasta `FILES_DIR` entra no backup junto do banco (`D-063`).

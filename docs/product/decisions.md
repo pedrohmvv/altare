@@ -1162,3 +1162,227 @@
   - Rota separada `/design-system/marca`: outra rota só de desenvolvimento e mais um caso de teste de produção.
   - Reproduzir a aba escura com cor solta: quebra a regra de só token (`D-055`) por um tema que não existe ainda.
 - **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na vitrine (a navegação por âncoras do índice, o foco e o zoom de 200%) e a revisão dos textos do catálogo, que são do guia, com os subtítulos de origem propostos pelo agente.
+
+---
+
+## D-059 — Bloco 0.1, parte 2: plano em 4 PRs, parâmetros de segurança do login e esquema de versão
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2: planejamento, sem código)
+- **Pedido do usuário:** planejar a segunda metade do Bloco 0.1 (API, banco, login, PWA e E2E) antes de codar, porque o critério do Nível 0 pede login individual de Noivo e Noiva (`roadmap.md` Bloco 0.1). Escolhas dele: 4 PRs por dependência, CI no primeiro PR, lente só na URL e o esquema de versão por bloco.
+- **Decisão:**
+  1. **Versão:** `MINOR` por bloco concluído, `PATCH` por hotfix, `1.0.0` no fim do Nível 4 (`altare-git-fluxo`, regra 5, agora confirmada). `v0.1.0` marca o Bloco 0.2 (merge `335c5a3`); o fechamento do Nível 0 será `v0.2.0`.
+  2. **Quatro PRs para a `develop`, nesta ordem, cada um com os gates verdes:**
+     - **PR 1, `feat/api-esqueleto`:** `apps/api` com `uv`, Ruff, Pyright `standard`, pytest + Hypothesis e import-linter com os contratos de `architecture.md` §9; `shared_kernel/` e `platform/` (config, db com PRAGMAs e convenção de nomes, `problem+json`); Alembic com teste sobe/desce/sobe; `GET /api/v1/health` com snapshot do OpenAPI; Makefile (`dev`, `test`, `lint`, `typecheck`, `migrate`); proxy `/api` no Vite; `pre-commit`; **CI no GitHub Actions** (jobs de API e web, com *path filters*).
+     - **PR 2, `feat/login`** (um PR só, `D-040`): módulo `identity` nas 4 camadas com `CLAUDE.md`; CLI `wedding create-user`; `POST /api/v1/auth/login`, `POST /api/v1/auth/logout` e `GET /api/v1/auth/me`; `make api-types` e o gate de drift no CI; `openapi-fetch` e TanStack Query no web; tela de login (pág. 37 do guia); guarda de rota; bloco de sessão e logout (pág. 38); testes de segurança dedicados.
+     - **PR 3, `feat/api-files`:** módulo `files` nas 4 camadas com `CLAUDE.md`.
+     - **PR 4, `feat/web-pwa-e2e`:** `vite-plugin-pwa` (sem escrita offline) e Playwright desktop e mobile.
+  3. **Parâmetros de segurança do login** (nenhum documento os definia):
+     - Sessão: token opaco de `secrets.token_urlsafe(32)`, guardado só como hash SHA-256; expira com 30 dias sem uso e 90 dias no máximo; token novo a cada login (anti-fixação); logout apaga a linha.
+     - Cookie `altare_session`: `HttpOnly`, `SameSite=Lax`, `Path=/api`, `Secure` fora de desenvolvimento.
+     - CSRF: header `X-Altare-CSRF: 1` obrigatório em todo método mutador; sem ele, 403 `csrf_missing`. Sem CORS habilitado.
+     - Rate limit: 5 falhas por usuário e IP em 15 minutos, 429 `too_many_attempts` com `Retry-After`; em memória, o que vale para um processo só.
+     - Senha: `argon2-cffi` com os padrões da biblioteca e *rehash* no login quando preciso. Usuário inexistente verifica um hash fictício e devolve o mesmo 401 `invalid_credentials`.
+  4. **Contrato:** `wedding export-openapi` grava `apps/api/openapi.json` (versionado); os tipos vão para `apps/web/src/lib/api/schema.d.ts`, gerado e nunca editado; o drift é `make api-types && git diff --exit-code`.
+  5. **Lente:** continua só na URL (`D-051`, item 3); sem `?lente` abre em Casal.
+  6. **Contradições entre documentos, resolvidas:** vale `shared_kernel/` + `platform/` (`architecture.md` §4), não `core/` (`stack.md` §4, §8, §11); `Profile` é enum, não tabela; o `pre-commit` roda Ruff, Biome, Pyright e import-linter; o `dependency-cruiser` está obsoleto (`D-051`); a tabela e os casos de uso de sessão ficam em `identity`, e `platform/http` só lê o cookie, confere o CSRF e monta o `Actor`.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1; `roadmap.md` (Bloco 0.1); `stack.md` (§4, §6, §7, §8, §11); skills `altare-git-fluxo` (regra 5), `altare-monorepo` (caminho do OpenAPI e provedor de CI) e `altare-devops` (provedor de CI).
+- **Razão:** o 0.1 mistura cinco assuntos (banco, login, contrato, PWA, E2E) e os documentos deixaram em aberto os números de segurança e o caminho do OpenAPI; fechar isso antes do código evita decidir no meio de um PR.
+- **O que ficou rejeitado:**
+  - Um PR só: revisão enorme e sem ponto de retorno.
+  - Backend do login e tela em PRs separados: o contrato mudaria entre eles, contra `D-040`.
+  - `files` junto do esqueleto: nenhuma tela do Nível 0 o usa; atrasaria o login.
+  - CI só no fechamento do Nível 0: o drift de tipos e os gates de Python ficariam sem rede por três PRs.
+  - Lente por usuário agora: "Minha visão" ainda não filtra nada, então a preferência não teria efeito visível.
+  - CSRF por token duplo (*double submit*): mais código sem ganho para duas contas e sem CORS.
+  - Rate limit em tabela: persistência que dois usuários não pedem.
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | Lente lembrada por usuário | o primeiro bloco em que "Minha visão" filtrar dados |
+  | Rate limit persistente e IP real atrás de proxy | decisão de deploy (`stack.md` §9) |
+  | Suíte em PostgreSQL, `axe`, tema escuro, passkeys, backup | os gatilhos já registrados (`D-028`, `stack.md` §9 e §10) |
+- **Aprovado (2026-10-27):** o texto da decisão, incluindo os parâmetros de segurança do item 3 ("Aprovo").
+- **Pendente (do usuário):** criar a tag `v0.1.0` em `335c5a3` e empurrá-la; decidir, no PR 2 e pela pág. 38, se o bloco de sessão fica só no pé da barra lateral ou também no menu da barra superior (`D-028` e `D-052` divergem); exigir os *status checks* na proteção de `develop` e `main` quando o CI do PR 1 existir (`D-041`, item 6); a passada manual de acessibilidade do Nível 0.
+
+---
+
+## D-060 — Bloco 0.1, PR 1: esqueleto da API, contratos de camada, Makefile, pre-commit e CI
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 1 de 4)
+- **Pedido do usuário:** executar o plano da `D-059`, em blocos, começando pelo PR 1 (`feat/api-esqueleto`). Aprovou o plano de cada bloco e dos commits antes da execução.
+- **Decisão:**
+  1. **Projeto:** `apps/api` com `uv`, Python 3.13 (`.python-version` e `requires-python >=3.13`), FastAPI, Pydantic v2, SQLAlchemy 2 síncrono, Alembic e Typer; em desenvolvimento, pytest, Hypothesis, `httpx2`, Ruff, Pyright em `standard` e `import-linter`. Ruff com linha de 100 e as regras `E F I UP B SIM N C4 PT RUF`; N818 é ignorado porque os nomes dos erros (`NotFound`, `Conflict`) são os de `architecture.md` §8.
+  2. **Sete contratos do `import-linter`**, os 6 de `architecture.md` §9 e mais um (`shared_kernel` não depende de `platform` nem dos módulos), verificados contra violações plantadas e não só contra o pacote vazio. **Dois desvios:** (a) o domínio puro é uma **lista de proibidos** (`sqlalchemy`, `alembic`, `fastapi`, `starlette`, `pydantic`, `typer` e as outras camadas), porque a ferramenta não expressa "só a biblioteca padrão"; (b) o contrato 6 proíbe `platform.db`, `http`, `events`, `config` e o `shared_kernel` de importar adaptadores e infraestrutura dos módulos, em vez de "só o `bootstrap` importa todas as camadas", para o `platform/http` poder ler `identity.application.public` no PR 2 (`D-059`, item 6). A independência entre módulos usa `**` na origem e `unmatched_ignore_imports_alerting = "none"`.
+  3. **`shared_kernel/`:** `Money` em centavos inteiros (recusa `float`, `bool` e texto) com `split` que arredonda para baixo e leva o resto à última parcela (`contratos-e-parcelas.md`, F-CTR); `ProfileKind` com os valores `Noivo`, `Noiva` e `Ambos`, iguais aos da spec; `Actor` (recusa `Ambos`); IDs UUID v7 quando o Python o oferece, senão v4 (no 3.13, v4); `Clock`; erros base com `code` estável.
+  4. **`platform/`:** `Settings` só com `database_url` (padrão `sqlite:///data/altare.db`); engine SQLite com `foreign_keys`, WAL e `busy_timeout` de 5000 ms, que cria a pasta do arquivo; convenção de nomes de constraints no `MetaData`; `UtcDateTime`; *app factory* em `platform/http` sob `/api/v1` (documentação em `/api/v1/docs`) e composição em `platform/bootstrap`; `problem+json` com mapa único de mensagens em `platform/http/messages.py` (**textos propostos pelo agente, a revisar**) para erro de domínio, validação (campo e mensagem), 404, 405 e falha inesperada (500 sem vazar detalhe); `GET /api/v1/health` com `operationId` `health_check`.
+  5. **Contrato:** `wedding export-openapi` grava `apps/api/openapi.json` e um teste exige o arquivo em dia.
+  6. **Alembic** em `apps/api/migrations`, com `render_as_batch`, URL do `alembic.ini` ou de `DATABASE_URL` e a migração `0001` vazia (*baseline*). Os testes sobem, descem e sobem de novo, exigem uma cabeça só, `downgrade` em todo arquivo e banco migrado sem diferença para o `MetaData`.
+  7. **Makefile:** `dev` (Uvicorn em `127.0.0.1:8000` com *reload* e Vite, por `make -j2`), `build`, `lint`, `typecheck` e `test` (cada um com variantes `-api` e `-web`), `migrate`, `tokens`, `brand` e `cursor-rules`; `DATABASE_URL` padrão em `data/altare.db`, caminho absoluto. O Vite faz proxy de `/api` para `http://127.0.0.1:8000`. **`make api-types` só nasce no PR 2**, sem alvo de enfeite.
+  8. **`pre-commit`:** três hooks locais que chamam `make lint-api` (Ruff e `import-linter`), `make typecheck-api` (Pyright) e `make lint-web` (Biome), a mesma fonte que o CI usa. Fecha a lista de hooks adiada em `D-043`. `pre-commit install` é por clone e não foi executado.
+  9. **CI** em `.github/workflows/ci.yml`: jobs `changes`, `api` e `web`, mais o agregador `CI`, que é o **único check a exigir** na proteção das branches (job pulado pelo filtro conta como verde). O filtro é `scripts/ci-changes.sh`, em shell, com a tabela de `altare-monorepo`, e na dúvida roda tudo. API: `uv sync` com lock travado, `make lint-api`, `typecheck-api` e `test-api`. Web: Node 22, `pnpm install --frozen-lockfile`, `make lint-web`, `typecheck-web`, `test-web` e `build`. As ações estão fixadas por SHA de releases com 14 dias ou mais: `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0, `pnpm/action-setup` v6.1.0 e `astral-sh/setup-uv` v10.3.0.
+  10. **Fica para o PR 2, por não ter consumidor agora:** *mixin* de histórico, `UnitOfWork`, dispatcher de eventos, `security/`, `storage/`, `make api-types` e os tipos no web.
+- **Ajustes em arquivos aprovados:** `stack.md` §7 (`httpx2`, hooks e comandos); `architecture.md` §9 (`httpx2`); `AGENTS.md` §1; `roadmap.md` (Bloco 0.1); skills `altare-testes-qa` (`httpx2` e a lista de hooks fechada), `altare-devops` (o workflow existe) e `altare-monorepo` (estado e o filtro do CI).
+- **Razão:** o PR 1 deixa o terreno pronto para o login sem decidir no meio dele: as camadas já são barradas por máquina, o contrato OpenAPI já tem dono, e os mesmos alvos rodam no terminal, no hook e no CI.
+- **O que ficou rejeitado:**
+  - Ação de terceiros para filtrar caminhos (`dorny/paths-filter`): uma dependência de cadeia de suprimentos para umas 15 linhas de shell que se testam localmente.
+  - `on.pull_request.paths` do próprio GitHub: pula o workflow inteiro e deixaria o check obrigatório pendente num PR só de docs.
+  - Tags móveis nas ações (`@v4`): o SHA fixa o que roda e a anotação com a versão mantém a leitura.
+  - Hooks do `pre-commit` com repositórios externos de Ruff e Biome: duas versões de cada ferramenta, a do hook e a do projeto.
+  - Mixin, `UnitOfWork` e dispatcher agora: sem consumidor, envelhecem sem uso (`altare-banco-de-dados`, princípio 11).
+  - `fileConfig` de logging no `env.py` do Alembic: reconfigura o log de quem importa o módulo, inclusive os testes.
+- **Riscos conhecidos, com onde se resolvem:**
+  - O `env.py` usa o engine com `foreign_keys` ligado, e migração em *batch* no SQLite costuma exigir desligá-lo; trata-se na primeira migração real, no PR 2, com teste.
+  - O erro (`ProblemDetails`) ainda não está no OpenAPI; decide-se junto do `make api-types`, no PR 2.
+  - `/api/v1/docs` fica aberto sem autenticação, inclusive em produção; decide-se no deploy.
+  - O CI usa Node 22 e a máquina local só tem o 25; o workflow só foi validado por leitura do YAML e pela execução local dos mesmos alvos, e a prova é a primeira execução no GitHub, neste PR.
+  - Dois testes de migração só passam a ter peso quando houver tabela (banco migrado sem diferença e `downgrade` em todo arquivo).
+- **Pendente (do usuário):** revisar os textos de `messages.py`; exigir o check `CI` na proteção de `develop` e `main` depois da primeira execução (`D-041`, item 6); rodar `pre-commit install` se quiser os hooks neste clone; a passada manual de acessibilidade do Nível 0, que segue pendente.
+
+---
+
+## D-062 — Skills: carregamento automático, sem o usuário citar a skill
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2)
+- **Pedido do usuário:** "não precisar ficar explicitando qual skill usar" e "que as skills sejam carregadas corretamente".
+- **Decisão:**
+  1. A auditoria das 13 sessões do projeto mostrou que a lista de skills do Claude Code tem orçamento de caracteres e que, com 93 skills, de 9 a 16 das 23 `altare-*` apareciam só pelo nome, sem descrição, e por isso não disparavam sozinhas. As chamadas à Skill tool vinham quase sempre de pedido explícito do usuário, e o resto era lido de forma parcial com `cat` ou `sed`.
+  2. As 23 `description` passam a ter de 220 a 360 caracteres (antes, de 740 a 1.120), com o gatilho primeiro. O "NÃO use" saiu da descrição: continua em "Limites e vizinhas" no corpo de cada `SKILL.md`.
+  3. `AGENTS.md` §5 ganha a tabela "tarefa → skills" entre os marcadores `skills-map`. Um hook de `SessionStart` em `.claude/settings.json` injeta esse bloco no início de cada sessão e depois de cada compactação, e a regra é: carregar pela Skill tool, antes da primeira edição, sem `cat` nem `sed`.
+  4. `.claude/settings.json` também define `skillListingBudgetFraction: 0.02` (o padrão é 0,01), para dar folga ao orçamento da lista.
+  5. `.cursor/rules/altare-*.mdc` foram regeradas (`make cursor-rules`) e `project.mdc` aponta para a tabela.
+  6. O `CLAUDE.md` da raiz segue sem regras (`D-039`): o hook cobre o que ele cobriria.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §5 (parágrafo de carregamento automático e tabela), `.claude/skills/altare-*/SKILL.md` (só o `description`), `.cursor/rules/*.mdc` (geradas) e `.cursor/rules/project.mdc` (um ponteiro).
+- **Razão:** a skill só ajuda se carregar inteira e no momento certo, e o usuário não deveria precisar lembrar disso a cada pedido.
+- **O que ficou rejeitado:**
+  - Desligar as skills `dharma-*` neste projeto com `skillOverrides`: com as descrições curtas, tudo cabe no orçamento, e isso mexeria na configuração pessoal do usuário. Fica como opção.
+  - Pôr a tabela no `CLAUDE.md`: ele não recebe regras (`D-039`).
+  - Um hook `UserPromptSubmit` por palavra-chave: mais frágil e mais ruído que a tabela injetada uma vez.
+- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta"); conferir em uma sessão nova, com `/context`, se as 23 skills aparecem com descrição.
+
+---
+
+## D-061 — Login: módulo `identity`, borda HTTP, contrato tipado e tela de entrada (Bloco 0.1, PR 2)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 2 de 4)
+- **Pedido do usuário:** executar, em blocos, o PR do login previsto na `D-059`, com a API e a tela no mesmo PR (`D-040`), o guia de identidade como fonte do desenho (`D-055`) e um plano revisado por uma leitura independente antes de codar.
+- **Escolhido pelo usuário (2026-10-27):**
+  1. **Sessão e "Sair":** o bloco "Noivo · sessão individual" do pé da barra lateral (pág. 38) abre um cartão (`Popover`, `D-056`) com o Sair; no trilho do tablet é um ícone com o mesmo cartão; no celular a folha "Mais" ganha a sessão e o Sair. **Sem menu do usuário na barra superior**: a `D-052` prevalece sobre o item da `D-028`.
+  2. **Login no celular:** canvas, lockup vertical pequeno e o cartão na largura, sem arco nem ramo.
+  3. **Guia × `D-054`:** os primitivos vencem (campo de 44, `Button` `lg` de 48 com texto 15, sem variante só do login) e o ramo é o **pequeno**, como na pág. 37.
+  4. **Credenciais:** usuário livre, de 3 a 32 caracteres `[a-z0-9._-]`, único sem diferenciar maiúsculas e guardado em minúsculas; senha de 12 a 128 caracteres, sem regra de composição; o bloco de sessão mostra o **perfil**, não o usuário; `wedding set-password` existe e derruba as sessões, porque a tela não terá recuperação de senha.
+- **Decisão:**
+  1. **Persistência (`platform/db`):** `SqlAlchemyUnitOfWork` (uma transação por caso de uso, sem *autoflush*, `StaleDataError` vira `VersionConflict`, `act_as(actor)`); `audit_columns()` é uma fábrica das oito colunas do histórico (`architecture.md` §10) e um `before_flush` carimba criação e alteração, com `updated_at` só quando o objeto mudou; `created_by` não tem chave estrangeira; gravar entidade com histórico fora de uma UnitOfWork falha alto. Mapeamento imperativo por `mapper_registry` e `start_mappers()` idempotente. O `Protocol` da UoW fica na aplicação do módulo, a implementação na infraestrutura, e os casos de uso recebem uma **fábrica**, porque a instância guarda a sessão do banco e as rotas atendem pedidos simultâneos.
+  2. **Módulo `identity`** (nasce com `CLAUDE.md`): o token da sessão só existe como SHA-256; `User` recusa `Ambos`; a sessão vence com 30 dias sem uso ou 90 desde a criação, e o uso só é renovado a cada hora; o login é bloqueado com 5 falhas numa janela **deslizante** de 15 minutos. Essa regra é uma função pura do domínio (`login_retry_after`) e a porta só guarda instantes, o que permite testá-la por propriedade. Senha errada e usuário inexistente dão o mesmo erro e o mesmo trabalho (o hash fictício é calculado na criação do hasher); o bloqueio vale até para a senha certa; o login encerra a sessão do cookie que chegou (troca de usuário, `D-021`) e varre as vencidas; o *rehash* grava o próprio usuário como autor.
+  3. **Banco:** `users` (histórico completo) e `user_sessions` (sem histórico: é efêmera e o logout apaga a linha); índices únicos parciais `WHERE deleted_at IS NULL` em `username` e `profile`; um `CHECK` barra `Ambos`; a migração `0002` é escrita à mão e independente do código do app; `load_tables()` no `bootstrap` deixa o Alembic e o teste de diferença verem as tabelas dos módulos.
+  4. **Borda HTTP:** CSRF por *middleware* (`X-Altare-CSRF: 1` em todo `POST`, `PUT`, `PATCH` e `DELETE` sob `/api`, **inclusive o login**; senão 403 `csrf_missing`); `current_actor` monta o `Actor` do cookie `altare_session` por um resolvedor que o `bootstrap` injeta, de modo que `platform/http` nem importa o módulo (mais estrito que a `D-059`, item 6); rotas `POST /auth/login`, `POST /auth/logout` (204, idempotente) e `GET /auth/me`; cookie `HttpOnly`, `SameSite=Lax`, `Path=/api`, 90 dias e `Secure` por `SESSION_COOKIE_SECURE` (ligado por padrão; o `make dev-api` o desliga, porque o Safari recusa `Secure` em `http://localhost`); o login só limita o tamanho do corpo (usuário até 256, senha até 1024), então um formato fora da política dá 401 uniforme e não 422; 429 com `Retry-After`; `problem_responses` documenta os erros como `application/problem+json` e dispensa o 422 padrão do FastAPI; um teste exige status e mensagem para toda subclasse concreta de `DomainError`.
+  5. **CLI:** `wedding create-user --profile --username` e `wedding set-password --username`, com a senha por *prompt* escondido e confirmado, **nunca como opção** (ficaria no histórico do shell); `Ambos` não existe na CLI; as mensagens vêm do mapa único; banco sem migração manda rodar `make migrate`.
+  6. **Composição:** `IdentityContainer` monta os casos de uso só quando alguém os pede e `build_app(settings, clock, hasher)` aceita o relógio e o hasher dos testes; `export-openapi` e a ajuda da CLI não abrem banco nem calculam Argon2.
+  7. **Contrato tipado:** o `openapi-typescript` 7.13.0 **não roda com o TypeScript 7** do web (`ts.factory` indefinido), então o gerador vive em `tools/api-types`, pacote do workspace com o TypeScript 5.9.3 fixado; sob o TypeScript 7, o `openapi-fetch` 0.17.0 tipa o `error` de `problem+json` (provado com controle negativo). `make api-types` é determinístico, e o job `contract` do CI o roda e falha se `git status --porcelain` não estiver vazio (o `git diff` não vê um arquivo gerado nunca commitado). O `schema.d.ts` fica fora do Biome e do gate de regras de design.
+  8. **Web, dados e guarda:** o cliente põe o header de CSRF só nos mutadores, chama a mesma origem com URL absoluta e resolve o `fetch` a cada chamada; `ApiError` carrega `code`, status e `Retry-After`. A guarda do layout `app` leva ao `/entrar?destino=` quem está sem sessão **ou sem rede** (`architecture.md` §11, regra 6); a tela de entrada trata a falha de rede inline e sem apagar o que foi digitado. `/entrar` fica fora da casca; o destino só vale se for caminho da própria aplicação (sem `//`, `\`, caractere de controle, URL absoluta ou a própria entrada); uma rota curinga dentro da casca leva os caminhos desconhecidos, e a vitrine de desenvolvimento, para trás da guarda; um 401 em qualquer consulta leva à entrada; a consulta da sessão devolve `null` no 401 e não tem *retry*. Sair navega primeiro e só então limpa o cache; entrar limpa e só então grava a sessão. O anúncio de troca de rota sobe para a raiz.
+  9. **Desvios do guia, registrados:** (a) campo de 44 e botão de 48 com texto 15 onde o desenho tem 46 e 16; (b) ramo pequeno, e não o grande de `identity.md` §6; (c) no celular, só o lockup pequeno e o cartão; (d) o aviso de erro em argila, com ícone e texto, que o guia não desenha; (e) o *placeholder* "noivo ou noiva" do guia foi mantido embora o usuário seja livre, e a senha fica sem os pontos do desenho; (f) o bloco de sessão virou botão com uma seta que avisa que há mais ali, e fica no **pé** da barra, enquanto o guia o desenha só como texto, logo abaixo da lista, numa tela de altura fixa; (g) o trilho ganha um ícone de usuário.
+- **Ajustes em arquivos aprovados:** `architecture.md` §4 (Argon2 e sessão ficam no módulo, não em `platform/security`) e §10 (`UserSession` sem o histórico); `design-system.md` §13 (o menu do usuário sai dos adiados), §15 (login conforme e a linha da sessão) e a casca do desktop; `stack.md` §5, §6 e §7; `AGENTS.md` §1; `roadmap.md`; skills `altare-docs-vivas`, `altare-monorepo` e `altare-arquitetura`, e o modelo de `CLAUDE.md` de módulo.
+- **Razão:** o Nível 0 só fecha com o casal entrando com o próprio login. Fechar o contrato, a segurança e o desenho antes do código evitou decidir no meio do PR, e provar o que os documentos só supunham (o gerador com o TypeScript 7, a tipagem do erro, o `Retry-After` pelo proxy, o cookie e o logout em servidor de verdade) trocou três suposições por fatos.
+- **O que ficou rejeitado:**
+  - Argon2 e sessão em `platform/security`: só um módulo os usa, e a camada nasceria com um consumidor.
+  - A regra de tentativas dentro do adaptador em memória: não se testaria por propriedade.
+  - Política de usuário e de senha no corpo do login: um 422 revelaria a quem erra o que uma conta pode ter.
+  - Senha como opção da CLI: fica no histórico do shell.
+  - O gerador dentro do `apps/web`: não roda com o TypeScript 7, e fixar o 5 ali derrubaria o web.
+  - `openapi-react-query` e MSW: um cliente de cache e um servidor falso a mais para duas telas; as chaves de consulta e o `fetch` falso bastam.
+  - Menu do usuário na barra superior: uma segunda porta para a mesma ação, que o guia não desenha.
+  - `git diff --exit-code` sozinho no gate de drift: não vê um arquivo gerado que nunca foi commitado.
+  - Mixin de histórico na sessão: uma linha que o logout apaga não precisa de `version` nem de exclusão lógica.
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | Lente lembrada por usuário | o primeiro bloco em que "Minha visão" filtrar dados (`D-059`) |
+  | IP real atrás de proxy e limite de tentativas persistente | decisão de deploy (`stack.md` §9) |
+  | Recuperação de senha pela tela | o casal pedir; hoje há `wedding set-password` |
+  | Log das tentativas de login | o deploy; só ids e códigos, nunca o usuário digitado (`altare-seguranca-privacidade`) |
+  | Dispatcher de eventos | o primeiro evento de domínio |
+  | `openapi-react-query` | mais de duas features com consulta |
+- **Riscos conhecidos:** o `env.py` usa o engine com `foreign_keys` ligado, e migração em *batch* no SQLite costuma exigir desligá-lo (a `0002` só cria tabelas; trata-se na primeira migração com `ALTER`); `/api/v1/docs` fica aberto sem autenticação, inclusive em produção (decide-se no deploy); os textos de erro do login e de `platform/http/messages.py` são propostas do agente.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na tela de entrada e no bloco de sessão (teclado, zoom de 200%, VoiceOver e "reduzir movimento"; a conferência visual por captura contra as págs. 37 e 38 foi feita, em 1440, 768, 390 e 320 px); revisar os textos propostos; exigir o check `CI` na proteção de `develop` e `main` (`D-041`, item 6); `pre-commit install` neste clone.
+
+---
+
+## D-063 — Arquivos: módulo `files`, `LocalFileStorage` e as rotas de envio e leitura (Bloco 0.1, PR 3)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 3 de 4)
+- **Pedido do usuário:** seguir o plano da `D-059` com o módulo `files`, que nenhuma tela do Nível 0 usa mas que os blocos de cronograma, contatos, propostas e contratos vão precisar para anexos.
+- **Escolhido pelo usuário (2026-10-27):**
+  1. **Tamanho máximo:** 20 MB.
+  2. **Tipos aceitos:** PDF, JPG, PNG e WebP, exatamente o que as specs de feature listam (HEIC fica de fora).
+  3. **Arquivo repetido (mesmo SHA-256):** o conteúdo fica **uma vez** em disco, e cada envio tem o seu registro, com o nome original e quem enviou; excluir um anexo não apaga o arquivo dos outros.
+  4. **Download:** abre no navegador, com `X-Content-Type-Options: nosniff`.
+- **Decisão:**
+  1. **`LocalFileStorage` (`platform/storage`):** endereçado pelo conteúdo, com o SHA-256 como nome em duas pastas (`ab/ab12…`), de modo que o nome enviado **nunca vira caminho**; recusa qualquer chave que não seja um SHA-256 em minúsculas (fecha o *path traversal*); grava num temporário da mesma pasta e troca de nome, então ninguém lê um arquivo pela metade e uma falha não deixa resto; gravar o mesmo conteúdo de novo não faz nada; só o dono do computador lê (`0600`). A pasta vem de `FILES_DIR` (padrão `data/files`; o `make dev-api` a deixa absoluta).
+  2. **Domínio:** o tipo vem da **assinatura real** do começo do arquivo, nunca da extensão nem do tipo informado (um HTML renomeado para `.pdf` continua HTML); o tamanho é conferido antes do tipo; arquivo vazio tem erro próprio; o nome é saneado para só o nome final, sem pasta, sem caractere de controle e sem ponto no começo (os controles saem antes da normalização, o que mantém o saneamento idempotente), e só serve para exibir e sugerir no download.
+  3. **Casos de uso:** `UploadFile` grava o conteúdo no storage **antes** do registro: se o banco falhar depois, sobra um arquivo órfão, inofensivo e reaproveitado num novo envio, o que é melhor que um registro sem arquivo. `GetFile` trata como não encontrado tanto o registro ausente quanto o que perdeu o conteúdo em disco. A UnitOfWork chega como fábrica que recebe o ator, porque é ele que vai para o histórico.
+  4. **Banco:** `file_assets` com o histórico completo (`D-061`), `CHECK` que só admite os quatro tipos e outro que barra tamanho não positivo, e índice **não único** no `sha256` (cada envio tem o seu registro). Migração `0003` escrita à mão. O vínculo a contatos, propostas, contratos e parcelas (`ATTACHMENT`) **não** entra aqui: nasce no bloco que anexa.
+  5. **HTTP:** `POST /api/v1/files` (multipart, `upload_file`, 201) e `GET /api/v1/files/{file_id}` (`download_file`), ambos só com sessão, e o envio exige o header de CSRF. O envio lê no máximo 20 MB mais um byte, o que basta para recusar sem carregar o excedente. O download devolve em pedaços, com o tipo da assinatura validada, `Content-Length`, `Cache-Control: private, no-store` e o nome sugerido em RFC 5987 (acento seguro e sem aspas ou barras escapando do cabeçalho). O casal lê os arquivos um do outro; o que a sessão garante é que ninguém de fora os leia.
+  6. **Composição:** `Database` compartilhado no `bootstrap` (engine único, aberto sob demanda) para os módulos `identity` e `files`; `FilesContainer` monta os casos de uso só quando alguém os pede.
+  7. **Contrato:** `openapi.json` e `schema.d.ts` regenerados no mesmo commit da rota; os quatro tipos binários aparecem como respostas do download, e `FileKind` é um enum fechado.
+- **Ajustes em arquivos aprovados:** `stack.md` §3 (arquivos e validação de upload); `architecture.md` §12 (`FileAsset` por envio; `ATTACHMENT` adiado); `AGENTS.md` §1; `roadmap.md`; skills `altare-seguranca-privacidade` e `altare-devops`.
+- **Razão:** o produto vai guardar propostas, contratos e comprovantes do casal, que são dado sensível e entrada hostil em potencial. Fechar a assinatura, o limite, o nome e o caminho antes de qualquer tela evita descobrir isso depois, com anexos reais.
+- **O que ficou rejeitado:**
+  - Confiar na extensão ou no tipo informado pelo cliente: é o que um arquivo disfarçado explora.
+  - Reusar o mesmo registro para o mesmo conteúdo: o nome e o autor do primeiro envio passariam a valer para todos os anexos.
+  - Decodificar o `%22` que os navegadores põem no nome do multipart: mexeria em nomes legítimos com `%`; o nome é saneado e só exibido.
+  - `Content-Disposition: attachment` sempre: quebraria o visualizador nativo de PDF e a prévia de imagem das telas.
+  - HEIC e uma biblioteca de conversão: não está nas specs, e o navegador não exibe HEIC.
+  - Um segundo engine só para os arquivos: um banco, uma conexão compartilhada.
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | `ATTACHMENT` (vínculo polimórfico a contatos, propostas, contratos, parcelas) | o primeiro bloco que anexa (cronograma, `F-CRN-08`) |
+  | `S3FileStorage` e `STORAGE_BACKEND` | decisão de deploy (`stack.md` §9) |
+  | Purga administrativa dos arquivos excluídos | o produto ter exclusão de anexo |
+  | Limite de corpo no proxy | decisão de deploy |
+- **Riscos conhecidos:** o Starlette processa o *multipart* antes da rota, então o limite de 20 MB protege o disco mas não a memória de um envio muito maior; no uso local com duas pessoas isso é irrelevante, e a defesa real é o limite do proxy no deploy. Um envio que falha depois de gravar o conteúdo deixa um arquivo órfão (inofensivo). A pasta `FILES_DIR` precisa entrar no backup junto do banco (`D-038`, item 4). As mensagens de erro novas (`platform/http/messages.py`) são propostas do agente.
+- **Pendente (do usuário):** revisar os textos das três mensagens novas; a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.
+
+
+---
+
+## D-064 — PWA instalável e E2E com Playwright (Bloco 0.1, PR 4)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 4 de 4)
+- **Pedido do usuário:** fechar o Bloco 0.1 com o app instalável e com a prova, de ponta a ponta, do critério do Nível 0 (entrar, navegar e alternar a lente no computador e no celular).
+- **Escolhido pelo usuário (2026-10-27):**
+  1. **Atualização do app:** a versão nova espera a **próxima abertura**; nada de tela nova nem de recarregar no meio do uso.
+  2. **E2E no CI:** sim, como job próprio, exigido pelo agregador `CI`.
+- **Decisão:**
+  1. **PWA (`vite-plugin-pwa` 2.0.0, Workbox `generateSW`):** `registerType: 'prompt'`, sem `skipWaiting` fora da mensagem do próprio cliente, o que mantém a escolha 1. O manifesto (`apps/web/scripts/pwa-manifest.ts`) usa `Altare`, `pt-BR`, `display: standalone`, `start_url` e `scope` `/` e o `theme_color` e o `background_color` de `marca.app_icon.theme_color_claro` do `tokens.json` (sem cor escrita à mão); os ícones são os de `public/brand/app-icon`, em 192 e 512, `any` e `maskable`. Um teste de unidade confere o manifesto, os tamanhos reais dos PNGs, a cor contra o `index.html`, e a configuração do cache.
+  2. **Cache só do *app shell*:** pré-cache dos estáticos do build (cerca de 1,4 MiB) e *fallback* de navegação para `/index.html`, **com `/api/` na lista de exceção** e `runtimeCaching: []`. Nada da API é guardado (`stack.md` §5: sem escrita nem leitura offline de dados). A lista de exceção foi provada por controle negativo: sem ela, a navegação a `/api/v1/health` devolvia `text/html`, e o E2E falhou.
+  3. **Só existe no build de produção:** o service worker não roda no `vite` de desenvolvimento, para não esconder mudança atrás de cache. Por isso o E2E sobe o `vite preview`, e o `preview` ganha o mesmo proxy de `/api` do servidor de desenvolvimento (`API_ORIGIN` escolhe o destino).
+  4. **E2E (Playwright 1.64.0, `make e2e`):** roda contra o **build de produção** e a **API de verdade**, com banco SQLite e pasta de arquivos temporários, criados do zero a cada execução (`e2e/start-api.mjs`: `alembic upgrade head` e os dois usuários, pela CLI, com a senha fictícia de `e2e/credentials.json`). Usa o **Chrome instalado** (`channel: 'chrome'`, sem baixar navegador), nas portas 8105 (API) e 4175 (web), que não colidem com o `make dev`. Dois projetos: *desktop* (1440 × 900, usuário Noivo) e *mobile* (Pixel 7, usuário Noiva), sequenciais; cada projeto tem o seu usuário para que o limite de tentativas de um não pese no outro. Os arquivos são `*.e2e.ts`, que o Vitest não enxerga.
+  5. **O que os 16 cenários provam (32 execuções):**
+     - *instalação:* o manifesto e os ícones são servidos; o service worker ativa e passa a controlar a página; a casca abre **sem rede**; um endereço da API nunca devolve a casca;
+     - *acesso:* sem sessão, uma área leva a `/entrar?destino=…` com a lente; destino de outro site é ignorado; senha errada avisa, guarda o usuário e põe o foco na senha vazia; entrar leva ao destino com a lente e a sessão sobrevive a recarregar; quem já entrou e abre a entrada vai à Visão Geral; sair encerra a sessão; o bloco mostra o perfil;
+     - *navegação:* as 8 áreas abrem o título e o título do documento certos e cabem na largura; o foco vai ao título da página nova; a lente fica na URL e acompanha a navegação; caminho desconhecido abre a página não encontrada dentro da casca. No celular, pela barra inferior e pela folha "Mais".
+  6. **CI:** o job `E2E` (API e web mudaram) instala `uv` e `pnpm`, roda `make e2e` e, se falhar, guarda o relatório e os *traces* por 7 dias (`actions/upload-artifact` v7.0.2, fixado por SHA, publicado há mais de 14 dias). Entra nas dependências do agregador `CI`.
+- **Ajustes em arquivos aprovados:** `stack.md` §5 e §7 (PWA e E2E deixam de ser futuros) e `AGENTS.md` §1; `roadmap.md` (Bloco 0.1); skills `altare-testes-qa`, `altare-devops` e `altare-monorepo`.
+- **Razão:** o critério do Nível 0 é de comportamento (abrir, entrar, alternar a lente, navegar), e só um navegador de verdade, contra a API de verdade, prova isso. O service worker é a peça que mais esconde erro (cache velho, API servida do cache, tela em branco sem rede), então ele é testado no build que o casal vai usar.
+- **O que ficou rejeitado:**
+  - `registerType: 'autoUpdate'`: recarrega a página no meio do uso e pode apagar o que o casal está digitando.
+  - Guardar respostas da API (`runtimeCaching`): dois lugares para o mesmo dado envelhecer, e fora do escopo aprovado.
+  - Baixar os navegadores do Playwright (Chromium, Firefox e WebKit): centenas de MB por execução do CI para um app de duas pessoas; o Chrome já está no runner e no computador.
+  - Rodar o E2E contra o servidor de desenvolvimento: o service worker não existe lá.
+  - Um banco fixo para o E2E: uma execução herdaria o estado da anterior.
+  - Tela própria de "instalar o app" ou de "há versão nova": o navegador já oferece a instalação, e a atualização é silenciosa (escolha 1).
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | Projeto de E2E em WebKit (Safari) e em Firefox | um defeito que só apareça no Safari, ou o casal usar outro navegador |
+  | `axe` automatizado | o gatilho da `D-028` |
+  | Aviso de "há versão nova" e instalação guiada | o casal estranhar a atualização na próxima abertura |
+  | Consulta offline do último estado | o casal pedir (nova decisão, `stack.md` §5) |
+  | Web Push no service worker | Bloco 5.2 |
+  | E2E dos fluxos de negócio | cada bloco acrescenta os seus (`altare-testes-qa`) |
+- **Riscos conhecidos:** o service worker só se prova no build, então um erro de configuração não aparece no `make dev`; o E2E depende do Chrome da máquina (no CI, o da imagem do runner); a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só.") é proposta do agente; o aviso de *chunk* grande no `make build` já existia e segue como está.
+- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta") e revisar a `description` do manifesto; a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.

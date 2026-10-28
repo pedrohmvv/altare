@@ -1,7 +1,9 @@
 ---
 name: altare-agente-dados
 description: >-
-  Ponte entre os dados do Altare e o assistente por linguagem natural (Nível 5, D-042): superfície de tools que chamam casos de uso da camada de aplicação com o mesmo Actor e autorização da API, leitura livre e escrita só por ChangeProposal com confirmação humana (D-008), idempotência, erros que o agente entende e corrige, schema legível por agente (nomes, enums fechados, comentários, views de leitura, busca aproximada) e os três canais como adaptadores finos (módulo de chat, ícone flutuante, WhatsApp). Use ao criar tool ou canal do assistente, ao expor dado ou ação ao agente, ao desenhar tabela ou view pensando em quem a lê sem conhecer o código, ou ao integrar WhatsApp, mesmo que o pedido seja apenas deixar algo acessível por chat. NÃO use para prompts, evals, custo e orquestração (use altare-engenharia-de-ia), modelagem e migrations (use altare-banco-de-dados) ou rotas HTTP (use altare-backend-api).
+  Ponte entre os dados do Altare e o assistente (Nível 5, D-042): tools = casos de uso, escrita só por
+  ChangeProposal com confirmação (D-008), schema legível por agente, canais de chat e WhatsApp. Use ao
+  criar tool ou canal do assistente, expor dado ao agente ou desenhar tabela ou view que o agente lê.
 ---
 
 # Dados para o agente do Altare

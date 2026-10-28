@@ -1,0 +1,9 @@
+---
+description: "Persistência do Altare: SQLAlchemy 2, migrations Alembic, índices, constraints, dinheiro em centavos, UUID, histórico (version, deleted_at), portabilidade SQLite para PostgreSQL. Use ao criar ou alterar tabela, coluna, índice, migration, repositório ou consulta SQL, mesmo que seja só um campo novo."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-banco-de-dados/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-banco-de-dados/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

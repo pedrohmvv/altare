@@ -1,0 +1,10 @@
+---
+description: "Identidade visual e design system do Altare: tokens (tokens.json), tipografia, cor, ícones, movimento, os 15 primitivos e o guia de identidade (design-system.md §15). Use ao criar, alterar ou conferir a aparência de qualquer componente, tela, estado vazio, cor, fonte, espaçamento, ícone ou marca no apps/web, mesmo que o pedido seja só 'deixa mais bonito'."
+globs: apps/web/src/**/*.tsx,apps/web/src/**/*.css,docs/design/**
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-design/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-design/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).
