@@ -14,6 +14,63 @@ export const copy = {
       retry: 'Tentar de novo',
     },
   },
+  tabs: {
+    label: 'Áreas do planejamento',
+    baseline: 'Definições Base',
+    scope: 'Mapa de Escopo',
+  },
+  scope: {
+    title: 'Mapa de Escopo',
+    loading: 'Carregando o Mapa de Escopo',
+    loadError: {
+      title: 'Não conseguimos carregar o Mapa de Escopo',
+      description: 'Confiram a conexão e tentem de novo.',
+      retry: 'Tentar de novo',
+    },
+    empty: {
+      title: 'Nenhuma frente por aqui ainda',
+      description:
+        'Criem a primeira frente do casamento para começar a classificar o que entra e o que fica de fora.',
+    },
+    noMatch: {
+      title: 'Nada neste filtro',
+      description: 'Nenhuma frente combina com os filtros escolhidos.',
+      clear: 'Limpar filtros',
+    },
+    progress: (classified: number, total: number) =>
+      `${classified} de ${total} categorias classificadas`,
+    totals: {
+      label: 'Estimativas',
+      essential: 'Entra (Essencial)',
+      maybe: 'Talvez (Se couber)',
+      withoutEstimate: (count: number) =>
+        count === 1 ? '1 sem estimativa' : `${count} sem estimativa`,
+      note: 'Só informativo: a comparação com o teto fica no Orçamento.',
+    },
+    view: { label: 'Agrupar por', group: 'Por grupo', status: 'Por status' },
+    filters: {
+      label: 'Filtros',
+      diverge: 'Divergem',
+      missing: 'Falta avaliar',
+      pending: 'Só o que falta eu avaliar',
+      hidden: 'Mostrar ocultas',
+    },
+    alignment: {
+      aligned: 'Alinhados',
+      diverge: 'Divergem',
+      waitingFor: (profile: 'Noivo' | 'Noiva') =>
+        `Aguardando avaliação ${profile === 'Noiva' ? 'da Noiva' : 'do Noivo'}`,
+      both: 'Sem avaliação ainda',
+    },
+    card: {
+      noEstimate: 'sem estimativa',
+      hidden: 'Oculta',
+      hiddenGroup: 'Oculto',
+      discardReason: 'Motivo',
+    },
+    groupEmpty: 'Nenhuma frente neste grupo.',
+    statusEmpty: 'Nenhuma frente aqui.',
+  },
   status: {
     'Em definição': 'Em definição',
     Definido: 'Definido',

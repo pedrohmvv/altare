@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { jsonResponse, mockApi, problemResponse } from '@/test/fake-api'
 import type { Baseline, BaselineChange } from '../api/baseline'
-import { WeddingPage } from './wedding-page'
+import { WeddingPage, type WeddingPageProps } from './wedding-page'
 
 const GET = 'GET /api/v1/wedding/baseline'
 const PUT_CITY = 'PUT /api/v1/wedding/baseline/city'
@@ -33,13 +33,16 @@ function emptyBaseline(): Baseline {
   }
 }
 
-function renderPage(handlers: Parameters<typeof mockApi>[0] = {}) {
+function renderPage(
+  handlers: Parameters<typeof mockApi>[0] = {},
+  props: Partial<WeddingPageProps> = {},
+) {
   const api = mockApi({ [GET]: jsonResponse(200, emptyBaseline()), ...handlers })
   render(
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
-      <WeddingPage />
+      <WeddingPage search={{}} onSearchChange={() => {}} profile="Noivo" {...props} />
     </QueryClientProvider>,
   )
   return { api, user: userEvent.setup() }
@@ -393,5 +396,49 @@ describe('Definições Base: histórico (F-PLN-01, regra 3)', () => {
     const { user } = renderPage({ [CHANGES]: jsonResponse(200, []) })
     await user.click(await screen.findByRole('button', { name: 'Ver histórico' }))
     expect(await screen.findByText('Ainda sem mudanças.')).toBeVisible()
+  })
+})
+
+describe('Planejamento: as abas ficam na URL (F-PLN-08)', () => {
+  it('abre na aba das Definições Base quando a URL não diz nada', async () => {
+    renderPage()
+    expect(screen.getByRole('tab', { name: 'Definições Base' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(await screen.findByRole('heading', { level: 2, name: 'Definições base' })).toBeVisible()
+  })
+
+  it('trocar de aba pede a mudança na URL e fecha a categoria aberta', async () => {
+    const changes: object[] = []
+    const { user } = renderPage({}, { onSearchChange: (patch) => changes.push(patch) })
+    await user.click(screen.getByRole('tab', { name: 'Mapa de Escopo' }))
+    expect(changes.at(-1)).toEqual({ aba: 'escopo', categoria: undefined })
+  })
+
+  it('com aba=escopo na URL mostra o Mapa de Escopo, sem pedir as Definições Base', async () => {
+    const api = mockApi({
+      'GET /api/v1/wedding/scope': jsonResponse(200, {
+        groups: [],
+        progress: { classified: 0, total: 0 },
+        totals: {
+          essential_cents: 0,
+          essential_without_estimate: 0,
+          maybe_cents: 0,
+          maybe_without_estimate: 0,
+        },
+      }),
+    })
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <WeddingPage search={{ aba: 'escopo' }} onSearchChange={() => {}} profile="Noiva" />
+      </QueryClientProvider>,
+    )
+    expect(screen.getByRole('tab', { name: 'Mapa de Escopo' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(await screen.findByText('Nenhuma frente por aqui ainda')).toBeVisible()
+    expect(api.callsTo('GET /api/v1/wedding/baseline')).toHaveLength(0)
   })
 })
