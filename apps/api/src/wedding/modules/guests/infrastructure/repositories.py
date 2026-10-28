@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from wedding.modules.guests.application.dto import GuestStatusChangeDto
 from wedding.modules.guests.domain.entities import Guest, GuestStatusChange, Household
+from wedding.modules.guests.domain.settings import GuestSettings
 from wedding.modules.guests.infrastructure.tables import (
     guest_households,
     guest_status_changes,
@@ -97,6 +98,12 @@ class SqlGuestRepository:
 
     def add_guest(self, guest: Guest) -> None:
         self._session.add(guest)
+
+    # --- configurações
+
+    def get_settings(self) -> GuestSettings:
+        """A linha única de pesos e limites, criada pela migration: faltar é banco mal migrado."""
+        return self._session.execute(select(GuestSettings)).scalar_one()
 
     # --- histórico
 

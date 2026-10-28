@@ -49,12 +49,14 @@ from wedding.modules.guests.application.queries.get_guest_list import GetGuestLi
 from wedding.modules.guests.application.queries.list_guest_status_history import (
     ListGuestStatusHistory,
 )
+from wedding.modules.guests.domain.age import AgeLimits
 from wedding.modules.guests.domain.entities import Guest, Household
 from wedding.modules.guests.domain.errors import (
     CompanionAlreadyExists,
     DuplicateHouseholdName,
     LastGuestInHousehold,
 )
+from wedding.modules.guests.domain.headcount import Weights
 from wedding.modules.guests.domain.values import AgeBand, GuestStatus, Probability, Side
 from wedding.modules.guests.infrastructure.mapping import start_mappers
 from wedding.modules.guests.infrastructure.tables import guest_households, guests
@@ -474,3 +476,60 @@ class TestRegrasDoBanco:
                             "motivo": motivo,
                         },
                     )
+
+
+class TestConfiguracoes:
+    """Pesos e limites de idade: uma linha vazia, semeada pela migration (F-CNV-03 e F-CNV-06)."""
+
+    def test_a_semente_vem_vazia_e_na_versao_1(self, banco):
+        with banco.uow() as uow:
+            settings = uow.guests.get_settings()
+
+            assert settings.weights is None
+            assert settings.age_limits == AgeLimits(None, None)
+            assert settings.version == 1
+
+    def test_grava_os_pesos_e_os_limites_e_sobe_a_versao(self, banco):
+        with banco.uow(NOIVA) as uow:
+            uow.guests.get_settings().update(Weights(100, 70, 30), AgeLimits(5, 12))
+            uow.commit()
+
+        with banco.uow() as uow:
+            settings = uow.guests.get_settings()
+            assert settings.weights == Weights(100, 70, 30)
+            assert settings.age_limits == AgeLimits(5, 12)
+            assert settings.version == 2
+
+    def test_duas_edicoes_simultaneas_das_configuracoes_se_conflitam(self, banco):
+        with banco.uow() as a, banco.uow(NOIVA) as b:
+            a.guests.get_settings().update(Weights(100, 70, 30), AgeLimits())
+            b.guests.get_settings().update(Weights(90, 60, 20), AgeLimits())
+            a.commit()
+            with pytest.raises(VersionConflict):
+                b.commit()
+
+    @pytest.mark.parametrize(
+        "valores",
+        [
+            {"weight_certain_pct": 100},  # só um dos três pesos
+            {"weight_certain_pct": 100, "weight_probable_pct": 70},
+            {"weight_certain_pct": 101, "weight_probable_pct": 70, "weight_phase_2_pct": 30},
+            {"weight_certain_pct": -1, "weight_probable_pct": 70, "weight_phase_2_pct": 30},
+            {"exempt_until_age": 18},
+            {"paying_until_age": -1},
+            {"exempt_until_age": 8, "paying_until_age": 5},
+        ],
+    )
+    def test_configuracao_fora_das_regras_e_barrada_pelo_banco(self, banco, valores):
+        sets = ", ".join(f"{coluna} = {valor}" for coluna, valor in valores.items())
+        with banco.engine.begin() as conn, pytest.raises(IntegrityError):
+            conn.execute(text(f"UPDATE guest_settings SET {sets}"))
+
+    def test_os_tres_pesos_e_os_limites_coerentes_passam(self, banco):
+        with banco.engine.begin() as conn:
+            conn.execute(
+                text(
+                    "UPDATE guest_settings SET weight_certain_pct = 0, weight_probable_pct = 100, "
+                    "weight_phase_2_pct = 50, exempt_until_age = 5, paying_until_age = 5"
+                )
+            )

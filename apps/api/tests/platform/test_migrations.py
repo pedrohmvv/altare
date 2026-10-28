@@ -172,3 +172,23 @@ def test_a_migracao_dos_convidados_cria_e_remove_as_tabelas(tmp_path):
     command.downgrade(config, "0006")
     assert tabelas.isdisjoint(_estado(url)[0])
     assert {"scope_references", "scope_categories"} <= _estado(url)[0]
+
+
+def test_a_migracao_das_configuracoes_semeia_uma_linha_vazia_e_a_remove(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        linhas = conn.execute(
+            text(
+                "SELECT version, weight_certain_pct, weight_probable_pct, weight_phase_2_pct, "
+                "exempt_until_age, paying_until_age FROM guest_settings"
+            )
+        ).all()
+    engine.dispose()
+    # Pesos e limites são decisões do casal: a semente é uma linha só, toda vazia (D-030).
+    assert [tuple(linha) for linha in linhas] == [(1, None, None, None, None, None)]
+    command.downgrade(config, "0007")
+    assert "guest_settings" not in _estado(url)[0]
+    assert {"guests", "guest_households"} <= _estado(url)[0]
