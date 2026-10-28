@@ -4,6 +4,7 @@ from types import TracebackType
 from uuid import UUID
 
 import pytest
+from tests.modules.wedding.conftest import api  # noqa: F401  (o app inteiro, com o casal de exemplo)
 
 from wedding.modules.guests.application.commands.add_companion import AddCompanion
 from wedding.modules.guests.application.commands.add_guest import AddGuest
