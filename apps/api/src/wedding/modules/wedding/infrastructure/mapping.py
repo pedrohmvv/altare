@@ -1,12 +1,14 @@
 from sqlalchemy import inspect
 
 from wedding.modules.wedding.domain.entities import BaselineChange, BaselineField
+from wedding.modules.wedding.domain.reference import ScopeReference
 from wedding.modules.wedding.domain.scope_entities import (
     ScopeCategory,
     ScopeEvaluation,
     ScopeGroup,
     ScopeStatusChange,
 )
+from wedding.modules.wedding.infrastructure.reference_tables import scope_references
 from wedding.modules.wedding.infrastructure.scope_tables import (
     scope_categories,
     scope_evaluations,
@@ -43,6 +45,7 @@ def start_mappers() -> None:
         (ScopeCategory, scope_categories),
         (ScopeEvaluation, scope_evaluations),
         (ScopeStatusChange, scope_status_changes),
+        (ScopeReference, scope_references),
     ):
         if inspect(entity, raiseerr=False) is None:
             mapper_registry.map_imperatively(entity, table, version_id_col=table.c.version)

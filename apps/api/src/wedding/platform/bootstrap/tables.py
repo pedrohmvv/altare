@@ -6,6 +6,7 @@ _TABLE_MODULES = (
     "wedding.modules.files.infrastructure.tables",
     "wedding.modules.wedding.infrastructure.tables",
     "wedding.modules.wedding.infrastructure.scope_tables",
+    "wedding.modules.wedding.infrastructure.reference_tables",
 )
 
 

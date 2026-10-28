@@ -1,6 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 
 from wedding.modules.wedding.domain.errors import DuplicateScopeName
+from wedding.modules.wedding.infrastructure.reference_repositories import SqlReferenceRepository
 from wedding.modules.wedding.infrastructure.repositories import SqlBaselineRepository
 from wedding.modules.wedding.infrastructure.scope_repositories import SqlScopeRepository
 from wedding.platform.db.uow import SqlAlchemyUnitOfWork
@@ -14,6 +15,10 @@ class SqlWeddingUnitOfWork(SqlAlchemyUnitOfWork):
     @property
     def scope(self) -> SqlScopeRepository:
         return SqlScopeRepository(self.session)
+
+    @property
+    def references(self) -> SqlReferenceRepository:
+        return SqlReferenceRepository(self.session)
 
     def commit(self) -> None:
         """Duas pessoas criando ou renomeando para o mesmo nome ao mesmo tempo passam juntas pela
