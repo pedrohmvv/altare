@@ -4,10 +4,14 @@ from dataclasses import dataclass
 from wedding.modules.guests.application.commands.add_companion import AddCompanion
 from wedding.modules.guests.application.commands.add_guest import AddGuest
 from wedding.modules.guests.application.commands.change_guest_status import ChangeGuestStatus
+from wedding.modules.guests.application.commands.clear_household_invite import ClearHouseholdInvite
 from wedding.modules.guests.application.commands.create_household import CreateHousehold
 from wedding.modules.guests.application.commands.delete_guest import DeleteGuest
 from wedding.modules.guests.application.commands.delete_household import DeleteHousehold
 from wedding.modules.guests.application.commands.move_guest import MoveGuest
+from wedding.modules.guests.application.commands.record_household_invite import (
+    RecordHouseholdInvite,
+)
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuest
 from wedding.modules.guests.application.commands.restore_household import RestoreHousehold
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
@@ -37,6 +41,8 @@ class GuestsUseCases:
     delete_guest: DeleteGuest
     restore_guest: RestoreGuest
     update_guest_settings: UpdateGuestSettings
+    record_household_invite: RecordHouseholdInvite
+    clear_household_invite: ClearHouseholdInvite
 
 
 GuestsProvider = Callable[[], GuestsUseCases]

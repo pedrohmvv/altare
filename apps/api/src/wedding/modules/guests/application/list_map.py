@@ -51,6 +51,8 @@ def _household_dto(household: Household, members: list[Guest], limits: AgeLimits
         state=household.state,
         postal_code=format_postal_code(household.postal_code) if household.postal_code else None,
         note=household.note,
+        invite_sent_on=household.invite_sent_on,
+        invite_channel=household.invite_channel,
         summary=household_summary(member.status for member in members),
         guests=tuple(_guest_dto(member, names, limits) for member in members),
         version=household.version,
