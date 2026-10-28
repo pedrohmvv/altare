@@ -36,7 +36,7 @@ Dinheiro, parcelas e contagem de convidados são o que o casal confere à mão. 
 | Infraestrutura | Repositórios, mapeamento e migrations Alembic (sobe, desce, sobe) em SQLite real e temporário | pytest |
 | Adaptadores HTTP | `TestClient` com app composto; status e `code` de erro (`problem+json`); snapshot do OpenAPI | pytest, httpx2 |
 | Frontend | Componentes, hooks de tela e utilitários; navegação da casca; validação Zod | Vitest + Testing Library |
-| Ponta a ponta | Fluxos críticos de `experience.md` §4 em projeto *desktop* e *mobile*; entra **com o login** | Playwright |
+| Ponta a ponta | Fluxos críticos de `experience.md` §4 em projeto *desktop* e *mobile*, contra o build de produção e a API de verdade (`make e2e`, `D-064`); cada bloco acrescenta os seus | Playwright |
 | Portabilidade | A suíte de integração também contra **PostgreSQL** (contêiner efêmero) **antes do primeiro deploy** | Docker ou testcontainers |
 
 Hypothesis serve onde há **propriedade**, não exemplo: soma das parcelas fecha o total, per capita arredondado nunca perde nem inventa centavo, contador ponderado nunca fica negativo. Exemplo isolado cobre o caso, a propriedade cobre a classe.
@@ -55,7 +55,7 @@ Hypothesis serve onde há **propriedade**, não exemplo: soma das parcelas fecha
 | Regras de design | **Teste de regras** (`design-rules.test.ts`, `D-055`): cor, fonte e traço só por token | `apps/web` | Sim |
 | Testes web | Vitest, inclusive o que falha se `tokens.css` estiver defasado | `apps/web` | Sim |
 | Build do web e drift do OpenAPI | `make api-types` sem diff | monorepo | Sim |
-| E2E | Playwright desktop e mobile | após o login | Sim, quando existir |
+| E2E | Playwright desktop e mobile (`make e2e`, `D-064`) | monorepo | Sim |
 | Suíte em PostgreSQL | pytest contra Postgres | `apps/api` | Bloqueia o **deploy** |
 | Acessibilidade | verificação manual (`altare-acessibilidade`) | PR que toca UI | Sim, via checklist do PR |
 
