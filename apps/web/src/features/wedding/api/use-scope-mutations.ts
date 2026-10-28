@@ -74,3 +74,99 @@ export function useSetMyEvaluation() {
     onError: () => void queryClient.invalidateQueries({ queryKey: scopeKeys.map }),
   })
 }
+
+const BASE = '/api/v1/wedding/scope'
+
+/** Toda escrita devolve o mapa inteiro: vai direto para o cache. Valor do casamento não é otimista. */
+function useScopeWrite<Vars>(send: (vars: Vars) => Promise<ScopeMap>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: send,
+    onSuccess: (map) => queryClient.setQueryData(scopeKeys.map, map),
+    onError: () => void queryClient.invalidateQueries({ queryKey: scopeKeys.map }),
+  })
+}
+
+export const useCreateScopeGroup = () =>
+  useScopeWrite(async (v: { name: string }) =>
+    unwrap(await api.POST(`${BASE}/groups`, { body: { name: v.name } })),
+  )
+
+export const useRenameScopeGroup = () =>
+  useScopeWrite(async (v: { groupId: string; name: string; version: number }) =>
+    unwrap(
+      await api.PUT('/api/v1/wedding/scope/groups/{group_id}', {
+        params: { path: { group_id: v.groupId } },
+        body: { name: v.name, version: v.version },
+      }),
+    ),
+  )
+
+export const useSetScopeGroupVisibility = () =>
+  useScopeWrite(async (v: { groupId: string; hidden: boolean; version: number }) =>
+    unwrap(
+      await api.PUT('/api/v1/wedding/scope/groups/{group_id}/visibility', {
+        params: { path: { group_id: v.groupId } },
+        body: { hidden: v.hidden, version: v.version },
+      }),
+    ),
+  )
+
+export const useDeleteScopeGroup = () =>
+  useScopeWrite(async (v: { groupId: string; version: number }) =>
+    unwrap(
+      await api.DELETE('/api/v1/wedding/scope/groups/{group_id}', {
+        params: { path: { group_id: v.groupId }, query: { version: v.version } },
+      }),
+    ),
+  )
+
+export const useCreateScopeCategory = () =>
+  useScopeWrite(async (v: { groupId: string; name: string; estimateCents: number | null }) =>
+    unwrap(
+      await api.POST('/api/v1/wedding/scope/categories', {
+        body: { group_id: v.groupId, name: v.name, estimate_cents: v.estimateCents },
+      }),
+    ),
+  )
+
+export const useUpdateScopeCategory = () =>
+  useScopeWrite(
+    async (v: {
+      categoryId: string
+      name: string
+      groupId: string
+      estimateCents: number | null
+      version: number
+    }) =>
+      unwrap(
+        await api.PUT('/api/v1/wedding/scope/categories/{category_id}', {
+          params: { path: { category_id: v.categoryId } },
+          body: {
+            name: v.name,
+            group_id: v.groupId,
+            estimate_cents: v.estimateCents,
+            version: v.version,
+          },
+        }),
+      ),
+  )
+
+export const useSetScopeCategoryVisibility = () =>
+  useScopeWrite(async (v: { categoryId: string; hidden: boolean; version: number }) =>
+    unwrap(
+      await api.PUT('/api/v1/wedding/scope/categories/{category_id}/visibility', {
+        params: { path: { category_id: v.categoryId } },
+        body: { hidden: v.hidden, version: v.version },
+      }),
+    ),
+  )
+
+export const useDeleteScopeCategory = () =>
+  useScopeWrite(async (v: { categoryId: string; version: number }) =>
+    unwrap(
+      await api.DELETE('/api/v1/wedding/scope/categories/{category_id}', {
+        params: { path: { category_id: v.categoryId }, query: { version: v.version } },
+      }),
+    ),
+  )

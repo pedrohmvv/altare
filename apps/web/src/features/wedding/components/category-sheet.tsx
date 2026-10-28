@@ -19,6 +19,7 @@ import {
 import { useChangeScopeStatus, useSetMyEvaluation } from '../api/use-scope-mutations'
 import { copy } from '../copy'
 import { myEvaluation, otherEvaluation, type SessionProfile } from '../lib/scope-filters'
+import { CategoryDetails, type GroupOption } from './category-details'
 import { Chip } from './chip'
 import { AlignmentBadge, ScopeStatusBadge } from './scope-badges'
 
@@ -27,6 +28,8 @@ const PRIORITIES: readonly Priority[] = ['Quero muito', 'Se couber', 'Dispenso']
 export interface CategorySheetProps {
   category: ScopeCategory
   groupName: string
+  /** Os grupos para onde a frente pode ir. */
+  groups: readonly GroupOption[]
   profile: SessionProfile
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -41,16 +44,24 @@ export interface CategorySheetProps {
 export function CategorySheet({
   category,
   groupName,
+  groups,
   profile,
   open,
   onOpenChange,
 }: CategorySheetProps) {
+  const [editingDetails, setEditingDetails] = useState(false)
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent title={category.name} description={copy.scope.sheet.group(groupName)}>
         <Summary category={category} />
-        <StatusSection category={category} />
+        <StatusSection category={category} locked={editingDetails} />
         <EvaluationSection category={category} profile={profile} />
+        <CategoryDetails
+          category={category}
+          groups={groups}
+          editing={editingDetails}
+          onEditingChange={setEditingDetails}
+        />
         <History categoryId={category.id} />
       </SheetContent>
     </Sheet>
@@ -75,7 +86,7 @@ function Summary({ category }: { category: ScopeCategory }) {
   )
 }
 
-function StatusSection({ category }: { category: ScopeCategory }) {
+function StatusSection({ category, locked }: { category: ScopeCategory; locked: boolean }) {
   const change = useChangeScopeStatus()
   const [askingReason, setAskingReason] = useState(false)
   const [reason, setReason] = useState('')
@@ -131,7 +142,7 @@ function StatusSection({ category }: { category: ScopeCategory }) {
         options={SCOPE_STATUSES.map((status) => ({ value: status, label: status }))}
         value={category.status}
         onValueChange={choose}
-        disabled={change.isPending}
+        disabled={change.isPending || locked}
       />
       {category.discard_reason && (
         <p className="text-body-sm text-ink-muted">

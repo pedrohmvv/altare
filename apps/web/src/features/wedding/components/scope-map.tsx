@@ -14,6 +14,8 @@ import {
 } from '../lib/scope-filters'
 import type { PlanningSearch } from '../search'
 import { CategorySheet } from './category-sheet'
+import { GroupsDialog } from './groups-dialog'
+import { NewCategoryDialog } from './new-category-dialog'
 import { ScopeCategoryCard } from './scope-category-card'
 import { ScopeToolbar } from './scope-toolbar'
 
@@ -30,6 +32,8 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
   // A última categoria aberta continua montada durante a animação de saída do painel.
   const [lastOpened, setLastOpened] = useState<string | undefined>(undefined)
   if (search.categoria && search.categoria !== lastOpened) setLastOpened(search.categoria)
+  const [groupsOpen, setGroupsOpen] = useState(false)
+  const [newCategoryOpen, setNewCategoryOpen] = useState(false)
 
   if (query.isPending) {
     return (
@@ -58,9 +62,20 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
   const map = query.data
   if (map.groups.every((group) => group.categories.length === 0)) {
     return (
-      <Card>
-        <EmptyState title={copy.scope.empty.title} description={copy.scope.empty.description} />
-      </Card>
+      <>
+        <Card>
+          <EmptyState
+            title={copy.scope.empty.title}
+            description={copy.scope.empty.description}
+            action={
+              <Button variant="secondary" onClick={() => setGroupsOpen(true)}>
+                {copy.scope.manage.manageGroups}
+              </Button>
+            }
+          />
+        </Card>
+        <GroupsDialog groups={map.groups} open={groupsOpen} onOpenChange={setGroupsOpen} />
+      </>
     )
   }
 
@@ -89,11 +104,27 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
         <CategorySheet
           category={sheetCategory}
           groupName={owner.name}
+          groups={map.groups.map((group) => ({ id: group.id, name: group.name }))}
           profile={profile}
           open={Boolean(search.categoria && sheetCategory)}
           onOpenChange={(isOpen) => !isOpen && onSearchChange({ categoria: undefined })}
         />
       )}
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => setNewCategoryOpen(true)}>{copy.scope.manage.newCategory}</Button>
+        <Button variant="secondary" onClick={() => setGroupsOpen(true)}>
+          {copy.scope.manage.groups}
+        </Button>
+      </div>
+      <NewCategoryDialog
+        key={newCategoryOpen ? 'open' : 'closed'}
+        groups={map.groups
+          .filter((group) => !group.hidden)
+          .map((group) => ({ id: group.id, name: group.name }))}
+        open={newCategoryOpen}
+        onOpenChange={setNewCategoryOpen}
+      />
+      <GroupsDialog groups={map.groups} open={groupsOpen} onOpenChange={setGroupsOpen} />
       <ScopeToolbar map={map} search={search} onSearchChange={onSearchChange} />
 
       {shown.length === 0 && hasActiveFilters(filters) ? (
