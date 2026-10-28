@@ -1682,3 +1682,26 @@
 - **Verificação:** API com 965 testes e web com 719, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
 - **Pendente:** aprovação do usuário depois do PR, e a passada manual de `altare-acessibilidade` sobre os filtros (teclado e leitor de tela nos chips e na busca) e o diálogo do convite.
 
+---
+
+## D-075 — Exportação da lista em Excel e CSV (Bloco 1.2, PR 4 de 5)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.2, PR 4 de 5 (`D-071`)
+- **Decisão:**
+  1. **`POST /api/v1/guests/exports`** (`F-CNV-08`, `D-030`): o corpo leva o `format` (`xlsx`, o padrão, ou `csv`) e os `guest_ids` das pessoas que estão na tela; ausente, leva todas. A rota é `POST` de propósito: nada que o casal digitou fica na URL nem no log de acesso, e o texto da busca nem chega ao servidor. Id que já não está na lista é recusado com `404`, para o arquivo nunca divergir do número que a tela anunciou.
+  2. **O que sai:** as 15 colunas da spec, uma linha por pessoa, ordenada por núcleo (sem diferenciar caixa) e pela posição da pessoa; endereço e convite do núcleo repetidos em cada linha; o acompanhante sem nome sai como "Acompanhante de {titular}". Nada de id, `version`, auditoria nem histórico.
+  3. **Excel (`openpyxl` `3.1.5`) e CSV (`csv` da stdlib; UTF-8 com BOM, `;` e CRLF).** No Excel, cabeçalho em negrito e congelado, filtro automático, larguras por coluna, data como data (`DD/MM/AAAA`) e idade como número.
+  4. **Fórmula neutralizada nas duas saídas.** Toda célula de texto que começa com `=`, `+`, `-`, `@`, tabulação ou CR (também depois de espaços) é tratada por uma função pura (`neutralize_cell`): no CSV ganha um apóstrofo na frente; no Excel a célula é gravada com tipo texto forçado (`data_type = "s"`), porque o `openpyxl` trata "=…" como fórmula na atribuição. Caracteres ilegais de XML são removidos. Provas: exemplos por caractere, propriedade (nenhuma célula de CSV começa perigosa e o texto original é recuperável), o `.xlsx` relido sem nenhuma célula de fórmula, e um teste de mutação (sem o tipo texto forçado, os testes falham).
+  5. **Resposta:** `Content-Disposition: attachment; filename="lista-de-convidados-AAAA-MM-DD.<ext>"` (a data de Brasília, sem dado pessoal), `Cache-Control: private, no-store` e `X-Content-Type-Options: nosniff`. Um teste confere que nenhum registro de log leva dado de convidado.
+  6. **Tela:** o botão "Exportar lista" abre um diálogo com o formato, "N pessoas na lista exportada" (as da tela, com os filtros), o aviso "O arquivo tem telefone, e-mail e endereço de convidados. Guardem com cuidado." e "Baixar arquivo". O download é por `blob`, com a URL de objeto solta depois; "Gerando o arquivo…" fica numa região de status e o erro aparece no diálogo sem perder a escolha. Sem pessoa na tela, o botão fica desabilitado.
+  7. **Dependência:** `openpyxl` já estava aprovada na `D-030` e em `stack.md`; esta decisão só registra a versão. O Pyright não pediu `types-openpyxl`.
+- **Ajustes em arquivos aprovados:** `stack.md` (versão do `openpyxl`); `design-system.md` (§15); `convidados-enxoval-e-dia-d.md` (nota); `AGENTS.md` §1; `roadmap.md`; `CLAUDE.md` do `guests`.
+- **Razão:** o casal leva a lista à gráfica e à conferência em planilha; o arquivo concentra os dados pessoais de todos os convidados, então o caminho de saída tem que ser o mais cuidadoso do módulo.
+- **O que ficou rejeitado:**
+  - Exportar por `GET` com os filtros na URL: o texto da busca e os nomes iriam para o histórico e para o log.
+  - Refazer o filtro no servidor: o predicado viveria em dois lugares e a busca viajaria.
+  - Só CSV: rejeitado desde a `D-030`; o uso diário é em Excel.
+  - Gravar o texto "=…" como fórmula e confiar no aviso do Excel: uma observação de convidado não pode executar nada na máquina de quem abre o arquivo.
+- **Adiado, com gatilho para retomar:** os da `D-071`; exportar o que o filtro esconderia (hoje só o que está na tela), se o casal pedir.
+- **Verificação:** API com 1031 testes e web com 727, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; `make e2e` com 59 passando e 1 pulado; cada commit é verificado isolado num worktree.
+- **Pendente:** aprovação do usuário depois do PR; abrir o `.xlsx` e o `.csv` no Excel pt-BR (sem aviso de arquivo corrompido, acentos certos, `=1+1` como texto); a passada manual de `altare-acessibilidade` sobre o diálogo de exportar.
