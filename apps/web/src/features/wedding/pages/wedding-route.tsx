@@ -10,6 +10,10 @@ import { WeddingPage } from './wedding-page'
  */
 export function WeddingRoute() {
   const search = validatePlanningSearch(useSearch({ strict: false }) as Record<string, unknown>)
+  const lens = useSearch({
+    strict: false,
+    select: (all) => (all.lente === 'minha' ? 'minha' : 'casal'),
+  })
   const navigate = useNavigate()
   const me = useQuery(meQueryOptions)
   if (!me.data) return null
@@ -26,6 +30,7 @@ export function WeddingRoute() {
       search={search}
       onSearchChange={onSearchChange}
       profile={me.data.profile as 'Noivo' | 'Noiva'}
+      lens={lens}
     />
   )
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ScopeCategory, ScopeGroup } from '../api/scope'
-import { filterGroups, groupByStatus, hasActiveFilters } from './scope-filters'
+import { filterGroups, groupByStatus, hasActiveFilters, highlightFor } from './scope-filters'
 
 const EVAL = { priority: null, note: null, version: 1 } as const
 
@@ -122,5 +122,25 @@ describe('hasActiveFilters', () => {
     expect(hasActiveFilters({ ocultas: true })).toBe(false)
     expect(hasActiveFilters({ status: 'fora' })).toBe(true)
     expect(hasActiveFilters({ pendente: true })).toBe(true)
+  })
+})
+
+describe('highlightFor (a lente destaca, nunca esconde)', () => {
+  const [a, b] = GROUPS[0]?.categories ?? []
+
+  it('Minha visão destaca o que falta a minha avaliação', () => {
+    expect(a && highlightFor(a, 'minha', 'Noivo')).toBe('mine-missing')
+    expect(b && highlightFor(b, 'minha', 'Noivo')).toBeNull()
+    expect(b && highlightFor(b, 'minha', 'Noiva')).toBeNull()
+  })
+
+  it('Casal destaca o que diverge', () => {
+    expect(b && highlightFor(b, 'casal', 'Noivo')).toBe('diverge')
+    expect(a && highlightFor(a, 'casal', 'Noivo')).toBeNull()
+  })
+
+  it('o destaque de uma lente não aparece na outra', () => {
+    expect(b && highlightFor(b, 'minha', 'Noivo')).toBeNull()
+    expect(a && highlightFor(a, 'casal', 'Noiva')).toBeNull()
   })
 })

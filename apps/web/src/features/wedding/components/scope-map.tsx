@@ -4,12 +4,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { useMediaQuery } from '@/lib/use-media-query'
 import { scopeMapQueryOptions } from '../api/scope'
 import { copy } from '../copy'
 import {
   filterGroups,
   groupByStatus,
   hasActiveFilters,
+  highlightFor,
+  type Lens,
   type SessionProfile,
 } from '../lib/scope-filters'
 import type { PlanningSearch } from '../search'
@@ -24,11 +27,14 @@ export interface ScopeMapProps {
   onSearchChange: (patch: Partial<PlanningSearch>) => void
   /** Quem está na sessão: define o que é "o que falta eu avaliar". */
   profile: SessionProfile
+  /** A lente de visão (`lente` na URL): ausente é `casal`. */
+  lens?: Lens
 }
 
 /** O Mapa de Escopo (F-PLN-08): o que entra, o que talvez entre e o que fica de fora, com os filtros na URL. */
-export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
+export function ScopeMap({ search, onSearchChange, profile, lens = 'casal' }: ScopeMapProps) {
   const query = useQuery(scopeMapQueryOptions)
+  const wide = useMediaQuery('(min-width: 1024px)')
   // A última categoria aberta continua montada durante a animação de saída do painel.
   const [lastOpened, setLastOpened] = useState<string | undefined>(undefined)
   if (search.categoria && search.categoria !== lastOpened) setLastOpened(search.categoria)
@@ -139,6 +145,34 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
             }
           />
         </Card>
+      ) : search.vista === 'status' && wide ? (
+        <section aria-label={copy.scope.board.label} className="grid grid-cols-4 items-start gap-4">
+          {groupByStatus(shown).map(({ status, categories }) => (
+            <section
+              key={status}
+              aria-labelledby={`status-${status}`}
+              className="flex flex-col gap-3 rounded-card bg-surface-muted p-3"
+            >
+              <h3 id={`status-${status}`} className="text-name text-ink">
+                {status}
+              </h3>
+              {categories.length === 0 ? (
+                <p className="text-body-sm text-ink-muted">{copy.scope.statusEmpty}</p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {categories.map((category) => (
+                    <ScopeCategoryCard
+                      key={category.id}
+                      category={category}
+                      onOpen={open}
+                      highlight={highlightFor(category, lens, profile)}
+                    />
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+        </section>
       ) : search.vista === 'status' ? (
         groupByStatus(shown).map(({ status, categories }) => (
           <section
@@ -154,7 +188,12 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
             ) : (
               <ul className="grid gap-3 md:grid-cols-2">
                 {categories.map((category) => (
-                  <ScopeCategoryCard key={category.id} category={category} onOpen={open} />
+                  <ScopeCategoryCard
+                    key={category.id}
+                    category={category}
+                    onOpen={open}
+                    highlight={highlightFor(category, lens, profile)}
+                  />
                 ))}
               </ul>
             )}
@@ -178,7 +217,12 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
             ) : (
               <ul className="grid gap-3 md:grid-cols-2">
                 {group.categories.map((category) => (
-                  <ScopeCategoryCard key={category.id} category={category} onOpen={open} />
+                  <ScopeCategoryCard
+                    key={category.id}
+                    category={category}
+                    onOpen={open}
+                    highlight={highlightFor(category, lens, profile)}
+                  />
                 ))}
               </ul>
             )}

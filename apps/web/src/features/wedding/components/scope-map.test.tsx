@@ -12,15 +12,20 @@ const GET = 'GET /api/v1/wedding/scope'
 function Harness({
   initial = {},
   onChange,
+  lens,
+  profile = 'Noivo',
 }: {
   initial?: PlanningSearch
   onChange?: (p: object) => void
+  lens?: 'casal' | 'minha'
+  profile?: 'Noivo' | 'Noiva'
 }) {
   const [search, setSearch] = useState<PlanningSearch>(initial)
   return (
     <ScopeMap
       search={search}
-      profile="Noivo"
+      profile={profile}
+      lens={lens}
       onSearchChange={(patch) => {
         onChange?.(patch)
         setSearch((prev) => {
@@ -188,5 +193,59 @@ describe('Mapa de Escopo: filtros e vistas na URL (F-PLN-08)', () => {
       'true',
     )
     expect(screen.getByRole('radio', { name: 'Por status' })).toBeChecked()
+  })
+})
+
+describe('Mapa de Escopo: lente e quadro (F-PLN-08)', () => {
+  it('Minha visão destaca, em texto, o que falta a minha avaliação', async () => {
+    renderMap({}, { profile: 'Noiva', lens: 'minha' })
+    const video = (await screen.findByRole('heading', { name: 'Vídeo Exemplo' })).closest(
+      'li',
+    ) as HTMLElement
+    expect(within(video).getByText('Falta a sua avaliação')).toBeVisible()
+    const foto = screen
+      .getByRole('heading', { name: 'Fotografia Exemplo' })
+      .closest('li') as HTMLElement
+    expect(within(foto).queryByText('Falta a sua avaliação')).not.toBeInTheDocument()
+  })
+
+  it('Casal destaca, em texto, o que diverge, e a lente nunca esconde nada', async () => {
+    renderMap({}, { lens: 'casal' })
+    const foto = (await screen.findByRole('heading', { name: 'Fotografia Exemplo' })).closest(
+      'li',
+    ) as HTMLElement
+    expect(within(foto).getByText('Vale conversar')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Vídeo Exemplo' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Buffet Exemplo' })).toBeVisible()
+  })
+
+  it('na tela larga, a vista por status é o quadro de quatro colunas', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    }))
+    renderMap({}, { initial: { vista: 'status' } })
+    const quadro = await screen.findByRole('region', { name: 'Quadro por status' })
+    const colunas = within(quadro).getAllByRole('heading', { level: 3 })
+    expect(colunas.map((c) => c.textContent)).toEqual([
+      'Em discussão',
+      'Entra (Essencial)',
+      'Talvez (Se couber)',
+      'Fica de fora',
+    ])
+    const entra = within(quadro)
+      .getByRole('heading', { name: 'Entra (Essencial)' })
+      .closest('section') as HTMLElement
+    expect(within(entra).getByRole('heading', { name: 'Fotografia Exemplo' })).toBeVisible()
+  })
+
+  it('na tela estreita, a vista por status é a lista agrupada, sem o quadro', async () => {
+    renderMap({}, { initial: { vista: 'status' } })
+    expect(
+      await screen.findByRole('heading', { level: 3, name: 'Entra (Essencial)' }),
+    ).toBeVisible()
+    expect(screen.queryByRole('region', { name: 'Quadro por status' })).not.toBeInTheDocument()
   })
 })

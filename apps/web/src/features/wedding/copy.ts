@@ -158,6 +158,8 @@ export const copy = {
         delete: (name: string) => `Excluir ${name}`,
       },
     },
+    lens: { missingMine: 'Falta a sua avaliação', talk: 'Vale conversar' },
+    board: { label: 'Quadro por status' },
     groupEmpty: 'Nenhuma frente neste grupo.',
     statusEmpty: 'Nenhuma frente aqui.',
   },

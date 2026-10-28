@@ -70,3 +70,20 @@ export function groupByStatus(categories: readonly ScopeCategory[]) {
     categories: categories.filter((category) => category.status === status),
   }))
 }
+
+export type Lens = 'casal' | 'minha'
+export type Highlight = 'mine-missing' | 'diverge'
+
+/**
+ * O que a lente destaca (D-021): `Minha visão` o que falta a minha avaliação; `Casal` o que diverge.
+ * Destacar nunca esconde, e o destaque sai em texto, nunca só em cor.
+ */
+export function highlightFor(
+  category: ScopeCategory,
+  lens: Lens,
+  profile: SessionProfile,
+): Highlight | null {
+  if (lens === 'minha')
+    return myEvaluation(category, profile).priority === null ? 'mine-missing' : null
+  return category.alignment.state === 'divergem' ? 'diverge' : null
+}

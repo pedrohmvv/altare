@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BaselinePanel } from '../components/baseline-panel'
 import { ScopeMap } from '../components/scope-map'
 import { copy } from '../copy'
-import type { SessionProfile } from '../lib/scope-filters'
+import type { Lens, SessionProfile } from '../lib/scope-filters'
 import type { PlanningSearch } from '../search'
 
 export interface WeddingPageProps {
@@ -13,10 +13,12 @@ export interface WeddingPageProps {
   onSearchChange: (patch: Partial<PlanningSearch>) => void
   /** Quem está na sessão. */
   profile: SessionProfile
+  /** A lente de visão: ausente é `casal`. */
+  lens?: Lens
 }
 
 /** A página não conhece o roteador: recebe a URL e devolve o que quer mudar, e assim se testa sem ele. */
-export function WeddingPage({ search, onSearchChange, profile }: WeddingPageProps) {
+export function WeddingPage({ search, onSearchChange, profile, lens }: WeddingPageProps) {
   return (
     <>
       <PageHeader eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
@@ -35,7 +37,7 @@ export function WeddingPage({ search, onSearchChange, profile }: WeddingPageProp
           <BaselinePanel />
         </TabsContent>
         <TabsContent value="escopo" className="mt-6">
-          <ScopeMap search={search} onSearchChange={onSearchChange} profile={profile} />
+          <ScopeMap search={search} onSearchChange={onSearchChange} profile={profile} lens={lens} />
         </TabsContent>
       </Tabs>
     </>
