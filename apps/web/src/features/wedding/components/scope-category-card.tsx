@@ -15,7 +15,7 @@ export function ScopeCategoryCard({
 }: {
   category: ScopeCategory
   /** Abre o painel lateral da frente. */
-  onOpen: (categoryId: string) => void
+  onOpen: (categoryId: string, opener: HTMLElement) => void
   /** O destaque da lente, sempre com texto. */
   highlight?: Highlight | null
   /** No quadro a coluna já diz o status, então o cartão não o repete. */
@@ -33,7 +33,7 @@ export function ScopeCategoryCard({
           {/* O botão cobre o cartão inteiro (`after:inset-0`), mas o nome continua sendo o rótulo. */}
           <button
             type="button"
-            onClick={() => onOpen(category.id)}
+            onClick={(event) => onOpen(category.id, event.currentTarget)}
             className="text-left after:absolute after:inset-0 after:rounded-card"
           >
             {category.name}

@@ -1542,3 +1542,22 @@
 - **Verificação:** API com 677 testes e web com 601, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; fluxo real no navegador (desktop e celular): link guardado, imagem enviada e carregada, remoção.
 - **Pendente:** aprovação do usuário; revisar os 2 textos novos de `messages.py` e o `copy.ts`; a passada manual de `altare-acessibilidade` sobre a seção de referências, inclusive o envio de foto no celular real.
 
+---
+
+## D-070 — Bloco 1.1 concluído: E2E do Planejamento e fechamento (Bloco 1.1, PR 4 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 4 de 4 (`D-066`)
+- **Decisão:**
+  1. **O Bloco 1.1 está concluído** (`D-067`, `D-068`, `D-069`). O critério do bloco, "definir as variáveis-base e classificar o que entra e o que fica de fora, cada um com a sua prioridade, com a divergência visível", está cumprido e provado ponta a ponta. O critério do **Nível 1** ainda não: faltam os Blocos 1.2 (convidados) e 1.3 (cronograma).
+  2. **E2E do Planejamento** (`apps/web/e2e/planejamento.e2e.ts`, Playwright, desktop e celular, build de produção e API de verdade): define e redefine uma Definição Base com confirmação e histórico; teto `R$ 28.000,00`; bloqueio de `Definido` sem valor; o catálogo de 8 grupos e 18 frentes; classificar com motivo, reabrir e ver o motivo anterior com o progresso acompanhando; filtro na URL e o botão voltar; **dois perfis em sessões separadas** (um avalia, o outro vê a divergência e não edita a do primeiro); nome repetido recusado, criar, ocultar e excluir; referência por link e por imagem de verdade, arquivo com extensão trocada recusado e remoção; teclado (Enter abre, Esc fecha e o foco volta ao cartão); lente; quadro e lista; 320 px com o painel aberto. Os dois projetos dividem o banco temporário e por isso usam campos e frentes diferentes.
+  3. **O E2E achou um defeito real, corrigido neste PR:** ao fechar o painel lateral da frente, o foco não voltava ao cartão que o abriu (o painel abre pela URL, sem gatilho, e o Radix só devolve o foco a um gatilho). O `ScopeMap` passa a guardar quem abriu e a devolver o foco, com teste de unidade (Esc e botão Fechar). Era a passada de teclado do plano fazendo o seu trabalho.
+  4. **Conferência visual** com capturas em 1440, 768, 390 e 320 px contra as págs. 32, 34, 35, 38, 39 e 40: cartões planos com *hairline*, nomes em serifa, selos em texto completo, gaveta à direita no desktop e folha inferior no celular, sem rolagem horizontal. Os desvios estão nas `D-067` a `D-069` e no §15.
+  5. **Versão.** Pelo esquema da `D-059` (`MINOR` por bloco concluído), o fechamento pede o PR `develop → main` (`chore(release): conclui o Bloco 1.1`) e, depois do merge do usuário, a tag anotada **`v0.3.0`** (`D-041`, item 5). Os dois ficam com o usuário.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e "Como Retomar"; `roadmap.md` (Bloco 1.1).
+- **Razão:** um bloco só está concluído quando o casal consegue fazer o que ele promete, e a única prova disso é o fluxo inteiro rodando num navegador, nos dois perfis.
+- **O que ficou rejeitado:**
+  - Dar o bloco por concluído só com testes de unidade e de API: foi o E2E que achou o foco perdido.
+  - Um banco por projeto no E2E: o ganho é pequeno, e dividir o banco prova melhor que dois perfis convivem.
+- **Verificação:** API com 677 testes e web com 603, E2E com 59 passando (1 pulado de propósito: o teto só roda no desktop), Ruff, Biome, Pyright, `tsc`, 7 contratos, `make api-types` sem diferença.
+- **Pendente:** aprovação das `D-068`, `D-069` e `D-070` pelo usuário; a passada manual de `altare-acessibilidade` sobre as telas do bloco (teclado, VoiceOver, zoom de 200%, foto no celular real); o PR de release e a tag `v0.3.0`; a conferência de `/context` (`D-062`).
+

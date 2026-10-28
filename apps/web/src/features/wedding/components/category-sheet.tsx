@@ -34,6 +34,8 @@ export interface CategorySheetProps {
   profile: SessionProfile
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** O painel abre pela URL, sem gatilho: quem abriu diz para onde o foco volta ao fechar. */
+  onCloseAutoFocus?: (event: Event) => void
 }
 
 /**
@@ -49,11 +51,16 @@ export function CategorySheet({
   profile,
   open,
   onOpenChange,
+  onCloseAutoFocus,
 }: CategorySheetProps) {
   const [editingDetails, setEditingDetails] = useState(false)
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent title={category.name} description={copy.scope.sheet.group(groupName)}>
+      <SheetContent
+        title={category.name}
+        description={copy.scope.sheet.group(groupName)}
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         <Summary category={category} />
         <StatusSection category={category} locked={editingDetails} />
         <EvaluationSection category={category} profile={profile} />
