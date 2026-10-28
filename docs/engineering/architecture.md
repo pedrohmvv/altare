@@ -280,7 +280,7 @@ erDiagram
   TROUSSEAU_ITEM }o--o| GUEST : "presenteado por"
 ```
 
-`ATTACHMENT` é a associação polimórfica (`owner_type`, `owner_id`) de arquivos a propostas, contatos, contratos e parcelas.
+`ATTACHMENT` é a associação polimórfica (`owner_type`, `owner_id`) de arquivos a propostas, contatos, contratos e parcelas. Ela nasce no bloco que anexa; o `FileAsset` já existe, com um registro por envio (`D-063`).
 
 ### Máquinas de estado (a validar nos respectivos blocos)
 
