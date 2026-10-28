@@ -7,6 +7,7 @@ import { useMediaQuery } from '@/lib/use-media-query'
 import { guestListQueryOptions } from '../api/guests'
 import { copy } from '../copy'
 import type { GuestsSearch } from '../search'
+import { GuestCounters } from './guest-counters'
 import { HouseholdCard } from './household-card'
 import { HouseholdSheet } from './household-sheet'
 import { HouseholdTable } from './household-table'
@@ -78,6 +79,7 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
     <NewHouseholdDialog>
       <div className="flex flex-col gap-6">
         <h2 className="sr-only">{copy.list.title}</h2>
+        <GuestCounters list={query.data} />
         <div className="flex flex-wrap gap-3">
           <NewHouseholdTrigger />
         </div>

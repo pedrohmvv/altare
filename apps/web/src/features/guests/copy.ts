@@ -59,6 +59,48 @@ export const copy = {
     label: 'Abrir WhatsApp',
     for: (name: string) => `Abrir WhatsApp de ${name}`,
   },
+  counters: {
+    label: 'Contadores da lista',
+    total: 'Total nominal',
+    weighted: 'Estimado ponderado',
+    confirmed: 'Confirmados',
+    nobody: 'Ninguém ainda',
+    adults: (n: number) => (n === 1 ? '1 adulto' : `${n} adultos`),
+    paying: (n: number) => (n === 1 ? '1 criança pagante' : `${n} crianças pagantes`),
+    exempt: (n: number) => (n === 1 ? '1 criança isenta' : `${n} crianças isentas`),
+    weightedDetail: (adults: string, children: string) =>
+      `Adultos ${adults} · crianças pagantes ${children}, pelos pesos e arredondado para cima.`,
+    setWeights: 'Defina os pesos',
+    setWeightsHint: 'Sem os pesos, o estimado não tem como ser calculado.',
+    notAttending: (n: number) => (n === 1 ? '1 não irá' : `${n} não irão`),
+    notAttendingLabel: 'Não irão',
+  },
+  settings: {
+    button: 'Ajustar pesos e idades',
+    title: 'Pesos e idades das crianças',
+    description:
+      'Decisões de vocês. Nenhum valor vem pronto: a cobrança de cada fornecedor é que manda.',
+    weightsLegend: 'Peso de cada probabilidade',
+    weightsHint:
+      'Quanto uma pessoa que ainda não confirmou conta no estimado, de 0 a 100. Quem confirma conta 100%.',
+    certain: 'Certeza',
+    probable: 'Provável',
+    phase2: 'Fase 2',
+    percent: '%',
+    agesLegend: 'Idade das crianças',
+    agesHint: 'A idade só sugere a faixa; nunca a muda sozinha.',
+    exempt: 'Criança isenta até',
+    paying: 'Criança pagante até',
+    years: 'anos',
+    save: 'Salvar',
+    cancel: 'Cancelar',
+    errors: {
+      weightsTogether: 'Definam os três pesos juntos, ou deixem os três em branco.',
+      weight: 'Use um número inteiro de 0 a 100.',
+      age: 'Use uma idade de 0 a 17 anos.',
+      order: 'A idade da isenta não pode passar da idade da pagante.',
+    },
+  },
   forms: {
     newHousehold: {
       button: 'Adicionar núcleo',

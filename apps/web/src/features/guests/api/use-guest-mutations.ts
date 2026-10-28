@@ -139,3 +139,23 @@ export const useRestoreHousehold = () =>
       }),
     ),
   )
+
+export const useUpdateGuestSettings = () =>
+  useGuestWrite(
+    async (v: {
+      weights: { certain_pct: number; probable_pct: number; phase_2_pct: number } | null
+      exemptUntilAge: number | null
+      payingUntilAge: number | null
+      version: number
+    }) =>
+      unwrap(
+        await api.PUT('/api/v1/guests/settings', {
+          body: {
+            weights: v.weights,
+            exempt_until_age: v.exemptUntilAge,
+            paying_until_age: v.payingUntilAge,
+            version: v.version,
+          },
+        }),
+      ),
+  )
