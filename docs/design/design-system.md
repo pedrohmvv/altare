@@ -303,7 +303,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 | `axe` automatizado (E2E ou vitrine) | Se houver regressões de acessibilidade recorrentes ou o produto se abrir a outros casais (`D-002`) |
 | ~~Script de CI/`pre-commit` contra *hex*~~ | **Ativado em `D-055`**, como teste do Vitest e com escopo mais largo (cor, fonte, traço e sombra), sem esperar o gatilho (§12) |
 | Impressão (`@media print`, tokens de papel) | Bloco 4.2 (Dossiê do Dia D): **gatilho atingido no detalhamento** (`D-038`, `F-DOS-08`); entra na construção do Bloco 4.2 |
-| Demais primitivos de §8 (`Radio`, `Switch`, `SegmentedControl`, `Avatar`, `Separator`, `Sheet`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`) e `MoneyInput` | Quando a primeira tela que o usa for construída |
+| Demais primitivos de §8 (`Radio`, `Switch`, `Avatar`, `Separator`, `Sheet`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`); `MoneyInput` nasceu no Bloco 1.1 (`D-067`) | Quando a primeira tela que o usa for construída |
 | Componentes de domínio de §9 | No bloco que os usa |
 | `QuickAddFab` ("+ Registrar Rápido") | Primeiro bloco com algo para registrar rápido (Bloco 3.1) |
 | Menu do usuário | **Resolvido em `D-061`**: não há menu na barra superior; a sessão fica no pé da barra lateral, no trilho e na folha "Mais" |
@@ -369,6 +369,8 @@ O **guia de identidade** (`docs/design/identidade-visual/`, aprovado em `D-024` 
 | Catálogo da identidade na vitrine | 12, 30, 31, 33, 36, 42 | `construcao/lockups`, `elementos/arco`, `elementos/ramo`, `elementos/iconografia`, `aplicacoes/favicon-e-icone-de-app`, `aplicacoes/dossie-do-dia-d` | `build_lockups` `:226`, `build_arco` `:555`, `build_ramo` `:577`, `build_iconografia` `:643-661`, `build_favicon_app` `:784-819`, `build_dossie` `:1055-1103` | Desvio: sem a aba escura nem a grade de apps; Dossiê só com as peças e as regras (`D-058`) |
 | Login | 37 | `aplicacoes/tela-de-login` | `build_login` `:821-841` | Conforme (`D-061`); campo de 44 e botão de 48 com texto 15 pelos primitivos (`D-054`), ramo pequeno, aviso de erro em argila, sem arco nem ramo no celular |
 | Sessão: pé da barra lateral, trilho e folha "Mais" | 38 | `aplicacoes/visao-geral` | `_visao_geral` `:863-864` | Conforme com desvios (`D-061`): o bloco virou botão com seta e abre o cartão com o Sair; ícone no trilho; a folha "Mais" termina com a sessão |
+| `MoneyInput` | 34 | `elementos/interface` | campo com prefixo `R$` em mono `:673-679`; valor `:713-718` | Conforme (`D-067`); máscara e centavos sem página |
+| Definições Base (painel) | 38 | `aplicacoes/visao-geral` | `cartao` `:879-884`, linha `:886-893` (rótulo 15, selo `Em definição`, *hairline*) | Desvio (`D-067`): linha-botão com valor e seta, `Definido` em sálvia com `check`, edição em `Dialog` (folha no celular) |
 | Dossiê do Dia D (impressão) | 42 | `aplicacoes/dossie-do-dia-d` | `build_dossie` `:1055-1103` | Pendente (Bloco 4.2) |
 
 **Manutenção:** componente ou tela nova entra no mapa **na mesma mudança** que a constrói; um desvio novo ganha `D-xxx` e a linha passa a "Desvio". Se o guia for regenerado (`uv run build.py`), confira as linhas citadas, que acompanham `componentes.py`.

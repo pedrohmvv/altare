@@ -56,6 +56,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
 *Os blocos fundamentais que não dependem de ter fornecedores nem orçamentos fechados e permitem sair imediatamente do marco zero.*
 
 ### Bloco 1.1 — Definições Base & Mapa de Escopo do Casamento
+- **Andamento (`D-066`):** 4 PRs. **PR 1, Definições Base (`F-PLN-01`): feito** (`D-067`). Faltam o Mapa de Escopo (PR 2), as referências (PR 3) e o fechamento (PR 4).
 - **O que é construído:**
   - Painel de **Definições Base** (data/época, cidade/região, formato, porte e teto macro) com suporte ao estado `Em definição` ou `Definido`.
   - **Mapa de Escopo do Casamento:** catálogo de frentes de um casamento brasileiro onde o Noivo e a Noiva avaliam prioridades e classificam cada categoria como `Entra (Essencial)`, `Talvez (Se couber)`, `Em discussão` ou `Fica de fora` (com registro do motivo do descarte).
