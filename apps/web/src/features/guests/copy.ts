@@ -112,6 +112,30 @@ export const copy = {
       clear: 'Limpar filtros e busca',
     },
   },
+  export: {
+    button: 'Exportar lista',
+    title: 'Exportar a lista',
+    description:
+      'Um arquivo com uma linha por pessoa, para levar à gráfica ou conferir em planilha.',
+    count: (people: number) =>
+      people === 1 ? '1 pessoa na lista exportada.' : `${people} pessoas na lista exportada.`,
+    countHint: 'São as pessoas que estão na tela agora, com os filtros que vocês aplicaram.',
+    care: 'O arquivo tem telefone, e-mail e endereço de convidados. Guardem com cuidado.',
+    formatLegend: 'Formato',
+    formats: { xlsx: 'Excel', csv: 'CSV' },
+    formatHint: {
+      xlsx: 'Abre no Excel, no Numbers e no Google Planilhas.',
+      csv: 'Texto simples, com ponto e vírgula entre as colunas.',
+    },
+    download: 'Baixar arquivo',
+    cancel: 'Fechar',
+    generating: 'Gerando o arquivo…',
+    done: { title: 'Arquivo gerado', description: 'Procurem na pasta de downloads.' },
+    errors: {
+      stale: 'A lista mudou desde que vocês abriram esta janela. Fechem e abram de novo.',
+      network: 'Não conseguimos gerar o arquivo agora. Tentem de novo em instantes.',
+    },
+  },
   counters: {
     label: 'Contadores da lista',
     total: 'Total nominal',
