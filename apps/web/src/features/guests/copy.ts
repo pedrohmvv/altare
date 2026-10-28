@@ -59,6 +59,37 @@ export const copy = {
     label: 'Abrir WhatsApp',
     for: (name: string) => `Abrir WhatsApp de ${name}`,
   },
+  invite: {
+    section: 'Convite',
+    notSent: 'Convite ainda não enviado.',
+    sent: (date: string, channel: string) => `Enviado em ${date} por ${channel}.`,
+    short: (date: string, channel: string) => `Convite enviado em ${date} · ${channel}`,
+    record: 'Registrar convite',
+    edit: 'Editar envio',
+    clear: 'Limpar envio',
+    title: 'Convite do núcleo',
+    description: 'O convite é um ato só por núcleo: a data e o canal do envio.',
+    date: 'Data do envio',
+    dateHint: 'Hoje ou um dia que já passou.',
+    channel: 'Canal',
+    channelPlaceholder: 'Escolham o canal',
+    save: 'Salvar envio',
+    cancel: 'Cancelar',
+    offer: {
+      title: 'Mover os rascunhos para Convidado?',
+      description: (people: number) =>
+        people === 1
+          ? '1 pessoa está em Rascunho. Querem marcá-la como Convidado agora?'
+          : `${people} pessoas estão em Rascunho. Querem marcá-las como Convidado agora?`,
+      move: 'Mover para Convidado',
+      keep: 'Manter como estão',
+    },
+    errors: {
+      date: 'Informem a data do envio.',
+      future: 'A data não pode ser futura.',
+      channel: 'Escolham o canal.',
+    },
+  },
   filters: {
     label: 'Filtros da lista',
     search: 'Buscar por nome',

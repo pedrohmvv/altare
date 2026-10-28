@@ -12,6 +12,7 @@ import { copy } from '../copy'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
 import { SideBadge } from './guest-badges'
+import { InviteSummary } from './invite-summary'
 import { StatusControl } from './status-control'
 import { WhatsAppButton } from './whatsapp-button'
 
@@ -56,6 +57,7 @@ export function HouseholdTable({
                 <span className="text-body-sm text-ink-muted">
                   {summaryText(household.summary)}
                 </span>
+                <InviteSummary household={household} />
               </div>
             </th>
           </tr>

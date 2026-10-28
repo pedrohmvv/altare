@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api/client'
 import { unwrap } from '@/lib/api/errors'
-import { type GuestList, type GuestStatus, guestKeys } from './guests'
+import { type GuestList, type GuestStatus, guestKeys, type InviteChannel } from './guests'
 
 type GuestBody = ReturnType<typeof import('../schemas/guest-forms').toGuestBody>
 type HouseholdBody = ReturnType<typeof import('../schemas/guest-forms').toHouseholdBody>
@@ -158,4 +158,35 @@ export const useUpdateGuestSettings = () =>
           },
         }),
       ),
+  )
+
+export const useRecordHouseholdInvite = () =>
+  useGuestWrite(
+    async (v: {
+      householdId: string
+      sentOn: string
+      channel: InviteChannel
+      moveDrafts: boolean
+      version: number
+    }) =>
+      unwrap(
+        await api.PUT('/api/v1/guests/households/{household_id}/invite', {
+          params: { path: { household_id: v.householdId } },
+          body: {
+            sent_on: v.sentOn,
+            channel: v.channel,
+            move_drafts: v.moveDrafts,
+            version: v.version,
+          },
+        }),
+      ),
+  )
+
+export const useClearHouseholdInvite = () =>
+  useGuestWrite(async (v: { householdId: string; version: number }) =>
+    unwrap(
+      await api.DELETE('/api/v1/guests/households/{household_id}/invite', {
+        params: { path: { household_id: v.householdId }, query: { version: v.version } },
+      }),
+    ),
   )

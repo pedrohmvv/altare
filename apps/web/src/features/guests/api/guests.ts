@@ -11,6 +11,7 @@ export type GuestStatus = Schemas['GuestStatus']
 export type AgeBand = Schemas['AgeBand']
 export type Probability = Schemas['Probability']
 export type Side = Schemas['Side']
+export type InviteChannel = Schemas['InviteChannel']
 export type GuestStatusChange = Schemas['GuestStatusChangeOut']
 export type Headcount = Schemas['HeadcountOut']
 export type BandCounts = Schemas['BandCountsOut']
@@ -26,6 +27,13 @@ export const GUEST_STATUSES: readonly GuestStatus[] = [
 export const AGE_BANDS: readonly AgeBand[] = ['Adulto', 'Criança pagante', 'Criança isenta']
 export const PROBABILITIES: readonly Probability[] = ['Certeza', 'Provável', 'Fase 2']
 export const SIDES: readonly Side[] = ['Noivo', 'Noiva', 'Comum']
+export const INVITE_CHANNELS: readonly InviteChannel[] = [
+  'WhatsApp',
+  'E-mail',
+  'Impresso',
+  'Pessoalmente',
+  'Outro',
+]
 
 export const guestKeys = {
   list: ['guests', 'list'] as const,

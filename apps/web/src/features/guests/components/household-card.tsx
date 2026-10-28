@@ -2,6 +2,7 @@ import type { Household } from '../api/guests'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
 import { SideBadge } from './guest-badges'
+import { InviteSummary } from './invite-summary'
 import { StatusControl } from './status-control'
 import { WhatsAppButton } from './whatsapp-button'
 
@@ -31,6 +32,7 @@ export function HouseholdCard({
         <SideBadge side={household.side} />
       </div>
       <p className="text-body-sm text-ink-muted">{summaryText(household.summary)}</p>
+      <InviteSummary household={household} />
       <ul className="flex flex-col gap-3">
         {household.guests.map((guest) => {
           const name = displayName(guest)
