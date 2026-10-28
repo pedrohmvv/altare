@@ -11,12 +11,15 @@ export function ScopeCategoryCard({
   category,
   onOpen,
   highlight = null,
+  showStatus = true,
 }: {
   category: ScopeCategory
   /** Abre o painel lateral da frente. */
   onOpen: (categoryId: string) => void
   /** O destaque da lente, sempre com texto. */
   highlight?: Highlight | null
+  /** No quadro a coluna já diz o status, então o cartão não o repete. */
+  showStatus?: boolean
 }) {
   return (
     <li
@@ -36,7 +39,7 @@ export function ScopeCategoryCard({
             {category.name}
           </button>
         </h4>
-        <ScopeStatusBadge status={category.status} />
+        {showStatus && <ScopeStatusBadge status={category.status} />}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <AlignmentBadge alignment={category.alignment} />

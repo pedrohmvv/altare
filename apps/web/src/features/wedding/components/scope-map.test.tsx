@@ -239,6 +239,8 @@ describe('Mapa de Escopo: lente e quadro (F-PLN-08)', () => {
       .getByRole('heading', { name: 'Entra (Essencial)' })
       .closest('section') as HTMLElement
     expect(within(entra).getByRole('heading', { name: 'Fotografia Exemplo' })).toBeVisible()
+    // a coluna já diz o status: o cartão não o repete
+    expect(within(entra).getAllByText('Entra (Essencial)')).toHaveLength(1)
   })
 
   it('na tela estreita, a vista por status é a lista agrupada, sem o quadro', async () => {

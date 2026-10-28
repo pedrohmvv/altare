@@ -166,6 +166,7 @@ export function ScopeMap({ search, onSearchChange, profile, lens = 'casal' }: Sc
                       category={category}
                       onOpen={open}
                       highlight={highlightFor(category, lens, profile)}
+                      showStatus={false}
                     />
                   ))}
                 </ul>
