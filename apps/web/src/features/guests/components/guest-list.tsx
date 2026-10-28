@@ -10,6 +10,7 @@ import type { GuestsSearch } from '../search'
 import { HouseholdCard } from './household-card'
 import { HouseholdSheet } from './household-sheet'
 import { HouseholdTable } from './household-table'
+import { NewHouseholdDialog, NewHouseholdTrigger } from './new-household-dialog'
 
 export interface GuestListProps {
   search: GuestsSearch
@@ -53,9 +54,15 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
   const { households } = query.data
   if (households.length === 0) {
     return (
-      <Card>
-        <EmptyState title={copy.list.empty.title} description={copy.list.empty.description} />
-      </Card>
+      <NewHouseholdDialog>
+        <Card>
+          <EmptyState
+            title={copy.list.empty.title}
+            description={copy.list.empty.description}
+            action={<NewHouseholdTrigger />}
+          />
+        </Card>
+      </NewHouseholdDialog>
     )
   }
 
@@ -68,28 +75,33 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
   )
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="sr-only">{copy.list.title}</h2>
-      {sheetHousehold && (
-        <HouseholdSheet
-          household={sheetHousehold}
-          open={Boolean(search.nucleo)}
-          onOpenChange={(isOpen) => !isOpen && onSearchChange({ nucleo: undefined })}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault()
-            opener.current?.focus()
-          }}
-        />
-      )}
-      {wide ? (
-        <HouseholdTable households={households} onOpen={open} />
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {households.map((household) => (
-            <HouseholdCard key={household.id} household={household} onOpen={open} />
-          ))}
-        </ul>
-      )}
-    </div>
+    <NewHouseholdDialog>
+      <div className="flex flex-col gap-6">
+        <h2 className="sr-only">{copy.list.title}</h2>
+        <div className="flex flex-wrap gap-3">
+          <NewHouseholdTrigger />
+        </div>
+        {sheetHousehold && (
+          <HouseholdSheet
+            household={sheetHousehold}
+            open={Boolean(search.nucleo)}
+            onOpenChange={(isOpen) => !isOpen && onSearchChange({ nucleo: undefined })}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault()
+              opener.current?.focus()
+            }}
+          />
+        )}
+        {wide ? (
+          <HouseholdTable households={households} onOpen={open} />
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {households.map((household) => (
+              <HouseholdCard key={household.id} household={household} onOpen={open} />
+            ))}
+          </ul>
+        )}
+      </div>
+    </NewHouseholdDialog>
   )
 }

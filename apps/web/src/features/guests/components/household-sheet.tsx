@@ -1,9 +1,14 @@
+import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import type { Guest, Household } from '../api/guests'
+import { useAddCompanion } from '../api/use-guest-mutations'
 import { copy } from '../copy'
 import { addressLines } from '../lib/address'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
+import { AddGuestDialog } from './add-guest-dialog'
+import { EditGuestDialog } from './edit-guest-dialog'
+import { EditHouseholdDialog } from './edit-household-dialog'
 import { GuestStatusBadge } from './guest-badges'
 import { WhatsAppButton } from './whatsapp-button'
 
@@ -30,11 +35,22 @@ export function HouseholdSheet({
         description={copy.sheet.description(household.side, summaryText(household.summary))}
         onCloseAutoFocus={onCloseAutoFocus}
       >
+        <div className="flex flex-wrap gap-3">
+          <EditHouseholdDialog household={household} />
+          <AddGuestDialog householdId={household.id} householdName={household.name} />
+        </div>
         <section aria-label={copy.sheet.people} className="flex flex-col gap-3">
           <h3 className="text-body font-semibold text-ink">{copy.sheet.people}</h3>
           <ul className="flex flex-col">
             {household.guests.map((guest) => (
-              <GuestDetails key={guest.id} guest={guest} />
+              <GuestDetails
+                key={guest.id}
+                guest={guest}
+                canAddCompanion={
+                  guest.companion_of_id === null &&
+                  !household.guests.some((other) => other.companion_of_id === guest.id)
+                }
+              />
             ))}
           </ul>
         </section>
@@ -63,8 +79,9 @@ export function HouseholdSheet({
   )
 }
 
-function GuestDetails({ guest }: { guest: Guest }) {
+function GuestDetails({ guest, canAddCompanion }: { guest: Guest; canAddCompanion: boolean }) {
   const name = displayName(guest)
+  const addCompanion = useAddCompanion()
   const facts = [
     copy.bands[guest.band],
     guest.age === null ? null : copy.sheet.age(guest.age),
@@ -91,8 +108,19 @@ function GuestDetails({ guest }: { guest: Guest }) {
         {guest.email && <Fact label={copy.sheet.email} value={guest.email} />}
         {guest.note && <Fact label={copy.sheet.personNote} value={guest.note} />}
       </dl>
-      <div>
+      <div className="flex flex-wrap items-center gap-2">
         <WhatsAppButton url={guest.whatsapp_url} name={name} />
+        <EditGuestDialog guest={guest} />
+        {canAddCompanion && (
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={addCompanion.isPending}
+            onClick={() => addCompanion.mutate({ holderId: guest.id })}
+          >
+            {copy.forms.addCompanion.button}
+          </Button>
+        )}
       </div>
     </li>
   )
