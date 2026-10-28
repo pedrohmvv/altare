@@ -33,3 +33,14 @@ export const scopeMapQueryOptions = queryOptions({
   queryFn: async () => unwrap(await api.GET('/api/v1/wedding/scope')),
   refetchOnWindowFocus: true,
 })
+
+export const scopeHistoryQueryOptions = (categoryId: string) =>
+  queryOptions({
+    queryKey: scopeKeys.history(categoryId),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/api/v1/wedding/scope/categories/{category_id}/history', {
+          params: { path: { category_id: categoryId } },
+        }),
+      ),
+  })

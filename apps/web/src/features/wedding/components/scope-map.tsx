@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -12,6 +13,7 @@ import {
   type SessionProfile,
 } from '../lib/scope-filters'
 import type { PlanningSearch } from '../search'
+import { CategorySheet } from './category-sheet'
 import { ScopeCategoryCard } from './scope-category-card'
 import { ScopeToolbar } from './scope-toolbar'
 
@@ -25,6 +27,9 @@ export interface ScopeMapProps {
 /** O Mapa de Escopo (F-PLN-08): o que entra, o que talvez entre e o que fica de fora, com os filtros na URL. */
 export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
   const query = useQuery(scopeMapQueryOptions)
+  // A última categoria aberta continua montada durante a animação de saída do painel.
+  const [lastOpened, setLastOpened] = useState<string | undefined>(undefined)
+  if (search.categoria && search.categoria !== lastOpened) setLastOpened(search.categoria)
 
   if (query.isPending) {
     return (
@@ -67,12 +72,28 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
   }
   const groups = filterGroups(map.groups, filters, profile)
   const shown = groups.flatMap((group) => group.categories)
+  const open = (categoryId: string) => onSearchChange({ categoria: categoryId })
+  const owner = map.groups.find((group) =>
+    group.categories.some((category) => category.id === (search.categoria ?? lastOpened)),
+  )
+  const sheetCategory = owner?.categories.find(
+    (category) => category.id === (search.categoria ?? lastOpened),
+  )
   const clear = () =>
     onSearchChange({ status: undefined, alinhamento: undefined, pendente: undefined })
 
   return (
     <div className="flex flex-col gap-8">
       <h2 className="sr-only">{copy.scope.title}</h2>
+      {owner && sheetCategory && (
+        <CategorySheet
+          category={sheetCategory}
+          groupName={owner.name}
+          profile={profile}
+          open={Boolean(search.categoria && sheetCategory)}
+          onOpenChange={(isOpen) => !isOpen && onSearchChange({ categoria: undefined })}
+        />
+      )}
       <ScopeToolbar map={map} search={search} onSearchChange={onSearchChange} />
 
       {shown.length === 0 && hasActiveFilters(filters) ? (
@@ -102,7 +123,7 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
             ) : (
               <ul className="grid gap-3 md:grid-cols-2">
                 {categories.map((category) => (
-                  <ScopeCategoryCard key={category.id} category={category} />
+                  <ScopeCategoryCard key={category.id} category={category} onOpen={open} />
                 ))}
               </ul>
             )}
@@ -126,7 +147,7 @@ export function ScopeMap({ search, onSearchChange, profile }: ScopeMapProps) {
             ) : (
               <ul className="grid gap-3 md:grid-cols-2">
                 {group.categories.map((category) => (
-                  <ScopeCategoryCard key={category.id} category={category} />
+                  <ScopeCategoryCard key={category.id} category={category} onOpen={open} />
                 ))}
               </ul>
             )}

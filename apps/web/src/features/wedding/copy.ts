@@ -68,6 +68,45 @@ export const copy = {
       hiddenGroup: 'Oculto',
       discardReason: 'Motivo',
     },
+    sheet: {
+      group: (name: string) => `Grupo: ${name}`,
+      status: {
+        label: 'Status',
+        reasonLabel: 'Por que fica de fora',
+        reasonHint: 'Obrigatório para ficar de fora. Fica no histórico, com o seu nome.',
+        confirmOut: 'Confirmar: fica de fora',
+        cancel: 'Cancelar',
+        reasonRequired: 'Escrevam por que esta frente fica de fora.',
+        reason: (text: string) => `Motivo: ${text}`,
+        previousReason: (text: string) => `Motivo do descarte anterior: ${text}`,
+        conflict:
+          'Outra pessoa alterou esta frente. Atualizamos a tela; confiram o estado e tentem de novo.',
+        network: 'Não conseguimos salvar agora. Tentem de novo em instantes.',
+      },
+      evaluation: {
+        title: 'Minha avaliação',
+        priority: 'Quanto eu quero',
+        noteLabel: 'Minha nota',
+        noteHint: 'O que eu espero desta frente. O outro vê assim que atualizar a tela.',
+        save: 'Salvar minha avaliação',
+        saved: 'Avaliação salva.',
+        otherTitle: (profile: 'Noivo' | 'Noiva') =>
+          `Avaliação ${profile === 'Noiva' ? 'da Noiva' : 'do Noivo'}`,
+        notYet: 'Ainda não avaliou',
+        conflict:
+          'Outra pessoa alterou esta avaliação. Vejam a versão mais recente antes de salvar de novo.',
+        reload: 'Ver a versão mais recente',
+        network: 'Não conseguimos salvar agora. O que vocês escreveram continua aqui.',
+      },
+      divergence:
+        'Vocês avaliaram esta frente de forma diferente. Vale conversar antes de decidir.',
+      history: {
+        title: 'Histórico',
+        empty: 'Nenhuma mudança de status ainda.',
+        loadError: 'Não conseguimos carregar o histórico.',
+        change: (from: string, to: string) => `${from} → ${to}`,
+      },
+    },
     groupEmpty: 'Nenhuma frente neste grupo.',
     statusEmpty: 'Nenhuma frente aqui.',
   },

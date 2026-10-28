@@ -1,40 +1,12 @@
-import type { ReactNode } from 'react'
 import { Money } from '@/components/ui/money'
 import { Progress } from '@/components/ui/progress'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { cn } from '@/lib/cn'
 import type { ScopeMap } from '../api/scope'
 import { SCOPE_STATUSES } from '../api/scope'
 import { copy } from '../copy'
 import { SLUG_BY_STATUS } from '../lib/scope-filters'
 import type { PlanningSearch } from '../search'
-
-function Chip({
-  pressed,
-  onClick,
-  children,
-}: {
-  pressed: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={pressed}
-      onClick={onClick}
-      className={cn(
-        'inline-flex min-h-8 items-center rounded-pill border px-3 text-ui-sm font-medium pointer-coarse:min-h-11',
-        'transition-colors duration-fast ease-standard',
-        pressed
-          ? 'border-primary bg-primary text-primary-ink'
-          : 'border-border-strong bg-surface text-ink hover:border-ink-muted',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
+import { Chip } from './chip'
 
 interface ScopeToolbarProps {
   map: ScopeMap
