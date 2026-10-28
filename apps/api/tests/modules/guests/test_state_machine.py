@@ -6,7 +6,9 @@ depois de cada passo as invariantes que o domínio e o banco prometem (plano do 
 """
 
 import contextlib
+import math
 from datetime import UTC, datetime
+from fractions import Fraction
 
 from hypothesis import settings
 from hypothesis import strategies as st
@@ -29,6 +31,10 @@ from wedding.modules.guests.application.commands.move_guest import MoveGuestComm
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuestCommand
 from wedding.modules.guests.application.commands.restore_household import RestoreHouseholdCommand
 from wedding.modules.guests.application.commands.update_guest import UpdateGuestCommand
+from wedding.modules.guests.application.commands.update_guest_settings import (
+    UpdateGuestSettingsCommand,
+    WeightsCommand,
+)
 from wedding.modules.guests.application.fields import GuestFields, HouseholdFields
 from wedding.modules.guests.domain.errors import (
     CompanionAlreadyExists,
@@ -37,6 +43,7 @@ from wedding.modules.guests.domain.errors import (
     CompanionMovesWithHolder,
     CompanionNeedsName,
     DuplicateHouseholdName,
+    InvalidAgeLimits,
     LastGuestInHousehold,
 )
 from wedding.modules.guests.domain.values import (
@@ -241,6 +248,27 @@ class GuestsMachine(RuleBasedStateMachine):
                     actor,
                 )
 
+    @rule(
+        weights=st.one_of(
+            st.none(),
+            st.builds(
+                WeightsCommand, st.integers(0, 100), st.integers(0, 100), st.integers(0, 100)
+            ),
+        ),
+        exempt=st.one_of(st.none(), st.integers(0, 17)),
+        paying=st.one_of(st.none(), st.integers(0, 17)),
+        actor=ACTORS,
+    )
+    def update_settings(self, weights, exempt, paying, actor):
+        people_before = {g.id: (g.band, g.age, g.version) for g in self._guests()}
+        version = self.uc.get_guest_list.execute(NOIVO).settings.version
+        with contextlib.suppress(InvalidAgeLimits):
+            self.uc.update_guest_settings.execute(
+                UpdateGuestSettingsCommand(version, weights, exempt, paying), actor
+            )
+        # F-CNV-03, regra 4: mudar pesos ou limites nunca toca em nenhuma pessoa.
+        assert people_before == {g.id: (g.band, g.age, g.version) for g in self._guests()}
+
     @rule(pick=PICK)
     def stale_version_is_always_refused(self, pick):
         guests = self._guests()
@@ -328,6 +356,40 @@ class GuestsMachine(RuleBasedStateMachine):
                 (GuestStatus.DECLINED, summary.declined),
             ):
                 assert counted == sum(g.status is status for g in household.guests)
+
+    @invariant()
+    def headcount_matches_a_direct_recount_with_exact_fractions(self):
+        listing = self.uc.get_guest_list.execute(NOIVO)
+        live = self._live_guests()
+        attending = [g for g in live if g.status is not GuestStatus.DECLINED]
+        headcount = listing.headcount
+        assert headcount.total_nominal.total == len(attending)
+        assert headcount.confirmed.total == sum(
+            g.status is GuestStatus.CONFIRMED for g in attending
+        )
+        assert headcount.not_attending.total == len(live) - len(attending)
+        weights = listing.settings.weights
+        if weights is None:
+            assert headcount.weighted_rounded_up is None
+        else:
+            exact = sum(
+                (
+                    Fraction(
+                        100 if g.status is GuestStatus.CONFIRMED else weights.of(g.probability), 100
+                    )
+                    for g in attending
+                    if g.band is not AgeBand.EXEMPT_CHILD
+                ),
+                Fraction(0),
+            )
+            parts = (
+                headcount.weighted_adults_hundredths,
+                headcount.weighted_paying_children_hundredths,
+            )
+            assert Fraction(sum(p or 0 for p in parts), 100) == exact
+            assert headcount.weighted_rounded_up == math.ceil(exact)
+        # O contrato que o orçamento lê é a mesma conta da lista.
+        assert self.uc.get_guest_headcount.execute(NOIVO) == headcount
 
 
 GuestsMachine.TestCase.settings = settings(max_examples=60, stateful_step_count=30, deadline=None)

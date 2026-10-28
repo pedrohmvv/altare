@@ -5,6 +5,7 @@ from uuid import UUID
 
 from wedding.modules.guests.application.dto import GuestStatusChangeDto
 from wedding.modules.guests.domain.entities import Guest, GuestStatusChange, Household
+from wedding.modules.guests.domain.settings import GuestSettings
 from wedding.shared_kernel.actor import Actor
 
 
@@ -35,6 +36,10 @@ class GuestRepository(Protocol):
         ...
 
     def next_position(self, household_id: UUID) -> int: ...
+
+    def get_settings(self) -> GuestSettings:
+        """A linha única de pesos e limites; criada pela migration, faltar é banco mal migrado."""
+        ...
 
     def add_guest(self, guest: Guest) -> None: ...
 

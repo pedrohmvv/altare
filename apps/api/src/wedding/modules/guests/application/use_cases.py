@@ -11,7 +11,9 @@ from wedding.modules.guests.application.commands.move_guest import MoveGuest
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuest
 from wedding.modules.guests.application.commands.restore_household import RestoreHousehold
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
+from wedding.modules.guests.application.commands.update_guest_settings import UpdateGuestSettings
 from wedding.modules.guests.application.commands.update_household import UpdateHousehold
+from wedding.modules.guests.application.queries.get_guest_headcount import GetGuestHeadcount
 from wedding.modules.guests.application.queries.get_guest_list import GetGuestList
 from wedding.modules.guests.application.queries.list_guest_status_history import (
     ListGuestStatusHistory,
@@ -21,6 +23,7 @@ from wedding.modules.guests.application.queries.list_guest_status_history import
 @dataclass(frozen=True)
 class GuestsUseCases:
     get_guest_list: GetGuestList
+    get_guest_headcount: GetGuestHeadcount
     list_guest_status_history: ListGuestStatusHistory
     create_household: CreateHousehold
     update_household: UpdateHousehold
@@ -33,6 +36,7 @@ class GuestsUseCases:
     move_guest: MoveGuest
     delete_guest: DeleteGuest
     restore_guest: RestoreGuest
+    update_guest_settings: UpdateGuestSettings
 
 
 GuestsProvider = Callable[[], GuestsUseCases]
