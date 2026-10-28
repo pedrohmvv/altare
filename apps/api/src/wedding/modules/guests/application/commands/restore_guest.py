@@ -20,19 +20,23 @@ class RestoreGuest:
 
     def execute(self, command: RestoreGuestCommand, actor: Actor) -> GuestListDto:
         """Desfaz a exclusão. Restaurar o titular traz de volta o acompanhante excluído junto com
-        ele; um acompanhante só volta se o titular está na lista e ainda sem outro +1."""
+        ele; um acompanhante só volta se o titular está na lista e ainda sem outro +1, e volta
+        para o núcleo do titular."""
         with self._uow_factory(actor) as uow:
             guest = uow.guests.get_guest(command.guest_id, include_deleted=True)
             if guest is None or guest.deleted_at is None:
                 raise NotFound()
-            if uow.guests.get_household(guest.household_id) is None:
-                raise NotFound()
-            if guest.companion_of_id is not None:
+            if guest.companion_of_id is None:
+                if uow.guests.get_household(guest.household_id) is None:
+                    raise NotFound()
+            else:
                 holder = uow.guests.get_guest(guest.companion_of_id)
                 if holder is None:
                     raise NotFound()
                 if uow.guests.companion_of(holder.id) is not None:
                     raise CompanionAlreadyExists()
+                # O titular pode ter mudado de núcleo depois da exclusão: o +1 volta para o dele.
+                guest.move_to(holder.household_id, uow.guests.next_position(holder.household_id))
             deleted_at = guest.deleted_at
             guest.restore()
             companion = uow.guests.deleted_companion_of(guest.id)

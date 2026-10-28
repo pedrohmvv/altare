@@ -607,6 +607,34 @@ class TestExcluirPessoa:
         with pytest.raises(NotFound):
             world.use_cases().restore_guest.execute(RestoreGuestCommand(acompanhante.id), NOIVO)
 
+    def test_restaurar_o_acompanhante_o_traz_para_o_nucleo_do_titular(self, world):
+        _, origem = novo_nucleo(world, "Família Exemplo A")
+        nova_pessoa(world, origem, "Convidado Exemplo B")
+        _, destino = novo_nucleo(world, "Família Exemplo B", primeira="Convidado Exemplo C")
+        titular = origem.guests[0]
+        lista = world.use_cases().add_companion.execute(
+            AddCompanionCommand(titular.id, None), NOIVO
+        )
+        acompanhante = household_of(lista, "Família Exemplo A").guests[1]
+        world.use_cases().delete_guest.execute(
+            DeleteGuestCommand(acompanhante.id, acompanhante.version, None), NOIVO
+        )
+        titular = guest_of(world.use_cases().get_guest_list.execute(NOIVO), "Convidado Exemplo A")
+        world.use_cases().move_guest.execute(
+            MoveGuestCommand(titular.id, destino.id, titular.version), NOIVO
+        )
+
+        lista = world.use_cases().restore_guest.execute(RestoreGuestCommand(acompanhante.id), NOIVO)
+
+        assert [g.name for g in household_of(lista, "Família Exemplo A").guests] == [
+            "Convidado Exemplo B"
+        ]
+        assert [g.name for g in household_of(lista, "Família Exemplo B").guests] == [
+            "Convidado Exemplo C",
+            "Convidado Exemplo A",
+            None,
+        ]
+
     def test_versao_velha_na_exclusao_e_recusada(self, world):
         _, nucleo = novo_nucleo(world)
         _, pessoa = nova_pessoa(world, nucleo, "Convidado Exemplo B")
