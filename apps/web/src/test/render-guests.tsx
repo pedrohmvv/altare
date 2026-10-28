@@ -11,11 +11,21 @@ import { LIST } from './guest-fixtures'
 
 export const GET_GUESTS = 'GET /api/v1/guests'
 
-function Harness({ initial }: { initial: GuestsSearch }) {
+function Harness({
+  initial,
+  profile,
+  lens,
+}: {
+  initial: GuestsSearch
+  profile: 'Noivo' | 'Noiva'
+  lens: 'casal' | 'minha'
+}) {
   const [search, setSearch] = useState<GuestsSearch>(initial)
   return (
     <GuestsPage
       search={search}
+      profile={profile}
+      lens={lens}
       onSearchChange={(patch) =>
         setSearch((previous) => {
           const next: Record<string, unknown> = { ...previous, ...patch }
@@ -31,6 +41,7 @@ function Harness({ initial }: { initial: GuestsSearch }) {
 export function renderGuests(
   handlers: Parameters<typeof mockApi>[0] = {},
   initial: GuestsSearch = {},
+  session: { profile?: 'Noivo' | 'Noiva'; lens?: 'casal' | 'minha' } = {},
 ) {
   const api = mockApi({ [GET_GUESTS]: jsonResponse(200, LIST), ...handlers })
   render(
@@ -38,7 +49,11 @@ export function renderGuests(
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
       <ToastProvider>
-        <Harness initial={initial} />
+        <Harness
+          initial={initial}
+          profile={session.profile ?? 'Noivo'}
+          lens={session.lens ?? 'casal'}
+        />
       </ToastProvider>
     </QueryClientProvider>,
   )

@@ -59,6 +59,28 @@ export const copy = {
     label: 'Abrir WhatsApp',
     for: (name: string) => `Abrir WhatsApp de ${name}`,
   },
+  filters: {
+    label: 'Filtros da lista',
+    search: 'Buscar por nome',
+    searchHint:
+      'Pelo nome da pessoa ou do núcleo. O que vocês digitam aqui não vai para o endereço da página.',
+    side: 'Lado',
+    band: 'Faixa',
+    probability: 'Probabilidade',
+    status: 'Status',
+    noInvite: 'Convite não enviado',
+    dietary: 'Com restrição alimentar',
+    other: 'Mostrar também o outro lado',
+    clear: 'Limpar filtros',
+    count: (shown: number, total: number) => `${shown} de ${total} pessoas`,
+    lensNote: (profile: string) =>
+      `Minha visão: o lado ${profile === 'Noivo' ? 'do Noivo' : 'da Noiva'} e o Comum.`,
+    noMatch: {
+      title: 'Nenhuma pessoa corresponde',
+      description: 'Tirem um filtro ou mudem a busca para ver mais gente.',
+      clear: 'Limpar filtros e busca',
+    },
+  },
   counters: {
     label: 'Contadores da lista',
     total: 'Total nominal',

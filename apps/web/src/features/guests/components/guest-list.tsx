@@ -6,8 +6,16 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { useMediaQuery } from '@/lib/use-media-query'
 import { guestListQueryOptions } from '../api/guests'
 import { copy } from '../copy'
+import {
+  countGuests,
+  filterHouseholds,
+  filtersFromSearch,
+  hasActiveFilters,
+} from '../lib/guest-filters'
+import { type Lens, type SessionProfile, visibleSides } from '../lib/sides'
 import type { GuestsSearch } from '../search'
 import { GuestCounters } from './guest-counters'
+import { GuestToolbar } from './guest-toolbar'
 import { HouseholdCard } from './household-card'
 import { HouseholdSheet } from './household-sheet'
 import { HouseholdTable } from './household-table'
@@ -16,10 +24,14 @@ import { NewHouseholdDialog, NewHouseholdTrigger } from './new-household-dialog'
 export interface GuestListProps {
   search: GuestsSearch
   onSearchChange: (patch: Partial<GuestsSearch>) => void
+  /** A lente de visão: ausente é `casal`. */
+  lens?: Lens
+  /** Quem está na sessão: define o "meu lado" da lente `Minha visão`. */
+  profile: SessionProfile
 }
 
 /** A lista de convidados por núcleo (F-CNV-07): tabela agrupada no computador, cartões no celular. */
-export function GuestList({ search, onSearchChange }: GuestListProps) {
+export function GuestList({ search, onSearchChange, lens = 'casal', profile }: GuestListProps) {
   const query = useQuery(guestListQueryOptions)
   const wide = useMediaQuery('(min-width: 768px)')
   // O último núcleo aberto continua montado durante a animação de saída do painel. Quem abriu o
@@ -27,6 +39,8 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
   const opener = useRef<HTMLElement | null>(null)
   const [lastOpened, setLastOpened] = useState<string | undefined>(undefined)
   if (search.nucleo && search.nucleo !== lastOpened) setLastOpened(search.nucleo)
+  // O texto da busca fica aqui, no navegador: nunca vai para a URL nem para o servidor.
+  const [searchText, setSearchText] = useState('')
 
   if (query.isPending) {
     return (
@@ -71,6 +85,22 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
     opener.current = from
     onSearchChange({ nucleo: householdId })
   }
+  const filters = filtersFromSearch(search)
+  const sides = visibleSides({ lens, profile, includeOther: search.outro === true })
+  const shown = filterHouseholds(households, filters, searchText, filters.side ? undefined : sides)
+  const narrowed = hasActiveFilters(filters) || searchText.trim() !== '' || sides !== undefined
+  const clear = () => {
+    setSearchText('')
+    onSearchChange({
+      lado: undefined,
+      faixa: undefined,
+      probabilidade: undefined,
+      status: undefined,
+      semconvite: undefined,
+      restricao: undefined,
+      outro: undefined,
+    })
+  }
   const sheetHousehold = households.find(
     (household) => household.id === (search.nucleo ?? lastOpened),
   )
@@ -80,6 +110,16 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
       <div className="flex flex-col gap-6">
         <h2 className="sr-only">{copy.list.title}</h2>
         <GuestCounters list={query.data} />
+        <GuestToolbar
+          search={search}
+          onSearchChange={onSearchChange}
+          query={searchText}
+          onQueryChange={setSearchText}
+          lens={lens}
+          profile={profile}
+          count={narrowed ? { shown: countGuests(shown), total: countGuests(households) } : null}
+          onClear={clear}
+        />
         <div className="flex flex-wrap gap-3">
           <NewHouseholdTrigger />
         </div>
@@ -97,11 +137,23 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
             }}
           />
         )}
-        {wide ? (
-          <HouseholdTable households={households} onOpen={open} />
+        {shown.length === 0 ? (
+          <Card>
+            <EmptyState
+              title={copy.filters.noMatch.title}
+              description={copy.filters.noMatch.description}
+              action={
+                <Button variant="secondary" onClick={clear}>
+                  {copy.filters.noMatch.clear}
+                </Button>
+              }
+            />
+          </Card>
+        ) : wide ? (
+          <HouseholdTable households={shown} onOpen={open} />
         ) : (
           <ul className="flex flex-col gap-3">
-            {households.map((household) => (
+            {shown.map((household) => (
               <HouseholdCard key={household.id} household={household} onOpen={open} />
             ))}
           </ul>
