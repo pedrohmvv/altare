@@ -99,7 +99,8 @@ def _erros_concretos(base=DomainError):
 
 
 def test_todo_erro_de_dominio_tem_status_http_e_mensagem_em_portugues():
-    import wedding.modules.identity.domain.errors  # noqa: F401  (registra as subclasses)
+    import wedding.modules.files.domain.errors
+    import wedding.modules.identity.domain.errors  # noqa: F401
 
     erros = [e for e in _erros_concretos() if e.default_code is not None]
     assert len(erros) >= 8

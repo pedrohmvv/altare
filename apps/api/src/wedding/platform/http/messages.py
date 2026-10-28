@@ -64,6 +64,18 @@ MESSAGES: dict[str, Message] = {
         "Perfil inválido",
         "Escolha Noivo ou Noiva.",
     ),
+    "unsupported_file_type": Message(
+        "Tipo de arquivo não aceito",
+        "Envie um PDF ou uma imagem JPG, PNG ou WebP.",
+    ),
+    "file_too_large": Message(
+        "Arquivo grande demais",
+        "O arquivo passa de 20 MB. Envie uma versão menor.",
+    ),
+    "empty_file": Message(
+        "Arquivo vazio",
+        "O arquivo está vazio. Escolha outro e tente de novo.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",
