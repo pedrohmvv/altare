@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GuestList, GuestStatus } from '@/features/guests/api/guests'
 import { jsonResponse, problemResponse } from '@/test/fake-api'
-import { household, LIST } from '@/test/guest-fixtures'
+import { household, LIST, listOf } from '@/test/guest-fixtures'
 import { GET_GUESTS, renderGuests } from '@/test/render-guests'
 
 const BASE = '/api/v1/guests'
@@ -27,14 +27,15 @@ function memory(initial: GuestList) {
   }
 }
 
-const withStatus = (list: GuestList, id: string, status: GuestStatus): GuestList => ({
-  households: list.households.map((h) => {
-    const guests = h.guests.map((g) =>
-      g.id === id ? { ...g, status, version: g.version + 1, decline_reason: null } : g,
-    )
-    return { ...h, guests, summary: household({ guests }).summary }
-  }),
-})
+const withStatus = (list: GuestList, id: string, status: GuestStatus): GuestList =>
+  listOf(
+    list.households.map((h) => {
+      const guests = h.guests.map((g) =>
+        g.id === id ? { ...g, status, version: g.version + 1, decline_reason: null } : g,
+      )
+      return { ...h, guests, summary: household({ guests }).summary }
+    }),
+  )
 
 const trigger = (name: string, status: string) =>
   screen.findByRole('button', { name: `Mudar o status de ${name}, hoje ${status}` })
@@ -247,8 +248,8 @@ describe('mover, excluir e desfazer (F-CNV-01 e F-CNV-02)', () => {
   })
 
   it('o acompanhante com nome pode ficar na lista quando o titular sai', async () => {
-    const named = {
-      households: LIST.households.map((h) =>
+    const named = listOf(
+      LIST.households.map((h) =>
         h.id === 'n-a'
           ? household({
               ...h,
@@ -258,7 +259,7 @@ describe('mover, excluir e desfazer (F-CNV-01 e F-CNV-02)', () => {
             })
           : h,
       ),
-    }
+    )
     const mem = memory(named)
     const { user, api } = open({
       [GET_GUESTS]: mem.get,
@@ -307,9 +308,9 @@ describe('mover, excluir e desfazer (F-CNV-01 e F-CNV-02)', () => {
     const mem = memory(LIST)
     const { user, api } = open({
       [GET_GUESTS]: mem.get,
-      [DELETE_HOUSEHOLD('n-a')]: mem.write((c) => ({
-        households: c.households.filter((h) => h.id !== 'n-a'),
-      })),
+      [DELETE_HOUSEHOLD('n-a')]: mem.write((c) =>
+        listOf(c.households.filter((h) => h.id !== 'n-a')),
+      ),
       [RESTORE_HOUSEHOLD('n-a')]: mem.write(() => LIST),
     })
     const sheet = await screen.findByRole('dialog', { name: 'Família Exemplo' })

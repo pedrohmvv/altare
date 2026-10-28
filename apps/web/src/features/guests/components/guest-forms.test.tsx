@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GuestList } from '@/features/guests/api/guests'
 import { jsonResponse, problemResponse } from '@/test/fake-api'
-import { guest, household, LIST } from '@/test/guest-fixtures'
+import { guest, household, LIST, listOf } from '@/test/guest-fixtures'
 import { GET_GUESTS, renderGuests } from '@/test/render-guests'
 
 const BASE = '/api/v1/guests'
@@ -25,7 +25,7 @@ function memory(initial: GuestList) {
   }
 }
 
-const EMPTY: GuestList = { households: [] }
+const EMPTY: GuestList = listOf([])
 
 async function fillNewHousehold(
   user: ReturnType<typeof renderGuests>['user'],
@@ -79,9 +79,9 @@ describe('novo núcleo (F-CNV-01)', () => {
     })
     const { user, api } = renderGuests({
       [GET_GUESTS]: mem.get,
-      [POST_HOUSEHOLDS]: mem.write({ households: [created] }),
-      [POST_GUESTS('n-novo')]: mem.write((current) => ({
-        households: [
+      [POST_HOUSEHOLDS]: mem.write(listOf([created])),
+      [POST_GUESTS('n-novo')]: mem.write((current) =>
+        listOf([
           {
             ...created,
             guests: [
@@ -90,8 +90,8 @@ describe('novo núcleo (F-CNV-01)', () => {
             ],
           },
           ...current.households.slice(1),
-        ],
-      })),
+        ]),
+      ),
     })
     const dialog = await fillNewHousehold(user)
 
@@ -206,11 +206,11 @@ describe('editar o núcleo e as pessoas', () => {
     const mem = memory(LIST)
     const { user, api } = open({
       [GET_GUESTS]: mem.get,
-      [PUT_HOUSEHOLD('n-a')]: mem.write((current) => ({
-        households: current.households.map((h) =>
-          h.id === 'n-a' ? { ...h, side: 'Noiva', version: 2 } : h,
+      [PUT_HOUSEHOLD('n-a')]: mem.write((current) =>
+        listOf(
+          current.households.map((h) => (h.id === 'n-a' ? { ...h, side: 'Noiva', version: 2 } : h)),
         ),
-      })),
+      ),
     })
     const sheet = await screen.findByRole('dialog', { name: 'Família Exemplo' })
     await user.click(within(sheet).getByRole('button', { name: 'Editar núcleo' }))
@@ -249,11 +249,11 @@ describe('editar o núcleo e as pessoas', () => {
     await user.clear(nome)
     await user.type(nome, 'Minha Família Exemplo')
     // enquanto isso, a outra pessoa mudou o nome
-    mem.state.list = {
-      households: LIST.households.map((h) =>
+    mem.state.list = listOf(
+      LIST.households.map((h) =>
         h.id === 'n-a' ? { ...h, name: 'Família Exemplo da Outra', version: 2 } : h,
       ),
-    }
+    )
 
     await user.click(within(dialog).getByRole('button', { name: 'Salvar núcleo' }))
 
@@ -324,12 +324,12 @@ describe('editar o núcleo e as pessoas', () => {
       name: 'Núcleo Solo Exemplo',
       guests: [guest({ id: 'p-s', household_id: 'n-s' })],
     })
-    const mem = memory({ households: [solo] })
+    const mem = memory(listOf([solo]))
     const { user, api } = renderGuests(
       {
         [GET_GUESTS]: mem.get,
-        [POST_COMPANION('p-s')]: mem.write({
-          households: [
+        [POST_COMPANION('p-s')]: mem.write(
+          listOf([
             household({
               ...solo,
               guests: [
@@ -343,8 +343,8 @@ describe('editar o núcleo e as pessoas', () => {
                 }),
               ],
             }),
-          ],
-        }),
+          ]),
+        ),
       },
       { nucleo: 'n-s' },
     )

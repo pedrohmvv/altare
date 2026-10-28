@@ -50,8 +50,23 @@ def test_mutacao_sem_o_header_anti_csrf_e_recusada(api):
     assert (resposta.status_code, resposta.json()["code"]) == (403, "csrf_missing")
 
 
-def test_a_lista_comeca_vazia(api):
-    assert api.noivo.get(BASE).json() == {"households": []}
+def test_a_lista_comeca_vazia_com_contadores_zerados_e_configuracoes_vazias(api):
+    corpo = api.noivo.get(BASE).json()
+
+    assert corpo["households"] == []
+    assert corpo["headcount"]["total_nominal"] == {
+        "adults": 0,
+        "paying_children": 0,
+        "exempt_children": 0,
+        "total": 0,
+    }
+    assert corpo["headcount"]["weighted_rounded_up"] is None
+    assert corpo["settings"] == {
+        "weights": None,
+        "exempt_until_age": None,
+        "paying_until_age": None,
+        "version": 1,
+    }
 
 
 def test_criar_o_nucleo_com_a_primeira_pessoa_devolve_a_lista(api):  # F-CNV-01
@@ -184,7 +199,7 @@ def test_excluir_o_nucleo_e_restaurar(api):  # F-CNV-01
     excluida = api.noivo.delete(
         f"{BASE}/households/{familia['id']}", params={"version": familia["version"]}
     )
-    assert excluida.json() == {"households": []}
+    assert excluida.json()["households"] == []
     restaurada = api.noivo.post(f"{BASE}/households/{familia['id']}/restore")
     assert [h["name"] for h in restaurada.json()["households"]] == ["Família Exemplo"]
 
@@ -207,6 +222,10 @@ def test_o_contrato_declara_todos_os_campos_de_saida_como_obrigatorios(api):
         "HouseholdSummaryOut",
         "GuestOut",
         "GuestStatusChangeOut",
+        "HeadcountOut",
+        "BandCountsOut",
+        "GuestSettingsOut",
+        "WeightsOut",
     ):
         esquema = esquemas[nome]
         assert set(esquema["required"]) == set(esquema["properties"]), nome
@@ -233,6 +252,7 @@ def test_operation_ids_estaveis(api):
         "delete_guest",
         "restore_guest",
         "list_guest_status_history",
+        "update_guest_settings",
     }
 
 
@@ -289,3 +309,89 @@ def test_o_servidor_nao_ecoa_o_corpo_na_validacao(api, metodo, caminho):
         f"{BASE}{caminho}", **({"json": {"x": SENTINELA_NOME}} if metodo == "post" else {})
     )
     assert SENTINELA_NOME not in resposta.text
+
+
+def put_configuracoes(client, versao, pesos=None, isenta=None, pagante=None):
+    return client.put(
+        f"{BASE}/settings",
+        json={
+            "weights": pesos,
+            "exempt_until_age": isenta,
+            "paying_until_age": pagante,
+            "version": versao,
+        },
+    )
+
+
+SPEC_WEIGHTS = {
+    "certain_pct": 100,
+    "probable_pct": 70,
+    "phase_2_pct": 30,
+}  # os da spec, não do casal
+
+
+def test_o_ponderado_vem_em_centesimos_e_arredondado_para_cima(api):  # F-CNV-06
+    corpo = post_nucleo(api.noivo, primeira="Convidado Exemplo 1").json()
+    familia = nucleo(corpo, "Família Exemplo")
+    for nome, prob in (("Convidado Exemplo 2", "Certeza"), ("Convidado Exemplo 3", "Provável")):
+        post_pessoa(api.noivo, familia, nome, probability=prob)
+    post_pessoa(api.noivo, familia, "Convidado Exemplo 4", probability="Provável")
+    lista = post_pessoa(api.noivo, familia, "Convidado Exemplo 5", probability="Fase 2").json()
+    assert lista["headcount"]["weighted_rounded_up"] is None  # "defina os pesos"
+
+    resposta = put_configuracoes(api.noiva, lista["settings"]["version"], SPEC_WEIGHTS)
+
+    assert resposta.status_code == 200
+    contagem = resposta.json()["headcount"]
+    # 1 Provável (padrão) + Certeza + 2 Provável + Fase 2 = 0,7 + 1 + 0,7 + 0,7 + 0,3
+    assert contagem["weighted_adults_hundredths"] == 340
+    assert contagem["weighted_rounded_up"] == 4
+    assert resposta.json()["settings"]["weights"] == SPEC_WEIGHTS
+    assert resposta.json()["settings"]["version"] == 2
+
+
+def test_confirmar_alguem_atualiza_os_contadores_na_mesma_resposta(api):  # F-CNV-06
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+    lista = post_pessoa(api.noivo, familia, "Convidado Exemplo B").json()
+    put_configuracoes(api.noivo, lista["settings"]["version"], SPEC_WEIGHTS)
+    guest = pessoa(api.noivo.get(BASE).json(), "Convidado Exemplo B")
+
+    corpo = mudar_status(api.noiva, guest, "Confirmado").json()
+
+    assert corpo["headcount"]["confirmed"]["adults"] == 1
+    assert corpo["headcount"]["weighted_adults_hundredths"] == 170  # 0,7 + 100% do confirmado
+
+
+def test_peso_fora_de_0_a_100_e_limites_incoerentes_dao_422(api):
+    sem_peso = put_configuracoes(api.noivo, 1, {**SPEC_WEIGHTS, "probable_pct": 101})
+    sem_limite = put_configuracoes(api.noivo, 1, isenta=8, pagante=5)
+
+    assert (sem_peso.status_code, sem_peso.json()["code"]) == (422, "invalid_weights")
+    assert (sem_limite.status_code, sem_limite.json()["code"]) == (422, "invalid_age_limits")
+
+
+def test_pesos_incompletos_nao_passam_pelo_contrato(api):
+    resposta = put_configuracoes(api.noivo, 1, {"certain_pct": 100})
+
+    assert (resposta.status_code, resposta.json()["code"]) == (422, "validation_error")
+
+
+def test_configuracoes_com_versao_velha_dao_409(api):
+    put_configuracoes(api.noivo, 1, SPEC_WEIGHTS)
+
+    resposta = put_configuracoes(api.noiva, 1, SPEC_WEIGHTS)
+
+    assert (resposta.status_code, resposta.json()["code"]) == (409, "version_conflict")
+
+
+def test_a_idade_sugere_a_faixa_sem_mudar_a_pessoa(api):  # F-CNV-03
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+    lista = post_pessoa(
+        api.noivo, familia, "Convidado Exemplo B", band="Criança pagante", age=4
+    ).json()
+    assert pessoa(lista, "Convidado Exemplo B")["suggested_band"] is None
+
+    corpo = put_configuracoes(api.noivo, lista["settings"]["version"], isenta=5, pagante=12).json()
+
+    crianca = pessoa(corpo, "Convidado Exemplo B")
+    assert (crianca["band"], crianca["suggested_band"]) == ("Criança pagante", "Criança isenta")

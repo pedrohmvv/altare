@@ -63,6 +63,21 @@ class MoveIn(BaseModel):
     version: int = _VERSION
 
 
+class WeightsIn(BaseModel):
+    certain_pct: int
+    probable_pct: int
+    phase_2_pct: int
+
+
+class GuestSettingsIn(BaseModel):
+    """Os três pesos andam juntos: o objeto inteiro ou nada (nulo limpa)."""
+
+    weights: WeightsIn | None = None
+    exempt_until_age: int | None = None
+    paying_until_age: int | None = None
+    version: int = _VERSION
+
+
 # Saída: nenhum valor padrão, para o contrato declarar todos os campos como obrigatórios.
 class HouseholdSummaryOut(BaseModel):
     total: int
@@ -80,6 +95,7 @@ class GuestOut(BaseModel):
     holder_name: str | None
     band: AgeBand
     age: int | None
+    suggested_band: AgeBand | None
     probability: Probability
     status: GuestStatus
     decline_reason: str | None
@@ -108,8 +124,43 @@ class HouseholdOut(BaseModel):
     version: int
 
 
+class BandCountsOut(BaseModel):
+    adults: int
+    paying_children: int
+    exempt_children: int
+    total: int
+
+
+class HeadcountOut(BaseModel):
+    """Os contadores derivados (F-CNV-06). O ponderado vem em centésimos de pessoa e já arredondado
+    para cima; fica nulo enquanto os pesos não existem ("defina os pesos")."""
+
+    total_nominal: BandCountsOut
+    confirmed: BandCountsOut
+    not_attending: BandCountsOut
+    certain_or_confirmed: BandCountsOut
+    weighted_adults_hundredths: int | None
+    weighted_paying_children_hundredths: int | None
+    weighted_rounded_up: int | None
+
+
+class WeightsOut(BaseModel):
+    certain_pct: int
+    probable_pct: int
+    phase_2_pct: int
+
+
+class GuestSettingsOut(BaseModel):
+    weights: WeightsOut | None
+    exempt_until_age: int | None
+    paying_until_age: int | None
+    version: int
+
+
 class GuestListOut(BaseModel):
     households: list[HouseholdOut]
+    headcount: HeadcountOut
+    settings: GuestSettingsOut
 
 
 class GuestStatusChangeOut(BaseModel):

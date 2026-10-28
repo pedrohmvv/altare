@@ -2134,6 +2134,77 @@
         }
       }
     },
+    "/api/v1/guests/settings": {
+      "put": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "Update Guest Settings",
+        "operationId": "update_guest_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestSettingsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestListOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/guests/households": {
       "post": {
         "tags": [
@@ -3145,6 +3216,34 @@
         ],
         "title": "AlignmentState"
       },
+      "BandCountsOut": {
+        "properties": {
+          "adults": {
+            "type": "integer",
+            "title": "Adults"
+          },
+          "paying_children": {
+            "type": "integer",
+            "title": "Paying Children"
+          },
+          "exempt_children": {
+            "type": "integer",
+            "title": "Exempt Children"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "adults",
+          "paying_children",
+          "exempt_children",
+          "total"
+        ],
+        "title": "BandCountsOut"
+      },
       "BaselineChangeOut": {
         "properties": {
           "id": {
@@ -4088,11 +4187,19 @@
             },
             "type": "array",
             "title": "Households"
+          },
+          "headcount": {
+            "$ref": "#/components/schemas/HeadcountOut"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/GuestSettingsOut"
           }
         },
         "type": "object",
         "required": [
-          "households"
+          "households",
+          "headcount",
+          "settings"
         ],
         "title": "GuestListOut"
       },
@@ -4155,6 +4262,16 @@
               }
             ],
             "title": "Age"
+          },
+          "suggested_band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgeBand"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "probability": {
             "$ref": "#/components/schemas/Probability"
@@ -4242,6 +4359,7 @@
           "holder_name",
           "band",
           "age",
+          "suggested_band",
           "probability",
           "status",
           "decline_reason",
@@ -4253,6 +4371,102 @@
           "version"
         ],
         "title": "GuestOut"
+      },
+      "GuestSettingsIn": {
+        "properties": {
+          "weights": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeightsIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exempt_until_age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exempt Until Age"
+          },
+          "paying_until_age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paying Until Age"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "GuestSettingsIn",
+        "description": "Os três pesos andam juntos: o objeto inteiro ou nada (nulo limpa)."
+      },
+      "GuestSettingsOut": {
+        "properties": {
+          "weights": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeightsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exempt_until_age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exempt Until Age"
+          },
+          "paying_until_age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paying Until Age"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weights",
+          "exempt_until_age",
+          "paying_until_age",
+          "version"
+        ],
+        "title": "GuestSettingsOut"
       },
       "GuestStatus": {
         "type": "string",
@@ -4450,6 +4664,67 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HeadcountOut": {
+        "properties": {
+          "total_nominal": {
+            "$ref": "#/components/schemas/BandCountsOut"
+          },
+          "confirmed": {
+            "$ref": "#/components/schemas/BandCountsOut"
+          },
+          "not_attending": {
+            "$ref": "#/components/schemas/BandCountsOut"
+          },
+          "certain_or_confirmed": {
+            "$ref": "#/components/schemas/BandCountsOut"
+          },
+          "weighted_adults_hundredths": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighted Adults Hundredths"
+          },
+          "weighted_paying_children_hundredths": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighted Paying Children Hundredths"
+          },
+          "weighted_rounded_up": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighted Rounded Up"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_nominal",
+          "confirmed",
+          "not_attending",
+          "certain_or_confirmed",
+          "weighted_adults_hundredths",
+          "weighted_paying_children_hundredths",
+          "weighted_rounded_up"
+        ],
+        "title": "HeadcountOut",
+        "description": "Os contadores derivados (F-CNV-06). O ponderado vem em centésimos de pessoa e já arredondado\npara cima; fica nulo enquanto os pesos não existem (\"defina os pesos\")."
       },
       "HealthOut": {
         "properties": {
@@ -5641,6 +5916,52 @@
           "version"
         ],
         "title": "VisibilityIn"
+      },
+      "WeightsIn": {
+        "properties": {
+          "certain_pct": {
+            "type": "integer",
+            "title": "Certain Pct"
+          },
+          "probable_pct": {
+            "type": "integer",
+            "title": "Probable Pct"
+          },
+          "phase_2_pct": {
+            "type": "integer",
+            "title": "Phase 2 Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "certain_pct",
+          "probable_pct",
+          "phase_2_pct"
+        ],
+        "title": "WeightsIn"
+      },
+      "WeightsOut": {
+        "properties": {
+          "certain_pct": {
+            "type": "integer",
+            "title": "Certain Pct"
+          },
+          "probable_pct": {
+            "type": "integer",
+            "title": "Probable Pct"
+          },
+          "phase_2_pct": {
+            "type": "integer",
+            "title": "Phase 2 Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "certain_pct",
+          "probable_pct",
+          "phase_2_pct"
+        ],
+        "title": "WeightsOut"
       }
     }
   }

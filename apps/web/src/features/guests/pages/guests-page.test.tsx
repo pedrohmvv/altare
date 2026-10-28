@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { jsonResponse, problemResponse } from '@/test/fake-api'
+import { listOf } from '@/test/guest-fixtures'
 import { GET_GUESTS, renderGuests, stubWideScreen } from '@/test/render-guests'
 
 describe('lista de convidados: leitura', () => {
@@ -13,7 +14,7 @@ describe('lista de convidados: leitura', () => {
   })
 
   it('a lista vazia acolhe e explica por onde começar', async () => {
-    renderGuests({ [GET_GUESTS]: jsonResponse(200, { households: [] }) })
+    renderGuests({ [GET_GUESTS]: jsonResponse(200, listOf([])) })
 
     expect(await screen.findByRole('heading', { name: 'Ainda sem convidados' })).toBeVisible()
     expect(screen.getByText(/Comecem por um núcleo/)).toBeVisible()
@@ -26,7 +27,7 @@ describe('lista de convidados: leitura', () => {
         tentativas += 1
         return tentativas === 1
           ? problemResponse(500, 'internal_error')
-          : jsonResponse(200, { households: [] })
+          : jsonResponse(200, listOf([]))
       },
     })
 

@@ -499,6 +499,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/guests/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Guest Settings */
+        put: operations["update_guest_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guests/households": {
         parameters: {
             query?: never;
@@ -691,6 +708,17 @@ export interface components {
          * @enum {string}
          */
         AlignmentState: "alinhados" | "divergem" | "falta";
+        /** BandCountsOut */
+        BandCountsOut: {
+            /** Adults */
+            adults: number;
+            /** Paying Children */
+            paying_children: number;
+            /** Exempt Children */
+            exempt_children: number;
+            /** Total */
+            total: number;
+        };
         /** BaselineChangeOut */
         BaselineChangeOut: {
             /**
@@ -1028,6 +1056,8 @@ export interface components {
         GuestListOut: {
             /** Households */
             households: components["schemas"]["HouseholdOut"][];
+            headcount: components["schemas"]["HeadcountOut"];
+            settings: components["schemas"]["GuestSettingsOut"];
         };
         /** GuestOut */
         GuestOut: {
@@ -1050,6 +1080,7 @@ export interface components {
             band: components["schemas"]["AgeBand"];
             /** Age */
             age: number | null;
+            suggested_band: components["schemas"]["AgeBand"] | null;
             probability: components["schemas"]["Probability"];
             status: components["schemas"]["GuestStatus"];
             /** Decline Reason */
@@ -1064,6 +1095,32 @@ export interface components {
             whatsapp_url: string | null;
             /** Email */
             email: string | null;
+            /** Version */
+            version: number;
+        };
+        /**
+         * GuestSettingsIn
+         * @description Os três pesos andam juntos: o objeto inteiro ou nada (nulo limpa).
+         */
+        GuestSettingsIn: {
+            weights?: components["schemas"]["WeightsIn"] | null;
+            /** Exempt Until Age */
+            exempt_until_age?: number | null;
+            /** Paying Until Age */
+            paying_until_age?: number | null;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** GuestSettingsOut */
+        GuestSettingsOut: {
+            weights: components["schemas"]["WeightsOut"] | null;
+            /** Exempt Until Age */
+            exempt_until_age: number | null;
+            /** Paying Until Age */
+            paying_until_age: number | null;
             /** Version */
             version: number;
         };
@@ -1131,6 +1188,23 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HeadcountOut
+         * @description Os contadores derivados (F-CNV-06). O ponderado vem em centésimos de pessoa e já arredondado
+         *     para cima; fica nulo enquanto os pesos não existem ("defina os pesos").
+         */
+        HeadcountOut: {
+            total_nominal: components["schemas"]["BandCountsOut"];
+            confirmed: components["schemas"]["BandCountsOut"];
+            not_attending: components["schemas"]["BandCountsOut"];
+            certain_or_confirmed: components["schemas"]["BandCountsOut"];
+            /** Weighted Adults Hundredths */
+            weighted_adults_hundredths: number | null;
+            /** Weighted Paying Children Hundredths */
+            weighted_paying_children_hundredths: number | null;
+            /** Weighted Rounded Up */
+            weighted_rounded_up: number | null;
         };
         /** HealthOut */
         HealthOut: {
@@ -1513,6 +1587,24 @@ export interface components {
              * @description A versão que a tela viu; divergir dá 409.
              */
             version: number;
+        };
+        /** WeightsIn */
+        WeightsIn: {
+            /** Certain Pct */
+            certain_pct: number;
+            /** Probable Pct */
+            probable_pct: number;
+            /** Phase 2 Pct */
+            phase_2_pct: number;
+        };
+        /** WeightsOut */
+        WeightsOut: {
+            /** Certain Pct */
+            certain_pct: number;
+            /** Probable Pct */
+            probable_pct: number;
+            /** Phase 2 Pct */
+            phase_2_pct: number;
         };
     };
     responses: never;
@@ -3189,6 +3281,66 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_guest_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
