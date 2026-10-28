@@ -43,7 +43,7 @@ hotfix:    main ──▶ hotfix/yyy ──PR──▶ main (tag)
 
 ## Estado atual
 
-A `develop` existe e está protegida desde 2026-10-27, criada a partir da `main` depois do merge do PR #1 (`D-041`, itens 6 e 7). Todo trabalho novo sai dela. Falta exigir os *status checks* na proteção, o que depende da CI existir (`altare-devops`).
+A `develop` existe e está protegida desde 2026-10-27, criada a partir da `main` depois do merge do PR #1 (`D-041`, itens 6 e 7). Todo trabalho novo sai dela. O check `CI` (o agregador) é exigido nas duas desde 2026-10-27 (`D-065`).
 
 ## Checklist
 
