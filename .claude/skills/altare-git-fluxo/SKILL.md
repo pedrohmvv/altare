@@ -30,7 +30,7 @@ hotfix:    main ──▶ hotfix/yyy ──PR──▶ main (tag)
 2. **Volta à `develop` por PR**, com *merge commit* (`--no-ff`). **Nunca *squash* nem *rebase and merge***: apagariam os commits atômicos.
 3. **Rebase local antes do PR:** `git fetch && git rebase origin/develop` na branch de trabalho, para o PR chegar sem conflito. Rebase **só em branch que ninguém mais usa**. Se a branch já foi publicada, reescrever exige `--force-with-lease`: peça confirmação ao usuário antes.
 4. **Release:** quando um **bloco ou nível do roadmap** estiver concluído e passar em todos os gates de `altare-testes-qa`, abra um PR `develop → main` (`altare-pull-request`). Depois do merge, crie a *tag* anotada `vMAJOR.MINOR.PATCH` na `main`. Não há branch `release/*`: com um desenvolvedor, a `develop` já é a candidata.
-5. **Versão (confirmada em `D-059`):** `MINOR` sobe por bloco concluído, `PATCH` por hotfix, e `1.0.0` marca o fim do Nível 4 (v1 manual completa, `roadmap.md`). `v0.1.0` marca o Bloco 0.2 e o fechamento do Nível 0 será `v0.2.0`.
+5. **Versão (confirmada em `D-059`):** `MINOR` sobe por bloco concluído, `PATCH` por hotfix, e `1.0.0` marca o fim do Nível 4 (v1 manual completa, `roadmap.md`). `v0.1.0` marca o Bloco 0.2 e `v0.2.0`, o fechamento do Nível 0.
 6. **Proteção** de `main` e `develop`: sem *push* direto, PR obrigatório, CI verde. Está ativa no GitHub desde 2026-10-27 (valores em `D-041`, item 6). Alterá-la, ou criar branch e tag no remoto, só com pedido do usuário.
 
 ## Hotfix, passo a passo

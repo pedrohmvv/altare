@@ -1258,7 +1258,8 @@
   - Desligar as skills `dharma-*` neste projeto com `skillOverrides`: com as descrições curtas, tudo cabe no orçamento, e isso mexeria na configuração pessoal do usuário. Fica como opção.
   - Pôr a tabela no `CLAUDE.md`: ele não recebe regras (`D-039`).
   - Um hook `UserPromptSubmit` por palavra-chave: mais frágil e mais ruído que a tabela injetada uma vez.
-- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta"); conferir em uma sessão nova, com `/context`, se as 23 skills aparecem com descrição.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário.
+- **Pendente (do usuário):** conferir em uma sessão nova, com `/context`, se as 23 skills aparecem com descrição.
 
 ---
 
@@ -1409,4 +1410,6 @@
   - Exigir cada job do CI pelo nome: o agregador já os cobre e não quebra quando um job é pulado pelo filtro.
   - Ligar o `strict` (branch atualizada com a base): com uma pessoa e PRs em sequência, só criaria *rebases* sem ganho.
   - Detalhar na decisão um resultado de acessibilidade que o usuário não relatou.
-- **Pendente (do usuário):** aprovar esta decisão; dar o merge do PR de release e autorizar a tag `v0.2.0`. A `D-062` (skills carregadas sozinhas) segue como proposta, com a conferência pelo `/context` em uma sessão nova.
+- **Concluído (2026-10-27):** o usuário integrou `develop` na `main` (PRs #23 e #25; a `main` ficou em `7d2ca08`, com a mesma árvore da `develop`) e criou e publicou a tag anotada `v0.2.0` nesse commit. A mensagem da tag ficou com um `...` literal, e o usuário decidiu mantê-la.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário.
+- **Pendente:** nada desta decisão. A conferência pelo `/context` da `D-062`, em uma sessão nova, segue com o usuário. O próximo passo é o Bloco 1.1.
