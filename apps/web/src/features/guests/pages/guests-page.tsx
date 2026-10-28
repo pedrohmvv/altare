@@ -1,15 +1,23 @@
-import { Card } from '@/components/ui/card'
-import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeader } from '@/components/ui/page-header'
+import { GuestList } from '../components/guest-list'
 import { copy } from '../copy'
+import type { GuestsSearch } from '../search'
 
-export function GuestsPage() {
+export interface GuestsPageProps {
+  /** O que a URL guarda: o núcleo aberto no painel. */
+  search: GuestsSearch
+  /** Pede uma mudança na URL; `undefined` num campo o tira. */
+  onSearchChange: (patch: Partial<GuestsSearch>) => void
+}
+
+/** A página não conhece o roteador: recebe a URL e devolve o que quer mudar, e assim se testa sem ele. */
+export function GuestsPage({ search, onSearchChange }: GuestsPageProps) {
   return (
     <>
       <PageHeader eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
-      <Card className="mt-10">
-        <EmptyState title={copy.empty.title} description={copy.empty.description} />
-      </Card>
+      <div className="mt-10">
+        <GuestList search={search} onSearchChange={onSearchChange} />
+      </div>
     </>
   )
 }
