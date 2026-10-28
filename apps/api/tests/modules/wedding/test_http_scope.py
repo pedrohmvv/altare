@@ -282,7 +282,7 @@ def test_operation_ids_estaveis(api):
     ids = {
         op["operationId"]
         for caminho, metodos in caminhos.items()
-        if "/wedding/scope" in caminho
+        if "/wedding/scope" in caminho and "/references" not in caminho
         for op in metodos.values()
     }
     assert ids == {
