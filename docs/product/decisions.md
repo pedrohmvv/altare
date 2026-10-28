@@ -1413,3 +1413,62 @@
 - **Concluído (2026-10-27):** o usuário integrou `develop` na `main` (PRs #23 e #25; a `main` ficou em `7d2ca08`, com a mesma árvore da `develop`) e criou e publicou a tag anotada `v0.2.0` nesse commit. A mensagem da tag ficou com um `...` literal, e o usuário decidiu mantê-la.
 - **Aprovado (2026-10-27):** esta decisão, pelo usuário.
 - **Pendente:** nada desta decisão. A conferência pelo `/context` da `D-062`, em uma sessão nova, segue com o usuário. O próximo passo é o Bloco 1.1.
+
+---
+
+## D-066 — Bloco 1.1: plano em 4 PRs, por fatias verticais
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1 (plano)
+- **Pedido do usuário:** planejar o Bloco 1.1 por blocos de execução, lendo a especificação aprovada (`D-029`) e abrindo o guia antes da UI (`D-055`); depois, "execute o plano".
+- **Escolhido pelo usuário (2026-10-28):** fatias verticais (API e web da mesma feature no mesmo PR); a semente do catálogo e das Definições Base numa **migration de dados**; no desktop o Mapa de Escopo abre na **lista por grupo**, com alternador para o **quadro por status**, e o status muda pelo painel lateral, sem arrastar.
+- **Decisão:**
+  1. **Quatro PRs para a `develop`, nesta ordem, cada um com os gates verdes (`altare-testes-qa`):**
+     - **PR 1, `feat/definicoes-base`:** Painel de Definições Base (`F-PLN-01`), com o módulo `wedding`, a migration `0004` e o `MoneyInput` (`D-067`).
+     - **PR 2, `feat/mapa-de-escopo`:** catálogo de categorias, status e motivo de descarte, prioridade individual e alinhamento, estimativa e nota, visões, filtros e progresso (`F-PLN-02` a `F-PLN-05`, `F-PLN-08`), com as abas da área, o `Sheet` e o `Progress` (`D-068`).
+     - **PR 3, `feat/referencias-de-escopo`:** referências por categoria, link e imagem (`F-PLN-06`), com uma consulta pública no módulo `files` (`D-069`).
+     - **PR 4, `test/e2e-planejamento`:** E2E do bloco, conferência visual e de acessibilidade e o fechamento do Bloco 1.1 (`D-070`); depois o PR `develop → main` e, com o merge do usuário, a tag `v0.3.0` (`D-059`: `MINOR` por bloco).
+  2. **Um módulo só, `wedding`** (`architecture.md` §4 e §13), sem `wedding_id`: há um casamento (`D-002`).
+  3. **Derivado na leitura, nunca gravado** (`architecture.md` §5): alinhamento, progresso e totais de estimativa. Os efeitos em cadeia de `F-PLN-07` só passam a valer quando o orçamento e o cronograma existirem (a regra 1 da própria feature); aqui só se registra o status.
+  4. **Primitivos que saem do adiado** (`design-system.md` §13), porque o Bloco 1.1 é a primeira tela que os usa: `MoneyInput` (PR 1), `Sheet` e `Progress` (PR 2). Sem dependência nova: o `Sheet` nasce do `Dialog` do Radix.
+  5. **Estado da tela na URL** (`design-system.md` §10): aba, vista, filtros e categoria aberta, como *search params* validados à mão, numa rota só (`/planejamento`). Rotas-filhas roubariam o foco do `h1` a cada troca de aba (o anúncio de rota, `D-051`).
+- **Razão:** cada PR entrega algo que o casal usa e testa sozinho, e a API não fica meses sem consumidor. O Bloco 1.1 é o primeiro a guardar dado do casamento, então pede a migration, o histórico com valor anterior e o tratamento de conflito de versão em produção.
+- **O que ficou rejeitado:**
+  - Fatiar por camada (toda a API, depois toda a UI): nada ficaria usável até o fim e o contrato só seria exercitado no último PR.
+  - Semear com um comando `wedding seed`: exigiria rodar o comando uma vez por banco novo, inclusive no E2E, e a semente é parte do esquema.
+  - Quadro por status como vista única: o padrão de `F-PLN-08` é por grupo, e o celular não comporta colunas.
+  - `vaul` para a folha inferior: já há o `Dialog`, que vira folha no celular.
+- **Aprovado (2026-10-28):** o plano, pelo usuário ("Execute o plano").
+- **Pendente:** as decisões de cada PR (`D-067` a `D-070`) aguardam aprovação do usuário depois do PR, como nas `D-060` a `D-064`.
+
+---
+
+## D-067 — Definições Base: módulo `wedding`, migration `0004`, rotas e painel (Bloco 1.1, PR 1 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 1 de 4 (`D-066`)
+- **Decisão:**
+  1. **Modelo.** Duas tabelas em `wedding`: `baseline_fields` (uma linha por variável: `date`, `city`, `format`, `size`, `ceiling`, `ceremony`) e `baseline_changes` (histórico). As seis linhas são **semeadas pela migration `0004`**, com ids fixos, vazias e `Em definição`; nenhum caso de uso as cria, e faltar linha é banco mal migrado. O valor mora em coluna `JSON`, sempre validado pelo objeto de valor da chave (`value_objects.py`), e o banco repete as regras que cabem em `CHECK` (`Definido` exige valor; chave e status fechados). Uma linha por variável, e não uma linha com colunas tipadas, para duas pessoas mexendo em campos diferentes não se bloquearem (cada linha tem a sua `version`).
+  2. **Limites de validação** (propostos, ajustáveis): texto curto de 1 a 80 caracteres; nota até 500; rótulo da janela até 60; detalhe da cerimônia até 200; ano de 2000 a 2100; porte de 1 a 10.000 convidados, com mínimo ≤ máximo; teto de 1 centavo a 10^12 centavos. Janela de um mês só vale; "sem data" é o campo vazio, não um valor.
+  3. **Rotas** (`/api/v1/wedding/baseline`): `GET` (o quadro inteiro, com a `version` de cada campo), seis `PUT` tipados (`/date`, `/city`, `/format`, `/size`, `/ceiling`, `/ceremony`; um caso de uso só por trás, `UpdateBaselineField`) e `GET /changes?limit=` (de 1 a 200, padrão 50). Todo `PUT` devolve o quadro inteiro. Autoria e perfil vêm da sessão; nenhum corpo os carrega.
+  4. **Bloqueio otimista explícito.** É a primeira vez que o servidor compara a `version` que a tela viu (`altare-backend-api`, princípio 7): divergir dá `409 version_conflict`, sem gravar nada; o `StaleDataError` do banco, quando duas transações passam juntas pela checagem, vira o mesmo `409`.
+  5. **Histórico com valor anterior** (`F-PLN-01`, regra 3), que o histórico básico de `architecture.md` §10 não guarda: a tabela `baseline_changes` acrescenta uma linha por mudança **real** (repetir o mesmo estado não grava nada nem sobe a versão), com o estado antes e depois (situação, valor e nota) e o **perfil** de quem mudou, gravado na linha para não ler `identity`. O instante vem do `created_at`. O evento `ScopeCategoryStatusChanged` segue adiado com o *dispatcher* (`D-060`).
+  6. **A confirmação de mudar algo já definido** (`F-PLN-01`, regra 2) **é da tela**, não do servidor: o painel mostra o antes, o depois e o impacto e só então envia. O servidor registra a mudança no histórico. O agente do Nível 5 passa pela confirmação humana da `ChangeProposal` (`D-008`).
+  7. **Painel sem página no guia** (`design-system.md` §15). Baseado no cartão "Definições base" da pág. 38 (título em serifa 20, uma linha por variável, selo `Em definição` à direita e *hairline* entre as linhas). Desvios, todos no espírito do guia: a linha mostra o valor em texto miúdo (ou "Ainda sem valor") e uma seta, porque é um botão que abre a edição; **`Definido` é o selo de consenso (sálvia) com o ícone `check`** e o texto completo, pois a pág. 34 só desenha o selo `Em definição`; a edição abre num `Dialog`, que no celular é a folha inferior (pág. 32). Sem aba nem rota nova: a aba "Mapa de Escopo" chega no PR 2.
+  8. **`MoneyInput`** sai dos adiados (`D-028`): campo com prefixo `R$`, em mono tabular (pág. 34), máscara pt-BR, que entrega **centavos inteiros** ou `null` (vazio nunca é zero). `parseMoney` recusa o que é ambíguo (`28.5`) em vez de adivinhar. Entra na vitrine.
+  9. **Conflito na tela:** 409 avisa que a definição mudou, recarrega o quadro e oferece "Ver a versão mais recente", que refaz o formulário com a versão nova; **nunca sobrescreve**. Falha de rede e erro do servidor mantêm o que foi digitado. O foco volta à linha que abriu o diálogo (o Radix só o faz com `DialogTrigger`, e aqui há um diálogo para várias linhas).
+  10. O impacto mostrado para a **data** ("A data recalcula as janelas do cronograma") antecipa o Bloco 1.3, como no exemplo da própria `F-PLN-01`; as demais definições só avisam que a mudança fica no histórico.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15, linhas do painel e do `MoneyInput`; §13, `MoneyInput` sai dos adiados); `planejamento-e-caminhos.md` (nota de implementação); `AGENTS.md` §1; `roadmap.md` (Bloco 1.1).
+- **Razão:** o casal precisa registrar o que já decidiu e o que não decidiu sem perder o histórico de quem mudou o quê, e o produto nunca pode inventar uma data, cidade ou valor.
+- **O que ficou rejeitado:**
+  - Uma linha com colunas tipadas para as seis variáveis: um só `version` faria dois editando campos diferentes se conflitarem.
+  - Exigir a confirmação no servidor (campo `confirm` no corpo): a tela já a faz, e o agente tem a sua.
+  - Atualização otimista: valor do casamento nunca é otimista (`altare-frontend`).
+  - Corpo completo, com todos os subcampos de cada valor, em todo `PUT`: o formulário manda só o que a definição usa, e os omitidos valem vazio.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Porte derivado ao lado da contagem da lista de convidados | Bloco 1.2 (`guests`) |
+| Regra "Definido recalcula o cronograma" valendo de fato | Bloco 1.3 |
+| `public.py` do módulo `wedding` | Outro módulo precisar ler uma definição |
+- **Pendente:** aprovação do usuário. Revisar os textos novos: `baseline_value_required` e `invalid_baseline_value` em `messages.py` e o `copy.ts` da feature.
+

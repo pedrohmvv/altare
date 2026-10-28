@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { renderRoute } from '@/test/render-route'
+import { jsonResponse, mockApi } from '@/test/fake-api'
+import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
 
 const AREAS = [
   ['/', 'O momento de vocês'],
@@ -13,15 +14,34 @@ const AREAS = [
   ['/assistente', 'Conversem com o assistente'],
 ] as const
 
+// Planejamento já tem conteúdo de verdade: lê as Definições Base, então a API falsa responde a elas.
+const EMPTY_FIELD = { status: 'Em definição', note: null, version: 1 } as const
+function planningApi() {
+  return mockApi({
+    'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+    'GET /api/v1/wedding/baseline': jsonResponse(200, {
+      date: { ...EMPTY_FIELD, value: { kind: 'nenhuma' } },
+      city: { ...EMPTY_FIELD, value: null },
+      format: { ...EMPTY_FIELD, value: null },
+      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null } },
+      ceiling: { ...EMPTY_FIELD, value: { cents: null } },
+      ceremony: { ...EMPTY_FIELD, value: { kinds: [], detail: null } },
+    }),
+  })
+}
+
+// As áreas que ainda são esqueleto: um estado vazio acolhedor e nenhuma ação.
+const SKELETONS = AREAS.filter(([path]) => path !== '/planejamento')
+
 describe('rotas das áreas', () => {
   it.each(AREAS)('%s mostra o título editorial da área como o único h1', async (path, title) => {
-    await renderRoute(path)
+    await renderRoute(path, path === '/planejamento' ? { api: planningApi() } : {})
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
   })
 
-  it.each(AREAS)('%s mostra um estado vazio acolhedor, sem ação morta', async (path) => {
+  it.each(SKELETONS)('%s mostra um estado vazio acolhedor, sem ação morta', async (path) => {
     await renderRoute(path)
 
     expect(await screen.findByRole('heading', { level: 2 })).toBeVisible()

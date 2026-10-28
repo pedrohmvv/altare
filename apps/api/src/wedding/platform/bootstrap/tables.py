@@ -4,6 +4,7 @@ from importlib import import_module
 _TABLE_MODULES = (
     "wedding.modules.identity.infrastructure.tables",
     "wedding.modules.files.infrastructure.tables",
+    "wedding.modules.wedding.infrastructure.tables",
 )
 
 
