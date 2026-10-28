@@ -1389,3 +1389,24 @@
 - **Riscos conhecidos:** o service worker só se prova no build, então um erro de configuração não aparece no `make dev`; o E2E depende do Chrome da máquina (no CI, o da imagem do runner); a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só.") é proposta do agente; o aviso de *chunk* grande no `make build` já existia e segue como está.
 - **Pendente (do usuário):** a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.
 - **Aprovado (2026-10-27):** esta decisão, pelo usuário, e a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só."), como está.
+
+---
+
+## D-065 — Nível 0 concluído e o check `CI` exigido nas proteções
+- **Data:** 2026-10-27
+- **Fase:** Implementação — fechamento do Nível 0
+- **Pedido do usuário:** fechar o Nível 0 depois do PR 4 do Bloco 0.1: conferir o critério, registrar a conclusão e preparar o release.
+- **Confirmado pelo usuário (2026-10-27):** a passada manual de `altare-acessibilidade` (teclado, zoom de 200%, VoiceOver e "reduzir movimento") sobre o Nível 0, pendente desde a `D-049`, foi **feita** ("Feito. Confirmo."). O usuário não detalhou o resultado por tela, e este registro não o inventa.
+- **Decisão:**
+  1. **O Nível 0 está concluído.** O Bloco 0.2 está concluído desde a `D-057` e o Bloco 0.1 completou-se com os 4 PRs da `D-059` (`D-060`, `D-061`, `D-063`, `D-064`). O critério do `roadmap.md`, "abrir o app no computador e no celular, entrar com o próprio login, alternar a lente e navegar pela estrutura visual pronta", está **cumprido**: o app é instalável, e o E2E o prova no *desktop* e no celular, no build de produção e contra a API de verdade (`D-064`); a acessibilidade foi conferida à mão.
+  2. **As pendências de passada manual de acessibilidade** das decisões do Nível 0 (`D-049`, `D-051`, `D-054`, `D-056`, `D-057`, `D-058`, `D-061`, `D-063` e `D-064`) ficam **resolvidas** por este registro. A regra de `altare-acessibilidade` não muda: cada tela e componente novo continua pedindo a sua passada antes do PR (o `axe` segue adiado, `D-028`).
+  3. **O check `CI` passa a ser exigido** na proteção de `develop` e de `main` (`D-041`, item 6), aplicado no GitHub em 2026-10-27 a pedido do usuário. É só o agregador `CI`, porque um job pulado pelo filtro conta como verde (`D-060`); o `strict` fica desligado, então a branch não precisa estar atualizada com a base. Os demais valores seguiram como estavam: PR obrigatório com 0 aprovações, administradores incluídos, sem *push* direto, *force push* nem exclusão.
+  4. **Release:** o próximo passo é o PR `develop → main` (`chore(release): conclui o Nível 0`) e, depois do merge do usuário, a tag anotada `v0.2.0` na `main` (`D-041`, item 5; `D-059`). Só então começa o Bloco 1.1.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e "Como Retomar"; `roadmap.md` (Bloco 0.1 e critério do Nível 0); skill `altare-git-fluxo` (proteção).
+- **Razão:** o Nível 0 era o alicerce técnico e visual de tudo o que vem depois; fechá-lo com um registro e uma tag deixa claro o que já está pronto e dá um ponto de volta, antes de o Nível 1 começar a guardar dados do casamento.
+- **O que ficou rejeitado:**
+  - Criar a tag antes do merge na `main`: a tag marca o que está na `main` (`D-041`).
+  - Exigir cada job do CI pelo nome: o agregador já os cobre e não quebra quando um job é pulado pelo filtro.
+  - Ligar o `strict` (branch atualizada com a base): com uma pessoa e PRs em sequência, só criaria *rebases* sem ganho.
+  - Detalhar na decisão um resultado de acessibilidade que o usuário não relatou.
+- **Pendente (do usuário):** aprovar esta decisão; dar o merge do PR de release e autorizar a tag `v0.2.0`. A `D-062` (skills carregadas sozinhas) segue como proposta, com a conferência pelo `/context` em uma sessão nova.

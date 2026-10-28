@@ -36,7 +36,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
   - Setup do monorepo (`apps/api` em Python/FastAPI + `apps/web` em React/Vite) com SPA responsiva (PWA instalável no celular e ampla no desktop) — *revisado em `D-020`*.
   - Banco SQLite com migrações (Alembic) e `FileStorage` local para anexos (PDFs). No Nível 0, modelam-se apenas `User`, `Session` e `FileAsset` (`Profile` é enum); as demais entidades entram junto do bloco que as usa.
   - **Login individual** do `Noivo` e da `Noiva` (sem cadastro público) e **Seletor de lente (`Visão do Casal` / `Minha visão`)** persistente no topo da aplicação. Arquitetura Clean pragmática com `import-linter` (`docs/engineering/architecture.md`) e detalhes em `docs/engineering/stack.md` §11.
-- **Execução em duas partes (`D-028`):** primeiro, só o necessário para o `apps/web` existir (monorepo pnpm, Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`), junto com o Bloco 0.2. Depois, em outra sessão, API, banco, login, PWA e o E2E com Playwright. O plano dessa segunda parte, em 4 PRs (esqueleto da API e CI; login; `files`; PWA e E2E), está em `D-059`; os quatro estão feitos (`D-060`, `D-061`, `D-063`, `D-064`), e o Bloco 0.1 está completo. O Nível 0 só fecha com a passada manual de acessibilidade e o release `v0.2.0`.
+- **Execução em duas partes (`D-028`):** primeiro, só o necessário para o `apps/web` existir (monorepo pnpm, Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`), junto com o Bloco 0.2. Depois, em outra sessão, API, banco, login, PWA e o E2E com Playwright. O plano dessa segunda parte, em 4 PRs (esqueleto da API e CI; login; `files`; PWA e E2E), está em `D-059`; os quatro estão feitos (`D-060`, `D-061`, `D-063`, `D-064`), e o Bloco 0.1 está completo. O Nível 0 está concluído (`D-065`); falta o release `v0.2.0`.
 
 ### Bloco 0.2 — Design System "Editorial Acolhedor & Estruturado", versão enxuta (`D-015` + `D-016` + `D-028`)
 - **O que é construído** (ordem e detalhes em `docs/design/design-system.md` §13):
@@ -48,7 +48,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
   - **Teste de regras de design** (`D-055`): barra cor, fonte e traço soltos em `src`; o mapa guia → componente (`design-system.md` §15) orientou as etapas (d), com o lote 2 feito em `D-056`, e (e).
   - **Não entram agora:** componentes de domínio (nascem no bloco que os usa), tema escuro, *snapshots* visuais, `axe` automatizado e impressão. Cada item tem gatilho registrado em `D-028`.
 - **Critério de conclusão do Bloco 0.2:** a vitrine mostra tokens, tipografia e todos os primitivos com variantes e estados, no tema claro, em desktop e mobile; as 8 áreas são navegáveis como esqueletos; o app segue a identidade do Altare. **Cumprido em `D-057` (2026-10-27): o Bloco 0.2 está concluído.**
-- **Critério de conclusão do Nível 0:** Você e sua noiva conseguem abrir o app no computador e no celular, entrar com o próprio login, alternar a lente (`Casal` / `Minha visão`) e navegar pela estrutura visual pronta. *(O alternador de tema saiu do critério em `D-028`; volta quando o tema escuro for pedido.)*
+- **Critério de conclusão do Nível 0:** Você e sua noiva conseguem abrir o app no computador e no celular, entrar com o próprio login, alternar a lente (`Casal` / `Minha visão`) e navegar pela estrutura visual pronta. *(O alternador de tema saiu do critério em `D-028`; volta quando o tema escuro for pedido.)* **Cumprido em `D-065` (2026-10-27): o Nível 0 está concluído.**
 
 ---
 
