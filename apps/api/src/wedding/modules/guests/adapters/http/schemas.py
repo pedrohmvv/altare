@@ -3,7 +3,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from wedding.modules.guests.domain.values import AgeBand, GuestStatus, Probability, Side
+from wedding.modules.guests.domain.values import (
+    AgeBand,
+    GuestStatus,
+    InviteChannel,
+    Probability,
+    Side,
+)
 from wedding.shared_kernel.profile import ProfileKind
 
 _VERSION = Field(ge=1, description="A versão que a tela viu; divergir dá 409.")
@@ -63,6 +69,16 @@ class MoveIn(BaseModel):
     version: int = _VERSION
 
 
+class InviteIn(BaseModel):
+    """O envio do convite do núcleo (F-CNV-05): data e canal juntos. `move_drafts` é o aceite da
+    oferta de mover os rascunhos para `Convidado`; sem ele nenhum status muda."""
+
+    sent_on: dt.date
+    channel: InviteChannel
+    move_drafts: bool = False
+    version: int = _VERSION
+
+
 class WeightsIn(BaseModel):
     certain_pct: int
     probable_pct: int
@@ -119,6 +135,8 @@ class HouseholdOut(BaseModel):
     state: str | None
     postal_code: str | None
     note: str | None
+    invite_sent_on: dt.date | None
+    invite_channel: InviteChannel | None
     summary: HouseholdSummaryOut
     guests: list[GuestOut]
     version: int

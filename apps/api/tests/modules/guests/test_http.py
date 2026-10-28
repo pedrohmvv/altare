@@ -253,6 +253,8 @@ def test_operation_ids_estaveis(api):
         "restore_guest",
         "list_guest_status_history",
         "update_guest_settings",
+        "record_household_invite",
+        "clear_household_invite",
     }
 
 
@@ -395,3 +397,83 @@ def test_a_idade_sugere_a_faixa_sem_mudar_a_pessoa(api):  # F-CNV-03
 
     crianca = pessoa(corpo, "Convidado Exemplo B")
     assert (crianca["band"], crianca["suggested_band"]) == ("Criança pagante", "Criança isenta")
+
+
+def put_envio(client, nucleo, dia="2026-10-20", canal="WhatsApp", mover=False, versao=None):
+    return client.put(
+        f"{BASE}/households/{nucleo['id']}/invite",
+        json={
+            "sent_on": dia,
+            "channel": canal,
+            "move_drafts": mover,
+            "version": nucleo["version"] if versao is None else versao,
+        },
+    )
+
+
+def test_o_nucleo_novo_nao_tem_convite_enviado(api):  # F-CNV-05
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+
+    assert (familia["invite_sent_on"], familia["invite_channel"]) == (None, None)
+
+
+def test_registrar_o_envio_devolve_a_lista_e_aceitar_a_oferta_move_os_rascunhos(api):  # F-CNV-05
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+    post_pessoa(api.noivo, familia, "Convidado Exemplo B")
+    familia = nucleo(api.noivo.get(BASE).json(), "Família Exemplo")
+
+    resposta = put_envio(api.noiva, familia, canal="Impresso", mover=True)
+
+    assert resposta.status_code == 200
+    enviado = nucleo(resposta.json(), "Família Exemplo")
+    assert (enviado["invite_sent_on"], enviado["invite_channel"]) == ("2026-10-20", "Impresso")
+    assert {g["status"] for g in enviado["guests"]} == {"Convidado"}
+    assert enviado["version"] == familia["version"] + 1
+
+
+def test_recusar_a_oferta_mantem_os_status(api):  # F-CNV-05, critério de aceite
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+
+    resposta = put_envio(api.noivo, familia, mover=False)
+
+    assert {g["status"] for g in nucleo(resposta.json(), "Família Exemplo")["guests"]} == {
+        "Rascunho"
+    }
+
+
+def test_limpar_o_envio_nao_reverte_status(api):  # F-CNV-05, regra 3
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+    enviado = nucleo(put_envio(api.noivo, familia, mover=True).json(), "Família Exemplo")
+
+    resposta = api.noivo.delete(
+        f"{BASE}/households/{enviado['id']}/invite", params={"version": enviado["version"]}
+    )
+
+    limpo = nucleo(resposta.json(), "Família Exemplo")
+    assert (limpo["invite_sent_on"], limpo["invite_channel"]) == (None, None)
+    assert limpo["guests"][0]["status"] == "Convidado"
+
+
+def test_data_futura_da_422_e_canal_desconhecido_tambem(api):
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+
+    futura = put_envio(api.noivo, familia, dia="2999-01-01")
+    canal = put_envio(api.noivo, familia, canal="Telegrama")
+
+    assert (futura.status_code, futura.json()["code"]) == (422, "invalid_invite")
+    assert (canal.status_code, canal.json()["code"]) == (422, "validation_error")
+
+
+def test_envio_com_versao_velha_da_409(api):
+    familia = nucleo(post_nucleo(api.noivo).json(), "Família Exemplo")
+    put_envio(api.noivo, familia)
+
+    resposta = put_envio(api.noiva, familia)
+
+    assert (resposta.status_code, resposta.json()["code"]) == (409, "version_conflict")
+
+
+def test_o_contrato_declara_o_convite_como_obrigatorio_na_saida(api):
+    esquema = api.app.openapi()["components"]["schemas"]["HouseholdOut"]
+
+    assert {"invite_sent_on", "invite_channel"} <= set(esquema["required"])

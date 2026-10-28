@@ -39,6 +39,8 @@ export function household(over: Partial<Household> = {}): Household {
     state: null,
     postal_code: null,
     note: null,
+    invite_sent_on: null,
+    invite_channel: null,
     summary: {
       total: guests.length,
       confirmed: guests.filter((g) => g.status === 'Confirmado').length,

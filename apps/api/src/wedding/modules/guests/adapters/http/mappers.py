@@ -89,6 +89,8 @@ def _household(dto: HouseholdDto) -> HouseholdOut:
             "state": dto.state,
             "postal_code": dto.postal_code,
             "note": dto.note,
+            "invite_sent_on": dto.invite_sent_on,
+            "invite_channel": dto.invite_channel,
             "summary": HouseholdSummaryOut.model_validate(
                 {
                     "total": summary.total,
