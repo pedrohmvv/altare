@@ -6,6 +6,7 @@ from uuid import UUID
 from wedding.modules.wedding.application.dto import BaselineChangeDto
 from wedding.modules.wedding.application.scope_dto import StatusChangeDto
 from wedding.modules.wedding.domain.entities import BaselineChange, BaselineField
+from wedding.modules.wedding.domain.reference import ScopeReference
 from wedding.modules.wedding.domain.scope_entities import (
     ScopeCategory,
     ScopeEvaluation,
@@ -113,3 +114,53 @@ class ScopeUnitOfWork(Protocol):
 
 
 ScopeUnitOfWorkFactory = Callable[[Actor], ScopeUnitOfWork]
+
+
+class ReferenceRepository(Protocol):
+    """Referências por frente; só lê as não removidas (exclusão lógica)."""
+
+    def add(self, reference: ScopeReference) -> None: ...
+
+    def get(self, reference_id: UUID) -> ScopeReference | None: ...
+
+    def list_for(self, category_id: UUID) -> list[ScopeReference]:
+        """Da mais nova para a mais antiga."""
+        ...
+
+
+class ReferenceUnitOfWork(Protocol):
+    @property
+    def scope(self) -> ScopeRepository: ...
+
+    @property
+    def references(self) -> ReferenceRepository: ...
+
+    def __enter__(self) -> Self: ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
+
+    def commit(self) -> None: ...
+
+    def rollback(self) -> None: ...
+
+
+ReferenceUnitOfWorkFactory = Callable[[Actor], ReferenceUnitOfWork]
+
+
+class StoredFile:
+    """O que o Mapa precisa saber de um arquivo enviado: que existe e se é imagem."""
+
+    def __init__(self, file_id: UUID, is_image: bool) -> None:
+        self.file_id = file_id
+        self.is_image = is_image
+
+
+class FileCatalog(Protocol):
+    """Porta para o módulo de arquivos: o `wedding` não o importa; o bootstrap liga os dois."""
+
+    def find(self, file_id: UUID, actor: Actor) -> StoredFile | None: ...
