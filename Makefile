@@ -5,7 +5,8 @@
 
 API := apps/api
 DATABASE_URL ?= sqlite:///$(CURDIR)/data/altare.db
-export DATABASE_URL
+FILES_DIR ?= $(CURDIR)/data/files
+export DATABASE_URL FILES_DIR
 
 dev:
 	$(MAKE) -j2 dev-api dev-web
