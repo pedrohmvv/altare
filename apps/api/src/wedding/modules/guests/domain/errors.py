@@ -39,3 +39,7 @@ class CompanionMovesWithHolder(DomainRuleViolated):
 
 class CompanionNeedsName(DomainRuleViolated):
     default_code = "companion_needs_name"
+
+
+class CompanionChoiceRequired(DomainRuleViolated):
+    default_code = "companion_choice_required"

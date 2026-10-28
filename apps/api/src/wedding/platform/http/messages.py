@@ -158,6 +158,10 @@ MESSAGES: dict[str, Message] = {
         "Falta o nome do acompanhante",
         "Para manter o acompanhante, informem o nome dele. Sem nome, ele sai junto com o titular.",
     ),
+    "companion_choice_required": Message(
+        "Escolham o que fazer com o acompanhante",
+        "Este convidado tem um acompanhante. Excluam os dois ou mantenham o acompanhante na lista.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",
