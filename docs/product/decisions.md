@@ -1564,3 +1564,71 @@
 - **Aprovado (2026-10-28):** esta decisão, pelo usuário. Com ela, as `D-068` e `D-069` também estão aprovadas.
 - **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas do bloco (teclado, VoiceOver, zoom de 200%, foto no celular real), que o usuário não confirmou como feita; o PR de release e a tag `v0.3.0`; a conferência de `/context` (`D-062`).
 
+---
+
+## D-071 — Bloco 1.2: plano em 5 PRs, por fatias verticais
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.2 (plano)
+- **Pedido do usuário:** planejar o Bloco 1.2 (Lista Nominal de Convidados, módulo `guests`) lendo a spec `F-CNV` (aprovada em `D-030`), o roadmap, a arquitetura, a stack e os padrões do `wedding`; depois, "execute o plano".
+- **Escolhido pelo usuário (2026-10-28), nas ambiguidades da `F-CNV`:** o núcleo **nasce com a 1ª pessoa** e nunca fica sem pessoas (remover a última pede excluir o núcleo); o Estimado Ponderado é **exibido arredondado para cima**, igual ao orçamento, e a API devolve o valor exato; o status é **livre** (de qualquer para qualquer outro), com **tabela de histórico**; o acompanhante fica **no mesmo núcleo, no máximo um por titular, e "manter" o desvincula**.
+- **Decisão:**
+  1. **Cinco PRs para a `develop`, nesta ordem, cada um com os gates verdes e usável:**
+     - **PR 1, `feat/convidados-nucleos`:** núcleos, pessoas, acompanhante, contatos, endereço, status com motivo e histórico, "Abrir WhatsApp" (`F-CNV-01`, `02` e `04`; `D-072`).
+     - **PR 2, `feat/convidados-contagem`:** contadores, pesos por probabilidade, limites de idade, o contrato de contagem para o Bloco 2.1 e o Porte derivado (`F-CNV-03` e `06`, `F-PLN-01`; `D-073`).
+     - **PR 3, `feat/convidados-convite-e-filtros`:** convite enviado por núcleo, busca, filtros e a lente `Minha visão` (`F-CNV-05` e `07`; `D-074`).
+     - **PR 4, `feat/convidados-exportacao`:** exportação em Excel e CSV, com proteção contra injeção de fórmula (`F-CNV-08`; `D-075`).
+     - **PR 5, `test/e2e-convidados`:** E2E do bloco nos dois perfis, conferência visual e de acessibilidade e o fechamento (`D-076`); depois o PR `develop → main` e, com o merge do usuário, a tag `v0.4.0` (`D-059`: `MINOR` por bloco).
+  2. **Um módulo só, `guests`** (`architecture.md` §4 e §13), sem `wedding_id` (`D-002`), com `CLAUDE.md` desde o primeiro commit (`D-039`).
+  3. **Derivado na leitura, nunca gravado** (`architecture.md` §5): Total Nominal, Confirmados, Estimado Ponderado e Não irão, o resumo do núcleo, o link do WhatsApp e a sugestão de faixa pela idade. Gravam-se os fatos e as decisões do casal (pesos e limites de idade, vazios no início).
+  4. **Aritmética exata:** os pesos são percentuais inteiros e o ponderado é a soma em centésimos de pessoa (100 = uma pessoa), sem `float`; a API devolve o valor exato e o arredondado para cima.
+  5. **Contrato para o Bloco 2.1:** o `guests` expõe só DTOs e uma consulta em `application/public.py` (`GetGuestHeadcount`), e o `budget` a lê por uma porta que o `bootstrap` liga; o orçamento nunca guarda a contagem. O Porte das Definições Base (adiado na `D-067`) mostra, ao lado da faixa, o Total Nominal derivado, por outra porta.
+  6. **Dados pessoais de convidados** (`altare-seguranca-privacidade`): nada de dado pessoal em log, em URL nem em cache; `hide_parameters` no engine; busca por texto só no navegador; exportação por `POST`; exemplos e testes sempre fictícios. Restrição alimentar e o motivo de `Não irá` são tratados como sensíveis.
+  7. **Exportação:** `openpyxl` (já aprovada na `D-030`); no Excel a célula de texto é gravada com tipo texto forçado e no CSV recebe um apóstrofo quando começa com `=`, `+`, `-`, `@`, tabulação ou retorno de carro.
+- **Razão:** a lista nominal alimenta o orçamento, o Porte e o Dossiê; os números que o casal confere à mão não podem divergir entre as telas, e o dado é de terceiros, então a privacidade entra no desenho e não no fim.
+- **O que ficou rejeitado:**
+  - Fatiar por camada: nada ficaria usável até o fim.
+  - Núcleo vazio permitido: contraria "um ou mais" da spec e abre núcleos sem ninguém na lista.
+  - Status só para frente, com "reabrir": mais regra para aprender, e a spec não pede.
+  - Gravar os contadores: seria a segunda verdade a sincronizar.
+  - Filtrar no servidor com a busca na query: o log de acesso gravaria nomes.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Tela de excluídos (restaurar a qualquer tempo) | O primeiro pedido de recuperar |
+| Purga definitiva de convidados e política de retenção | Abrir o Altare a outros casais, ou pedido do casal |
+| Importar lista de planilha; mapa de mesas | v1.1+ (spec) |
+| "+ Registrar" rápido para convidado | Bloco 3.1 (`OQ-IA-001`, item 5) |
+| "Sem resposta" e restrições no contrato | Bloco 4.2 (Dossiê) |
+| Evento `GuestStatusChanged` | Quando o *dispatcher* existir (`D-060`) |
+| Validar os índices parciais do módulo no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
+- **Aprovado (2026-10-28):** o plano, pelo usuário ("Execute o plano"), com as quatro respostas acima.
+- **Pendente:** as decisões de cada PR (`D-072` a `D-076`) aguardam aprovação do usuário depois do PR, como nas `D-066` a `D-070`.
+
+---
+
+## D-072 — Núcleos e convidados: módulo `guests`, migration `0007`, rotas e lista (Bloco 1.2, PR 1 de 5)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.2, PR 1 de 5 (`D-071`)
+- **Decisão:**
+  1. **Modelo.** Três tabelas em `guests` (migration `0007`): `guest_households` (nome e `name_key`, lado, endereço em colunas, observação e `members_revision`), `guests` (núcleo, posição, titular do acompanhante, nome, faixa, idade, probabilidade, status, motivo, restrição alimentar, observação, telefone em dígitos nacionais e e-mail) e `guest_status_changes` (histórico com o status anterior, o novo, o motivo e o perfil). A lista **nasce vazia**: nada é semeado.
+  2. **Invariantes em três camadas** (domínio, banco e teste): nome do núcleo único entre os vivos sem diferenciar caixa nem espaços (índice único parcial); núcleo vivo com ao menos uma pessoa viva (domínio e teste; a escrita que tira uma pessoa sobe `members_revision`, e duas saídas simultâneas dão `409`); acompanhante no mesmo núcleo do titular, um por titular (índice único parcial) e que não leva outro; nome obrigatório exceto no acompanhante (`CHECK`); idade só em criança, de 0 a 17 (`CHECK`); motivo só com `Não irá` (`CHECK`); histórico como cadeia contínua que termina no status atual, sem repetir o status (`CHECK`); telefone com DDD e número. Uma máquina de estados (`GuestsMachine`, Hypothesis) sorteia criar, acrescentar, editar, mudar status, mover, excluir e restaurar e confere essas invariantes depois de cada passo.
+  3. **Limites de validação** (propostos, ajustáveis): nome de 1 a 80 caracteres; observação até 500; restrição alimentar até 120; motivo até 300; e-mail até 254; logradouro até 120; número até 20; complemento, bairro e cidade até 60; idade de 0 a 17; UF com a sigla; CEP com 8 dígitos.
+  4. **Telefone.** Aceita celular (DDD e 9 dígitos) e fixo (DDD e 8), com ou sem `+55`, `55` e `0`; guarda só os dígitos nacionais. **Só o celular gera o link do WhatsApp** (`https://wa.me/55…`); o fixo é guardado sem botão. O link vem pronto da API, e a tela só o torna âncora se tiver o formato `wa.me`, com `rel="noopener noreferrer"`.
+  5. **Rotas** (`/api/v1/guests`): `GET` da lista inteira, uma rota por operação sobre `/households` e `/people`, e `GET /people/{id}/history`; **toda escrita devolve a lista atualizada**, exige a `version` que a tela viu (`409 version_conflict`) e o header anti-CSRF; autoria e perfil vêm da sessão. **Nenhuma rota leva dado pessoal na query** (só `version` e a escolha do acompanhante), e toda resposta sai com `Cache-Control: private, no-store`.
+  6. **Privacidade de ponta a ponta.** `hide_parameters=True` no engine (um erro de banco não repete o valor), `IntegrityError` traduzido para erro de domínio sem o dado, **zero `logger` novo** e um teste que percorre os fluxos de sucesso e de erro com valores sentinela e exige que nenhum registro de log os contenha.
+  7. **Web.** A rota `/convidados` ganha `validateSearch` (o painel do núcleo na URL; **a busca por nome nunca entra na URL**). No computador, tabela agrupada por núcleo (`rowgroup`) com painel lateral; no celular, um cartão por núcleo com o status e o WhatsApp em um toque. O selo de status é o botão e abre um cartão com os quatro status (`Não irá` pergunta o motivo opcional); nada é otimista, porque o servidor recalcula o que se deriva do status. Formulários com React Hook Form e Zod só para a experiência: o `code` estável do erro da API decide o campo. O diálogo de novo núcleo envolve a tela e continua aberto para as pessoas seguintes, com o foco de volta ao nome.
+  8. **Desfazer.** A exclusão do núcleo e da pessoa é lógica. O Desfazer da **pessoa fica dentro do painel** (um aviso fora do painel modal ficaria escondido do teclado e do leitor de tela, o que o teste de unidade mostrou); o do **núcleo**, que fecha o painel, usa o aviso de 4 segundos. A tela de excluídos fica adiada.
+  9. **Sem página no guia** para a lista de convidados (`design-system.md` §15). Bases: págs. 34 (botão "Abrir WhatsApp", selos, lente), 38 (cartões planos com *hairline*, linha com selo à direita), 39 (cartão no celular, WhatsApp em um toque) e 40 (selos de situação). Desvios, no espírito do guia: `Confirmado` em sálvia com `circle-check` e `Não irá` neutro com `circle-minus` (um fato, não um erro); o lado em selo `outline`, sem cor por perfil; a conferência visual com capturas fica para o PR 5 (`D-076`).
+  10. **Defeito achado pela máquina de estados e pelos testes:** restaurar um acompanhante excluído sozinho o devolvia ao núcleo antigo, separado do titular que mudara de núcleo; agora volta para o núcleo do titular.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15, linhas novas); `convidados-enxoval-e-dia-d.md` (nota de implementação); `AGENTS.md` §1; `roadmap.md` (Bloco 1.2); `CLAUDE.md` do módulo `guests`.
+- **Razão:** o casal precisa montar a lista por família sem perder quem mudou o quê, e a lista é dado de terceiros: o que ela guarda e o que ela deixa vazar têm de estar garantidos por teste e por banco, não só pela tela.
+- **O que ficou rejeitado:**
+  - Persistir o endereço em JSON ou em um objeto composto: a exportação lê cada parte, e colunas simples não atritam com o mapeamento.
+  - Atualização otimista do status: o servidor recalcula os contadores, e recalcular no navegador criaria a segunda verdade.
+  - `Desfazer` em aviso de 4 segundos para a pessoa: ficaria fora do painel modal, escondido do teclado e do leitor.
+  - Aceitar só celular: um fixo (o do salão de uma tia) é dado legítimo da lista.
+- **Adiado, com gatilho para retomar:** os da `D-071` e a conferência visual contra as págs. 34, 38, 39 e 40 (PR 5, `D-076`).
+- **Verificação:** API com 855 testes e web com 651, `make e2e` com 59 (1 pulado de propósito), Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença.
+- **Pendente:** aprovação do usuário depois do PR, e a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre a lista, o painel e o selo de status.
+

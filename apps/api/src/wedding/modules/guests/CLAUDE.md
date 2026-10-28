@@ -26,6 +26,7 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 ## Docs
 - Features: `docs/product/features/convidados-enxoval-e-dia-d.md`, parte Convidados (`F-CNV-01` a `F-CNV-08`).
 - Decisões: `D-030`, `D-071`, `D-072`.
+- Persistência: migration `0007` (`guest_households`, `guests`, `guest_status_changes`).
 - Arquitetura e domínio: `docs/engineering/architecture.md` §5 (derivar, não duplicar) e §10 (histórico); `docs/engineering/stack.md` §4.
 - Web: `apps/web/src/features/guests/`.
 
