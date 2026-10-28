@@ -3,6 +3,7 @@ from threading import Lock
 
 from wedding.modules.files.application.commands.upload_file import UploadFile
 from wedding.modules.files.application.queries.get_file import GetFile
+from wedding.modules.files.application.queries.get_file_info import GetFileInfo
 from wedding.modules.files.application.use_cases import FilesUseCases
 from wedding.modules.files.infrastructure.mapping import start_mappers
 from wedding.modules.files.infrastructure.uow import SqlFilesUnitOfWork
@@ -44,4 +45,5 @@ class FilesContainer:
         return FilesUseCases(
             upload_file=UploadFile(uow_factory, storage, UuidGenerator()),
             get_file=GetFile(uow_factory, storage),
+            get_file_info=GetFileInfo(uow_factory),
         )
