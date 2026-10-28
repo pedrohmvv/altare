@@ -106,14 +106,244 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/wedding/baseline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Baseline */
+        get: operations["read_baseline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/date": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Baseline Date */
+        put: operations["update_baseline_date"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/city": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Baseline City */
+        put: operations["update_baseline_city"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/format": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Baseline Format */
+        put: operations["update_baseline_format"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/size": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Baseline Size */
+        put: operations["update_baseline_size"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/ceiling": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Baseline Ceiling */
+        put: operations["update_baseline_ceiling"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/ceremony": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Baseline Ceremony */
+        put: operations["update_baseline_ceremony"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wedding/baseline/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Baseline Changes */
+        get: operations["list_baseline_changes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** BaselineChangeOut */
+        BaselineChangeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            field: components["schemas"]["BaselineKey"];
+            before: components["schemas"]["SnapshotOut"];
+            after: components["schemas"]["SnapshotOut"];
+            /**
+             * By
+             * @enum {string}
+             */
+            by: "Noivo" | "Noiva";
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+        };
+        /**
+         * BaselineKey
+         * @enum {string}
+         */
+        BaselineKey: "date" | "city" | "format" | "size" | "ceiling" | "ceremony";
+        /** BaselineOut */
+        BaselineOut: {
+            date: components["schemas"]["DateFieldOut"];
+            city: components["schemas"]["TextFieldOut"];
+            format: components["schemas"]["TextFieldOut"];
+            size: components["schemas"]["SizeFieldOut"];
+            ceiling: components["schemas"]["CeilingFieldOut"];
+            ceremony: components["schemas"]["CeremonyFieldOut"];
+        };
         /** Body_upload_file */
         Body_upload_file: {
             /** File */
             file: string;
+        };
+        /** CeilingFieldIn */
+        CeilingFieldIn: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+            value: components["schemas"]["CeilingValueSchema"];
+        };
+        /** CeilingFieldOut */
+        CeilingFieldOut: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note: string | null;
+            /** Version */
+            version: number;
+            value: components["schemas"]["CeilingValueSchema"];
+        };
+        /** CeilingValueSchema */
+        CeilingValueSchema: {
+            /** Cents */
+            cents?: number | null;
+        };
+        /** CeremonyFieldIn */
+        CeremonyFieldIn: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+            value: components["schemas"]["CeremonyValueSchema"];
+        };
+        /** CeremonyFieldOut */
+        CeremonyFieldOut: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note: string | null;
+            /** Version */
+            version: number;
+            value: components["schemas"]["CeremonyValueSchema"];
+        };
+        /**
+         * CeremonyKind
+         * @enum {string}
+         */
+        CeremonyKind: "Religiosa" | "Civil" | "Simbólica";
+        /** CeremonyValueSchema */
+        CeremonyValueSchema: {
+            /** Kinds */
+            kinds?: components["schemas"]["CeremonyKind"][];
+            /** Detail */
+            detail?: string | null;
         };
         /** CurrentUserOut */
         CurrentUserOut: {
@@ -130,6 +360,50 @@ export interface components {
              */
             profile: "Noivo" | "Noiva";
         };
+        /** DateFieldIn */
+        DateFieldIn: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+            value: components["schemas"]["DateValueSchema"];
+        };
+        /** DateFieldOut */
+        DateFieldOut: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note: string | null;
+            /** Version */
+            version: number;
+            value: components["schemas"]["DateValueSchema"];
+        };
+        /**
+         * DateKind
+         * @enum {string}
+         */
+        DateKind: "nenhuma" | "janela" | "exata";
+        /**
+         * DateValueSchema
+         * @description `nenhuma` é o campo vazio: o domínio só guarda janela ou data exata.
+         */
+        DateValueSchema: {
+            kind: components["schemas"]["DateKind"];
+            window_start?: components["schemas"]["MonthYearSchema"] | null;
+            window_end?: components["schemas"]["MonthYearSchema"] | null;
+            /** Label */
+            label?: string | null;
+            /** Exact */
+            exact?: string | null;
+        };
+        /**
+         * DefinitionStatus
+         * @enum {string}
+         */
+        DefinitionStatus: "Em definição" | "Definido";
         /** FieldError */
         FieldError: {
             /** Field */
@@ -172,6 +446,13 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MonthYearSchema */
+        MonthYearSchema: {
+            /** Year */
+            year: number;
+            /** Month */
+            month: number;
+        };
         /**
          * ProblemDetails
          * @description Erro no formato RFC 9457, com `code` estável de máquina e `detail` em pt-BR.
@@ -192,6 +473,65 @@ export interface components {
             detail: string;
             /** Errors */
             errors?: components["schemas"]["FieldError"][] | null;
+        };
+        /** SizeFieldIn */
+        SizeFieldIn: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+            value: components["schemas"]["SizeValueSchema"];
+        };
+        /** SizeFieldOut */
+        SizeFieldOut: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note: string | null;
+            /** Version */
+            version: number;
+            value: components["schemas"]["SizeValueSchema"];
+        };
+        /** SizeValueSchema */
+        SizeValueSchema: {
+            /** Minimum */
+            minimum?: number | null;
+            /** Maximum */
+            maximum?: number | null;
+        };
+        /** SnapshotOut */
+        SnapshotOut: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note: string | null;
+            /** Value */
+            value: components["schemas"]["DateValueSchema"] | components["schemas"]["SizeValueSchema"] | components["schemas"]["CeilingValueSchema"] | components["schemas"]["CeremonyValueSchema"] | string | null;
+        };
+        /** TextFieldIn */
+        TextFieldIn: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+            /** Value */
+            value?: string | null;
+        };
+        /** TextFieldOut */
+        TextFieldOut: {
+            status: components["schemas"]["DefinitionStatus"];
+            /** Note */
+            note: string | null;
+            /** Version */
+            version: number;
+            /** Value */
+            value: string | null;
         };
     };
     responses: never;
@@ -423,6 +763,489 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    read_baseline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_baseline_date: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DateFieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_baseline_city: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextFieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_baseline_format: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextFieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_baseline_size: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SizeFieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_baseline_ceiling: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CeilingFieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_baseline_ceremony: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CeremonyFieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_baseline_changes: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineChangeOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

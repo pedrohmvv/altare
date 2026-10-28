@@ -294,10 +294,671 @@
           }
         }
       }
+    },
+    "/api/v1/wedding/baseline": {
+      "get": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Read Baseline",
+        "operationId": "read_baseline",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/date": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Baseline Date",
+        "operationId": "update_baseline_date",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DateFieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/city": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Baseline City",
+        "operationId": "update_baseline_city",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextFieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/format": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Baseline Format",
+        "operationId": "update_baseline_format",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextFieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/size": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Baseline Size",
+        "operationId": "update_baseline_size",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SizeFieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/ceiling": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Baseline Ceiling",
+        "operationId": "update_baseline_ceiling",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CeilingFieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/ceremony": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Baseline Ceremony",
+        "operationId": "update_baseline_ceremony",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CeremonyFieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/baseline/changes": {
+      "get": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "List Baseline Changes",
+        "operationId": "list_baseline_changes",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BaselineChangeOut"
+                  },
+                  "title": "Response List Baseline Changes"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "BaselineChangeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "field": {
+            "$ref": "#/components/schemas/BaselineKey"
+          },
+          "before": {
+            "$ref": "#/components/schemas/SnapshotOut"
+          },
+          "after": {
+            "$ref": "#/components/schemas/SnapshotOut"
+          },
+          "by": {
+            "type": "string",
+            "enum": [
+              "Noivo",
+              "Noiva"
+            ],
+            "title": "By"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "field",
+          "before",
+          "after",
+          "by",
+          "at"
+        ],
+        "title": "BaselineChangeOut"
+      },
+      "BaselineKey": {
+        "type": "string",
+        "enum": [
+          "date",
+          "city",
+          "format",
+          "size",
+          "ceiling",
+          "ceremony"
+        ],
+        "title": "BaselineKey"
+      },
+      "BaselineOut": {
+        "properties": {
+          "date": {
+            "$ref": "#/components/schemas/DateFieldOut"
+          },
+          "city": {
+            "$ref": "#/components/schemas/TextFieldOut"
+          },
+          "format": {
+            "$ref": "#/components/schemas/TextFieldOut"
+          },
+          "size": {
+            "$ref": "#/components/schemas/SizeFieldOut"
+          },
+          "ceiling": {
+            "$ref": "#/components/schemas/CeilingFieldOut"
+          },
+          "ceremony": {
+            "$ref": "#/components/schemas/CeremonyFieldOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "city",
+          "format",
+          "size",
+          "ceiling",
+          "ceremony"
+        ],
+        "title": "BaselineOut"
+      },
       "Body_upload_file": {
         "properties": {
           "file": {
@@ -311,6 +972,190 @@
           "file"
         ],
         "title": "Body_upload_file"
+      },
+      "CeilingFieldIn": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          },
+          "value": {
+            "$ref": "#/components/schemas/CeilingValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "value"
+        ],
+        "title": "CeilingFieldIn"
+      },
+      "CeilingFieldOut": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "value": {
+            "$ref": "#/components/schemas/CeilingValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "version",
+          "value"
+        ],
+        "title": "CeilingFieldOut"
+      },
+      "CeilingValueSchema": {
+        "properties": {
+          "cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cents"
+          }
+        },
+        "type": "object",
+        "title": "CeilingValueSchema"
+      },
+      "CeremonyFieldIn": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          },
+          "value": {
+            "$ref": "#/components/schemas/CeremonyValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "value"
+        ],
+        "title": "CeremonyFieldIn"
+      },
+      "CeremonyFieldOut": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "value": {
+            "$ref": "#/components/schemas/CeremonyValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "version",
+          "value"
+        ],
+        "title": "CeremonyFieldOut"
+      },
+      "CeremonyKind": {
+        "type": "string",
+        "enum": [
+          "Religiosa",
+          "Civil",
+          "Simbólica"
+        ],
+        "title": "CeremonyKind"
+      },
+      "CeremonyValueSchema": {
+        "properties": {
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/CeremonyKind"
+            },
+            "type": "array",
+            "title": "Kinds"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "CeremonyValueSchema"
       },
       "CurrentUserOut": {
         "properties": {
@@ -339,6 +1184,146 @@
           "profile"
         ],
         "title": "CurrentUserOut"
+      },
+      "DateFieldIn": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          },
+          "value": {
+            "$ref": "#/components/schemas/DateValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "value"
+        ],
+        "title": "DateFieldIn"
+      },
+      "DateFieldOut": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "value": {
+            "$ref": "#/components/schemas/DateValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "version",
+          "value"
+        ],
+        "title": "DateFieldOut"
+      },
+      "DateKind": {
+        "type": "string",
+        "enum": [
+          "nenhuma",
+          "janela",
+          "exata"
+        ],
+        "title": "DateKind"
+      },
+      "DateValueSchema": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/DateKind"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MonthYearSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MonthYearSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "exact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exact"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "DateValueSchema",
+        "description": "`nenhuma` é o campo vazio: o domínio só guarda janela ou data exata."
+      },
+      "DefinitionStatus": {
+        "type": "string",
+        "enum": [
+          "Em definição",
+          "Definido"
+        ],
+        "title": "DefinitionStatus"
       },
       "FieldError": {
         "properties": {
@@ -437,6 +1422,24 @@
         ],
         "title": "LoginIn"
       },
+      "MonthYearSchema": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "month": {
+            "type": "integer",
+            "title": "Month"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "month"
+        ],
+        "title": "MonthYearSchema"
+      },
       "ProblemDetails": {
         "properties": {
           "type": {
@@ -484,6 +1487,231 @@
         ],
         "title": "ProblemDetails",
         "description": "Erro no formato RFC 9457, com `code` estável de máquina e `detail` em pt-BR."
+      },
+      "SizeFieldIn": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          },
+          "value": {
+            "$ref": "#/components/schemas/SizeValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "value"
+        ],
+        "title": "SizeFieldIn"
+      },
+      "SizeFieldOut": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "value": {
+            "$ref": "#/components/schemas/SizeValueSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "version",
+          "value"
+        ],
+        "title": "SizeFieldOut"
+      },
+      "SizeValueSchema": {
+        "properties": {
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum"
+          }
+        },
+        "type": "object",
+        "title": "SizeValueSchema"
+      },
+      "SnapshotOut": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateValueSchema"
+              },
+              {
+                "$ref": "#/components/schemas/SizeValueSchema"
+              },
+              {
+                "$ref": "#/components/schemas/CeilingValueSchema"
+              },
+              {
+                "$ref": "#/components/schemas/CeremonyValueSchema"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "value"
+        ],
+        "title": "SnapshotOut"
+      },
+      "TextFieldIn": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "TextFieldIn"
+      },
+      "TextFieldOut": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DefinitionStatus"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "version",
+          "value"
+        ],
+        "title": "TextFieldOut"
       }
     }
   }
