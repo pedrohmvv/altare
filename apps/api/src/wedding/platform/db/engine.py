@@ -14,7 +14,9 @@ def create_db_engine(url: str) -> Engine:
     if is_sqlite and parsed.database and parsed.database != ":memory:":
         Path(parsed.database).parent.mkdir(parents=True, exist_ok=True)
 
-    engine = create_engine(parsed)
+    # Sem os parâmetros nas mensagens de erro: nome, telefone e e-mail de convidado não podem
+    # parar em traceback nem em log (altare-seguranca-privacidade).
+    engine = create_engine(parsed, hide_parameters=True)
     if is_sqlite:
         event.listen(engine, "connect", _configure_sqlite)
     return engine
