@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from wedding.modules.guests.domain.contact import (
@@ -7,7 +7,11 @@ from wedding.modules.guests.domain.contact import (
     clean_postal_code,
     normalize_phone,
 )
-from wedding.modules.guests.domain.errors import CompanionNeedsName, InvalidGuestValue
+from wedding.modules.guests.domain.errors import (
+    CompanionNeedsName,
+    InvalidGuestValue,
+    InvalidInvite,
+)
 from wedding.modules.guests.domain.values import (
     MAX_DIETARY,
     MAX_NOTE,
@@ -17,6 +21,7 @@ from wedding.modules.guests.domain.values import (
     MAX_STREET,
     AgeBand,
     GuestStatus,
+    InviteChannel,
     Probability,
     Side,
     clean_age,
@@ -46,6 +51,8 @@ class Household:
     state: str | None = None
     postal_code: str | None = None
     note: str | None = None
+    invite_sent_on: date | None = None
+    invite_channel: InviteChannel | None = None
     name_key: str = field(init=False, default="")
     members_revision: int = 0
     deleted_at: datetime | None = None
@@ -138,6 +145,23 @@ class Household:
             return False
         self._apply(cleaned)
         self.side = side
+        return True
+
+    def record_invite(self, sent_on: date, channel: InviteChannel, *, today: date) -> bool:
+        """O convite é por núcleo, um ato único (F-CNV-05): data e canal andam juntos e a data
+        não é futura. Devolve se algo mudou. Registrar, editar ou limpar o envio **não mexe** no
+        status de ninguém: mover os rascunhos para `Convidado` é uma oferta, nunca automática."""
+        if sent_on > today:
+            raise InvalidInvite()
+        if (self.invite_sent_on, self.invite_channel) == (sent_on, channel):
+            return False
+        self.invite_sent_on, self.invite_channel = sent_on, channel
+        return True
+
+    def clear_invite(self) -> bool:
+        if self.invite_sent_on is None:
+            return False
+        self.invite_sent_on = self.invite_channel = None
         return True
 
     def touch_members(self) -> None:

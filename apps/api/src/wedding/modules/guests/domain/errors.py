@@ -51,3 +51,7 @@ class InvalidWeights(DomainRuleViolated):
 
 class InvalidAgeLimits(DomainRuleViolated):
     default_code = "invalid_age_limits"
+
+
+class InvalidInvite(DomainRuleViolated):
+    default_code = "invalid_invite"
