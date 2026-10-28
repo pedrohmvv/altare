@@ -43,3 +43,11 @@ class CompanionNeedsName(DomainRuleViolated):
 
 class CompanionChoiceRequired(DomainRuleViolated):
     default_code = "companion_choice_required"
+
+
+class InvalidWeights(DomainRuleViolated):
+    default_code = "invalid_weights"
+
+
+class InvalidAgeLimits(DomainRuleViolated):
+    default_code = "invalid_age_limits"
