@@ -4,6 +4,7 @@ from wedding.modules.files.adapters.http.router import build_router as build_fil
 from wedding.modules.identity.adapters.http.router import build_router as build_identity_router
 from wedding.modules.identity.application.ports import PasswordHasher
 from wedding.modules.wedding.adapters.http.router import build_router as build_wedding_router
+from wedding.modules.wedding.adapters.http.scope_router import build_scope_router
 from wedding.platform.bootstrap.database import Database
 from wedding.platform.bootstrap.files import FilesContainer
 from wedding.platform.bootstrap.identity import IdentityContainer
@@ -30,6 +31,7 @@ def build_app(
             build_identity_router(identity.use_cases, cookie_secure=settings.session_cookie_secure),
             build_files_router(files.use_cases),
             build_wedding_router(wedding.use_cases),
+            build_scope_router(wedding.scope_use_cases),
         ],
         actor_resolver=lambda token: identity.use_cases().resolve_session.execute(token),
     )
