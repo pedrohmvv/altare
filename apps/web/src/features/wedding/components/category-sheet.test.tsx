@@ -81,6 +81,26 @@ describe('Painel da categoria: abrir e fechar', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
+  it('o foco volta ao cartão que abriu o painel, ao fechar com o Esc', async () => {
+    const { user } = renderSheet({}, {})
+    const cartao = await screen.findByRole('button', { name: 'Fotografia Exemplo' })
+    await user.click(cartao)
+    await painel()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(cartao).toHaveFocus()
+  })
+
+  it('o foco também volta ao cartão com o botão Fechar', async () => {
+    const { user } = renderSheet({}, {})
+    const cartao = await screen.findByRole('button', { name: 'Fotografia Exemplo' })
+    await user.click(cartao)
+    const dialog = await painel()
+    await user.click(within(dialog).getByRole('button', { name: 'Fechar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(cartao).toHaveFocus()
+  })
+
   it('abre direto quando a URL já traz a categoria, e some se o id não existe mais', async () => {
     renderSheet()
     expect(await painel()).toBeVisible()

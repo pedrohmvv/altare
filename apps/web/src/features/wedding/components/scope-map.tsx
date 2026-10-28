@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -36,6 +36,8 @@ export function ScopeMap({ search, onSearchChange, profile, lens = 'casal' }: Sc
   const query = useQuery(scopeMapQueryOptions)
   const wide = useMediaQuery('(min-width: 1024px)')
   // A última categoria aberta continua montada durante a animação de saída do painel.
+  // Quem abriu o painel recebe o foco de volta ao fechá-lo (o Radix só o faz com um gatilho).
+  const opener = useRef<HTMLElement | null>(null)
   const [lastOpened, setLastOpened] = useState<string | undefined>(undefined)
   if (search.categoria && search.categoria !== lastOpened) setLastOpened(search.categoria)
   const [groupsOpen, setGroupsOpen] = useState(false)
@@ -93,7 +95,10 @@ export function ScopeMap({ search, onSearchChange, profile, lens = 'casal' }: Sc
   }
   const groups = filterGroups(map.groups, filters, profile)
   const shown = groups.flatMap((group) => group.categories)
-  const open = (categoryId: string) => onSearchChange({ categoria: categoryId })
+  const open = (categoryId: string, from: HTMLElement) => {
+    opener.current = from
+    onSearchChange({ categoria: categoryId })
+  }
   const owner = map.groups.find((group) =>
     group.categories.some((category) => category.id === (search.categoria ?? lastOpened)),
   )
@@ -114,6 +119,10 @@ export function ScopeMap({ search, onSearchChange, profile, lens = 'casal' }: Sc
           profile={profile}
           open={Boolean(search.categoria && sheetCategory)}
           onOpenChange={(isOpen) => !isOpen && onSearchChange({ categoria: undefined })}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            opener.current?.focus()
+          }}
         />
       )}
       <div className="flex flex-wrap gap-3">
