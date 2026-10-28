@@ -303,7 +303,7 @@ Pré-requisito: a parte do Bloco 0.1 que faz o `apps/web` existir (monorepo pnpm
 | `axe` automatizado (E2E ou vitrine) | Se houver regressões de acessibilidade recorrentes ou o produto se abrir a outros casais (`D-002`) |
 | ~~Script de CI/`pre-commit` contra *hex*~~ | **Ativado em `D-055`**, como teste do Vitest e com escopo mais largo (cor, fonte, traço e sombra), sem esperar o gatilho (§12) |
 | Impressão (`@media print`, tokens de papel) | Bloco 4.2 (Dossiê do Dia D): **gatilho atingido no detalhamento** (`D-038`, `F-DOS-08`); entra na construção do Bloco 4.2 |
-| Demais primitivos de §8 (`Radio`, `Switch`, `Avatar`, `Separator`, `Sheet`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Progress`, `Accordion`, `ScrollArea`); `MoneyInput` nasceu no Bloco 1.1 (`D-067`) | Quando a primeira tela que o usa for construída |
+| Demais primitivos de §8 (`Radio`, `Switch`, `Avatar`, `Separator`, `DropdownMenu`, `AlertDialog`, `Combobox`, `Tag`, `Skeleton`, `Accordion`, `ScrollArea`); `MoneyInput` nasceu no Bloco 1.1 (`D-067`), e `Sheet` e `Progress` também (`D-068`) | Quando a primeira tela que o usa for construída |
 | Componentes de domínio de §9 | No bloco que os usa |
 | `QuickAddFab` ("+ Registrar Rápido") | Primeiro bloco com algo para registrar rápido (Bloco 3.1) |
 | Menu do usuário | **Resolvido em `D-061`**: não há menu na barra superior; a sessão fica no pé da barra lateral, no trilho e na folha "Mais" |
@@ -371,6 +371,9 @@ O **guia de identidade** (`docs/design/identidade-visual/`, aprovado em `D-024` 
 | Sessão: pé da barra lateral, trilho e folha "Mais" | 38 | `aplicacoes/visao-geral` | `_visao_geral` `:863-864` | Conforme com desvios (`D-061`): o bloco virou botão com seta e abre o cartão com o Sair; ícone no trilho; a folha "Mais" termina com a sessão |
 | `MoneyInput` | 34 | `elementos/interface` | campo com prefixo `R$` em mono `:673-679`; valor `:713-718` | Conforme (`D-067`); máscara e centavos sem página |
 | Definições Base (painel) | 38 | `aplicacoes/visao-geral` | `cartao` `:879-884`, linha `:886-893` (rótulo 15, selo `Em definição`, *hairline*) | Desvio (`D-067`): linha-botão com valor e seta, `Definido` em sálvia com `check`, edição em `Dialog` (folha no celular) |
+| `Sheet` (painel lateral) | 32 | `elementos/superficies` | gaveta no nível 2 `:620-628`, raio `card` `:611-613`; entra a 220 ms (`build_estados` `:752-758`) | Sem página (`D-068`): lateral à direita a partir de `md`, folha inferior abaixo; modal, `z-30` |
+| `Progress` | 35, 38 | `elementos/estados-e-movimento`, `aplicacoes/visao-geral` | trilho em `surface-sunken` e preenchimento primário; número sempre por escrito | Sem página (`D-068`) |
+| Mapa de Escopo (lista, quadro, filtros e painel) | 34, 35, 38, 39, 40 | `elementos/interface`, `elementos/estados-e-movimento`, `aplicacoes/*` | cartão `:879-884`, selos `:691-700`, aviso em argila `:742-749`, colunas de cartões `build_comparador` `:1003-1053` | Desvio (`D-068`): selos de alinhamento próprios (`circle-check`, `messages-square`), *chips* de filtro, nome-botão no cartão, quadro de 4 colunas a partir de 1024 px, status só pelo painel |
 | Dossiê do Dia D (impressão) | 42 | `aplicacoes/dossie-do-dia-d` | `build_dossie` `:1055-1103` | Pendente (Bloco 4.2) |
 
 **Manutenção:** componente ou tela nova entra no mapa **na mesma mudança** que a constrói; um desvio novo ganha `D-xxx` e a linha passa a "Desvio". Se o guia for regenerado (`uv run build.py`), confira as linhas citadas, que acompanham `componentes.py`.
