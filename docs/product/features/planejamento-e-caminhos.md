@@ -2,7 +2,7 @@
 
 > **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-029`). Cobre o **Bloco 1.1** (Definições Base e Mapa de Escopo). Os **Caminhos Macro** (comparação de formatos) pertencem ao **Bloco 2.2** e serão detalhados quando o território de Possibilidades for tratado.
 >
-> **Implementação:** em 4 PRs (`D-066`). `F-PLN-01` está implementada (`D-067`), assim como `F-PLN-02` a `F-PLN-05` e `F-PLN-08` (`D-068`); `F-PLN-06` (referências) segue no PR 3, e os efeitos em cadeia de `F-PLN-07` só valem quando o orçamento e o cronograma existirem.
+> **Implementação:** em 4 PRs (`D-066`). `F-PLN-01` está implementada (`D-067`), assim como `F-PLN-02` a `F-PLN-05` e `F-PLN-08` (`D-068`); `F-PLN-06` (referências) também (`D-069`), e os efeitos em cadeia de `F-PLN-07` só valem quando o orçamento e o cronograma existirem.
 >
 > **Fontes:** `docs/product/scope.md` §1, `docs/design/experience.md` (Fluxo 1, objetos 2 e 3), `docs/product/jobs.md` (J1), `D-026` (produto não confessional) e `D-029`.
 >
