@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { Ellipsis } from 'lucide-react'
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { SessionBlock } from '@/features/identity'
 import { cn } from '@/lib/cn'
 import { keepLens } from './keep-lens'
 import { LensSwitcher } from './lens-switcher'
@@ -84,6 +85,8 @@ export function BottomNav() {
                   )
                 })}
               </ul>
+              <hr className="border-border" />
+              <SessionBlock variant="sheet" />
             </DialogContent>
           </Dialog>
         </li>

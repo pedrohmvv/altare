@@ -18,4 +18,13 @@ export const copy = {
       'Não conseguimos falar com o servidor. O que vocês digitaram continua aqui: é só tentar de novo.',
     brandAlt: 'Altare',
   },
+  session: {
+    profileNoivo: 'Noivo',
+    profileNoiva: 'Noiva',
+    individualSession: 'sessão individual',
+    menuTitle: 'Sessão',
+    signOut: 'Sair',
+    signingOut: 'Saindo…',
+    signOutFailed: 'Não foi possível sair agora. Tentem de novo em instantes.',
+  },
 } as const
