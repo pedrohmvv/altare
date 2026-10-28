@@ -41,7 +41,7 @@ O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/alt
 
 | Ambiente | Banco | Arquivos | Notas |
 | :--- | :--- | :--- | :--- |
-| Desenvolvimento | SQLite em `data/` | disco local (`LocalFileStorage`) | `make dev` sobe Uvicorn (`:8000`) e Vite (`:5173`) com proxy de `/api` |
+| Desenvolvimento | SQLite em `data/` | disco local (`LocalFileStorage`, pasta `FILES_DIR`) | `make dev` sobe Uvicorn (`:8000`) e Vite (`:5173`) com proxy de `/api` |
 | Teste | SQLite temporário; Postgres efêmero no portão | temporário | Dados fictícios |
 | Produção | PostgreSQL gerenciado | S3-compatível (`S3FileStorage`) | Cookie `Secure` ligado |
 
@@ -81,4 +81,4 @@ Script único (SQLAlchemy lê um e escreve no outro), executado só depois do po
 
 - **Provedor de aplicação** (Fly.io, Render ou Railway), **Postgres gerenciado** (Neon, Supabase só como Postgres, ou o do provedor) e **storage S3-compatível** (Cloudflare R2, Backblaze B2 ou Supabase Storage): não decididos (`stack.md` §9). Decidir quando o Nível 1 estiver utilizável.
 - **Observabilidade de erros (Sentry, plano gratuito)** antes do deploy; **jobs agendados**, **Web Push** e **WhatsApp** (`stack.md` §10).
-- **Estratégia de backup e retenção:** depende da hospedagem (D-038).
+- **Estratégia de backup e retenção:** depende da hospedagem (D-038); a pasta `FILES_DIR` entra no backup junto do banco (`D-063`).
