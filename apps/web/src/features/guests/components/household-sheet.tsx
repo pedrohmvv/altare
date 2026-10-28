@@ -1,19 +1,26 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import type { Guest, Household } from '../api/guests'
-import { useAddCompanion } from '../api/use-guest-mutations'
+import { useAddCompanion, useRestoreGuest } from '../api/use-guest-mutations'
 import { copy } from '../copy'
 import { addressLines } from '../lib/address'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
 import { AddGuestDialog } from './add-guest-dialog'
+import { DeleteGuestDialog } from './delete-guest-dialog'
+import { DeleteHouseholdDialog } from './delete-household-dialog'
 import { EditGuestDialog } from './edit-guest-dialog'
 import { EditHouseholdDialog } from './edit-household-dialog'
-import { GuestStatusBadge } from './guest-badges'
+import { GuestHistory } from './guest-history'
+import { MoveGuestDialog } from './move-guest-dialog'
+import { StatusControl } from './status-control'
 import { WhatsAppButton } from './whatsapp-button'
 
 export interface HouseholdSheetProps {
   household: Household
+  /** Os outros núcleos, para onde uma pessoa pode ir. */
+  others: readonly Pick<Household, 'id' | 'name'>[]
   open: boolean
   onOpenChange: (open: boolean) => void
   /** O painel abre pela URL, sem gatilho: quem abriu diz para onde o foco volta ao fechar. */
@@ -23,13 +30,21 @@ export interface HouseholdSheetProps {
 /** O detalhe do núcleo sem sair da lista (design-system.md §10, item 2). */
 export function HouseholdSheet({
   household,
+  others,
   open,
   onOpenChange,
   onCloseAutoFocus,
 }: HouseholdSheetProps) {
   const lines = addressLines(household)
+  const [removed, setRemoved] = useState<{ guestId: string; name: string } | null>(null)
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setRemoved(null)
+        onOpenChange(next)
+      }}
+    >
       <SheetContent
         title={household.name}
         description={copy.sheet.description(household.side, summaryText(household.summary))}
@@ -38,7 +53,9 @@ export function HouseholdSheet({
         <div className="flex flex-wrap gap-3">
           <EditHouseholdDialog household={household} />
           <AddGuestDialog householdId={household.id} householdName={household.name} />
+          <DeleteHouseholdDialog household={household} onDeleted={() => onOpenChange(false)} />
         </div>
+        <RemovedNotice removed={removed} onDone={() => setRemoved(null)} />
         <section aria-label={copy.sheet.people} className="flex flex-col gap-3">
           <h3 className="text-body font-semibold text-ink">{copy.sheet.people}</h3>
           <ul className="flex flex-col">
@@ -46,10 +63,9 @@ export function HouseholdSheet({
               <GuestDetails
                 key={guest.id}
                 guest={guest}
-                canAddCompanion={
-                  guest.companion_of_id === null &&
-                  !household.guests.some((other) => other.companion_of_id === guest.id)
-                }
+                companion={household.guests.find((other) => other.companion_of_id === guest.id)}
+                others={others}
+                onRemoved={setRemoved}
               />
             ))}
           </ul>
@@ -79,7 +95,17 @@ export function HouseholdSheet({
   )
 }
 
-function GuestDetails({ guest, canAddCompanion }: { guest: Guest; canAddCompanion: boolean }) {
+function GuestDetails({
+  guest,
+  companion,
+  others,
+  onRemoved,
+}: {
+  guest: Guest
+  companion?: Guest
+  others: readonly Pick<Household, 'id' | 'name'>[]
+  onRemoved: (removed: { guestId: string; name: string }) => void
+}) {
   const name = displayName(guest)
   const addCompanion = useAddCompanion()
   const facts = [
@@ -91,7 +117,7 @@ function GuestDetails({ guest, canAddCompanion }: { guest: Guest; canAddCompanio
     <li className="flex flex-col gap-2 border-t border-border py-3 first:border-t-0 first:pt-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-body font-medium text-ink">{name}</p>
-        <GuestStatusBadge status={guest.status} />
+        <StatusControl guest={guest} name={name} />
       </div>
       {guest.name && guest.holder_name && (
         <p className="text-ui-sm text-ink-muted">{copy.companion.of(guest.holder_name)}</p>
@@ -111,7 +137,7 @@ function GuestDetails({ guest, canAddCompanion }: { guest: Guest; canAddCompanio
       <div className="flex flex-wrap items-center gap-2">
         <WhatsAppButton url={guest.whatsapp_url} name={name} />
         <EditGuestDialog guest={guest} />
-        {canAddCompanion && (
+        {guest.companion_of_id === null && !companion && (
           <Button
             variant="ghost"
             size="sm"
@@ -121,7 +147,10 @@ function GuestDetails({ guest, canAddCompanion }: { guest: Guest; canAddCompanio
             {copy.forms.addCompanion.button}
           </Button>
         )}
+        <MoveGuestDialog guest={guest} destinations={others} />
+        <DeleteGuestDialog guest={guest} companion={companion} onRemoved={onRemoved} />
       </div>
+      <GuestHistory guestId={guest.id} />
     </li>
   )
 }
@@ -131,6 +160,34 @@ function Fact({ label, value }: { label: string; value: string }) {
     <div className="flex flex-wrap gap-x-2">
       <dt className="text-ink-muted">{label}:</dt>
       <dd className="text-ink">{value}</dd>
+    </div>
+  )
+}
+
+/** O aviso de exclusão com o Desfazer, dentro do painel: fica até a pessoa agir ou fechar o painel. */
+function RemovedNotice({
+  removed,
+  onDone,
+}: {
+  removed: { guestId: string; name: string } | null
+  onDone: () => void
+}) {
+  const restore = useRestoreGuest()
+  return (
+    <div role="status">
+      {removed && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-control bg-surface-muted px-3 py-2.5 text-body-sm text-ink">
+          <p>{copy.remove.guestDone(removed.name)}</p>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={restore.isPending}
+            onClick={() => restore.mutate({ guestId: removed.guestId }, { onSuccess: onDone })}
+          >
+            {copy.remove.undo}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

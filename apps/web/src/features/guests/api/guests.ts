@@ -38,3 +38,14 @@ export const guestListQueryOptions = queryOptions({
   queryFn: async () => unwrap(await api.GET('/api/v1/guests')),
   refetchOnWindowFocus: true,
 })
+
+export const guestHistoryQueryOptions = (guestId: string) =>
+  queryOptions({
+    queryKey: guestKeys.history(guestId),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/api/v1/guests/people/{guest_id}/history', {
+          params: { path: { guest_id: guestId } },
+        }),
+      ),
+  })

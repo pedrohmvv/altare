@@ -84,6 +84,9 @@ export function GuestList({ search, onSearchChange }: GuestListProps) {
         {sheetHousehold && (
           <HouseholdSheet
             household={sheetHousehold}
+            others={households
+              .filter((household) => household.id !== sheetHousehold.id)
+              .map((household) => ({ id: household.id, name: household.name }))}
             open={Boolean(search.nucleo)}
             onOpenChange={(isOpen) => !isOpen && onSearchChange({ nucleo: undefined })}
             onCloseAutoFocus={(event) => {

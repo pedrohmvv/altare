@@ -11,7 +11,8 @@ import type { Guest, Household } from '../api/guests'
 import { copy } from '../copy'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
-import { GuestStatusBadge, SideBadge } from './guest-badges'
+import { SideBadge } from './guest-badges'
+import { StatusControl } from './status-control'
 import { WhatsAppButton } from './whatsapp-button'
 
 const columns = copy.list.columns
@@ -87,7 +88,7 @@ function GuestRow({ guest }: { guest: Guest }) {
       </TableCell>
       <TableCell>{copy.probabilities[guest.probability]}</TableCell>
       <TableCell>
-        <GuestStatusBadge status={guest.status} />
+        <StatusControl guest={guest} name={name} />
       </TableCell>
       <TableCell>
         <WhatsAppButton url={guest.whatsapp_url} name={name} />

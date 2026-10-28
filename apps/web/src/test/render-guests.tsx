@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { vi } from 'vitest'
+import { ToastProvider } from '@/components/ui/toast'
 import { GuestsPage } from '@/features/guests/pages/guests-page'
 import type { GuestsSearch } from '@/features/guests/search'
 import { jsonResponse, mockApi } from './fake-api'
@@ -36,7 +37,9 @@ export function renderGuests(
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
-      <Harness initial={initial} />
+      <ToastProvider>
+        <Harness initial={initial} />
+      </ToastProvider>
     </QueryClientProvider>,
   )
   return { api, user: userEvent.setup() }

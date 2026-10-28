@@ -1,7 +1,8 @@
 import type { Household } from '../api/guests'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
-import { GuestStatusBadge, SideBadge } from './guest-badges'
+import { SideBadge } from './guest-badges'
+import { StatusControl } from './status-control'
 import { WhatsAppButton } from './whatsapp-button'
 
 /**
@@ -40,7 +41,7 @@ export function HouseholdCard({
             >
               <p className="text-body text-ink">{name}</p>
               <div className="flex flex-wrap items-center gap-2">
-                <GuestStatusBadge status={guest.status} />
+                <StatusControl guest={guest} name={name} />
                 <WhatsAppButton url={guest.whatsapp_url} name={name} />
               </div>
             </li>

@@ -7,6 +7,15 @@ export interface FormAlertState {
   text: string
 }
 
+/** O aviso para um erro da API sem campo: a frase da API, o conflito de versão ou o aviso de rede. */
+export function alertFromError(error: unknown): FormAlertState {
+  if (!(error instanceof ApiError)) return { kind: 'error', text: copy.forms.errors.network }
+  if (error.code === 'version_conflict') {
+    return { kind: 'conflict', text: copy.forms.errors.conflict }
+  }
+  return { kind: 'error', text: error.message }
+}
+
 /**
  * Para onde vai o erro da API: o `code` estável de máquina decide o campo, e o `detail` em
  * português é o texto. Conflito de versão e erro sem campo viram um aviso do formulário; falha de
@@ -17,14 +26,10 @@ export function reportServerError<T extends FieldValues>(
   setError: UseFormSetError<T>,
   fieldByCode: Record<string, FieldPath<T>>,
 ): FormAlertState | null {
-  if (!(error instanceof ApiError)) return { kind: 'error', text: copy.forms.errors.network }
-  if (error.code === 'version_conflict') {
-    return { kind: 'conflict', text: copy.forms.errors.conflict }
-  }
-  const field = fieldByCode[error.code]
-  if (field) {
+  const field = error instanceof ApiError ? fieldByCode[error.code] : undefined
+  if (error instanceof ApiError && field) {
     setError(field, { message: error.message }, { shouldFocus: true })
     return null
   }
-  return { kind: 'error', text: error.message }
+  return alertFromError(error)
 }
