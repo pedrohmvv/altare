@@ -1510,7 +1510,8 @@
 | Reordenar categorias e grupos | O casal sentir falta em uso real |
 | Validar o índice parcial de nome no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
 - **Verificação:** API com 613 testes e web com 588, `make e2e` com 32, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; capturas da lista, do painel, do quadro e de 320 px, sem rolagem horizontal.
-- **Pendente:** aprovação do usuário; revisar os 5 textos novos de `messages.py` e o `copy.ts`; a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o Mapa, inclusive o `Sheet` e o quadro.
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário, com os limites de validação propostos, os 5 textos novos de `messages.py` e o `copy.ts`.
+- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o Mapa, inclusive o `Sheet` e o quadro, com o usuário.
 
 ---
 
@@ -1540,7 +1541,8 @@
 | Purga dos arquivos órfãos (enviados sem virar referência) | Quando o armazenamento incomodar (`architecture.md` §10) |
 | Contar referências no cartão da frente | Quando o casal pedir |
 - **Verificação:** API com 677 testes e web com 601, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; fluxo real no navegador (desktop e celular): link guardado, imagem enviada e carregada, remoção.
-- **Pendente:** aprovação do usuário; revisar os 2 textos novos de `messages.py` e o `copy.ts`; a passada manual de `altare-acessibilidade` sobre a seção de referências, inclusive o envio de foto no celular real.
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário, com os 2 textos novos de `messages.py` e o `copy.ts`.
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre a seção de referências, inclusive o envio de foto num celular real, com o usuário.
 
 ---
 
@@ -1559,5 +1561,6 @@
   - Dar o bloco por concluído só com testes de unidade e de API: foi o E2E que achou o foco perdido.
   - Um banco por projeto no E2E: o ganho é pequeno, e dividir o banco prova melhor que dois perfis convivem.
 - **Verificação:** API com 677 testes e web com 603, E2E com 59 passando (1 pulado de propósito: o teto só roda no desktop), Ruff, Biome, Pyright, `tsc`, 7 contratos, `make api-types` sem diferença.
-- **Pendente:** aprovação das `D-068`, `D-069` e `D-070` pelo usuário; a passada manual de `altare-acessibilidade` sobre as telas do bloco (teclado, VoiceOver, zoom de 200%, foto no celular real); o PR de release e a tag `v0.3.0`; a conferência de `/context` (`D-062`).
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário. Com ela, as `D-068` e `D-069` também estão aprovadas.
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas do bloco (teclado, VoiceOver, zoom de 200%, foto no celular real), que o usuário não confirmou como feita; o PR de release e a tag `v0.3.0`; a conferência de `/context` (`D-062`).
 
