@@ -77,6 +77,26 @@ def test_a_migracao_de_arquivos_cria_e_remove_a_tabela(tmp_path):
     assert {"users", "user_sessions"} <= _estado(url)[0]
 
 
+def test_a_migracao_das_definicoes_base_semeia_e_remove_as_tabelas(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    assert {"baseline_fields", "baseline_changes"} <= _estado(url)[0]
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        linhas = conn.execute(
+            text("SELECT field_key, status, value FROM baseline_fields ORDER BY field_key")
+        ).all()
+    engine.dispose()
+    assert [(chave, status, valor) for chave, status, valor in linhas] == [
+        (chave, "Em definição", None)
+        for chave in ["ceiling", "ceremony", "city", "date", "format", "size"]
+    ]
+    command.downgrade(config, "0003")
+    assert {"baseline_fields", "baseline_changes"}.isdisjoint(_estado(url)[0])
+    assert "file_assets" in _estado(url)[0]
+
+
 def test_banco_migrado_nao_difere_do_modelo(tmp_path):
     load_tables()
     url = f"sqlite:///{tmp_path / 'migracao.db'}"

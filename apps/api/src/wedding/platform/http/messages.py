@@ -76,6 +76,14 @@ MESSAGES: dict[str, Message] = {
         "Arquivo vazio",
         "O arquivo está vazio. Escolha outro e tente de novo.",
     ),
+    "baseline_value_required": Message(
+        "Falta o valor",
+        "Preencha o valor antes de marcar como Definido, ou deixe o campo Em definição.",
+    ),
+    "invalid_baseline_value": Message(
+        "Valor não aceito",
+        "Confira o valor deste campo: o formato ou o limite informado não é aceito.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",
