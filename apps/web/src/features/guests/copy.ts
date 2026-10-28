@@ -75,6 +75,15 @@ export const copy = {
     notAttending: (n: number) => (n === 1 ? '1 não irá' : `${n} não irão`),
     notAttendingLabel: 'Não irão',
   },
+  suggestion: {
+    byAge: (age: number, band: string) =>
+      `Pela idade (${age === 1 ? '1 ano' : `${age} anos`}): ${band}.`,
+    hint: (band: string) => `Pela idade: ${band}`,
+    apply: 'Aplicar',
+    applyFor: (name: string, band: string) => `Aplicar a faixa ${band} a ${name}`,
+    keep: 'Manter a faixa',
+    keepFor: (name: string) => `Manter a faixa de ${name}`,
+  },
   settings: {
     button: 'Ajustar pesos e idades',
     title: 'Pesos e idades das crianças',
