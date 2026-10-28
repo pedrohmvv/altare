@@ -30,13 +30,13 @@ wedding-planner/
 └─ AGENTS.md · CLAUDE.md
 ```
 
-**Estado atual:** `apps/web` e `apps/api` existem (esqueleto da API em `D-060`); os alvos do Makefile crescem junto, sem stub: `make api-types` só entra com o PR 2 do Bloco 0.1.
+**Estado atual:** `apps/web`, `apps/api` e `tools/api-types` existem (`D-060`, `D-061`); os alvos do Makefile crescem junto, sem stub. O gerador dos tipos vive em `tools/api-types`, fora do `apps/web`, porque o `openapi-typescript` exige o TypeScript 5 e o web usa o 7.
 
 ## Princípios
 
 1. **Sem git submodules** (`D-040`). Não proponha, não adicione e remova se aparecer.
 2. **Os apps só se falam pelo OpenAPI.** `apps/web` não importa código de `apps/api` e o contrário também não. Enum, nome de campo e formato de erro chegam ao web pelos tipos gerados; copiar a lista de valores de um enum para o TypeScript cria a segunda verdade que o contrato existe para evitar.
-3. **Tarefas na raiz via `make`:** `make dev`, `make lint`, `make typecheck`, `make test` (com variantes `-api` e `-web`), `make migrate` e, a partir do PR 2, `make api-types` (`stack.md` §7). O Makefile só orquestra (`uv run`, `pnpm`); lógica não mora nele.
+3. **Tarefas na raiz via `make`:** `make dev`, `make lint`, `make typecheck`, `make test` (com variantes `-api` e `-web`), `make migrate` e `make api-types` (`stack.md` §7). O Makefile só orquestra (`uv run`, `pnpm`); lógica não mora nele.
 4. **`packages/` só nasce com o segundo consumidor real.** Hoje não há nenhum. O `tokens.json` fica em `docs/design/identidade-visual/` e um script gera o `tokens.css`; isso não é motivo para criar pacote.
 5. **Arquivo gerado nunca se edita à mão:** `apps/web/src/styles/tokens.css` (de `tokens.json`) e os tipos do OpenAPI. Mude a fonte e regenere; o CI falha se o gerado divergir.
 6. **Contrato e tipos andam no mesmo commit.** Quem altera uma rota ou schema regenera os tipos (`make api-types`) no commit que muda o contrato. A tela que consome vem no commit seguinte do **mesmo PR**.
@@ -44,8 +44,8 @@ wedding-planner/
 ## Contrato OpenAPI para tipos TypeScript
 
 1. O backend exporta o OpenAPI (`wedding export-openapi`, CLI Typer, `stack.md` §3), com `operationId` estável por rota.
-2. `openapi-typescript` gera os tipos; `openapi-fetch` e `openapi-react-query` os consomem no web.
-3. **Checagem de drift:** o CI roda `make api-types` e falha se `git diff` não estiver vazio. Um teste de adaptador também guarda o *snapshot* do OpenAPI (`architecture.md` §9).
+2. `openapi-typescript` gera os tipos; `openapi-fetch` os consome no web (`openapi-react-query` adiado, `D-061`).
+3. **Checagem de drift:** o job `contract` do CI roda `make api-types` e falha se `git status --porcelain` não estiver vazio (o `git diff` não vê um arquivo gerado que nunca foi commitado). Um teste de adaptador também guarda o *snapshot* do OpenAPI (`architecture.md` §9).
 4. **Caminhos (`D-059`):** o artefato versionado é `apps/api/openapi.json` e os tipos gerados ficam em `apps/web/src/lib/api/schema.d.ts`.
 
 ## CI com *path filters*

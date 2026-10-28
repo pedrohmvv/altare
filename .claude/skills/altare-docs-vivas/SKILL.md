@@ -56,7 +56,7 @@ Os docs são a única memória entre sessões. Um doc atrasado é uma decisão p
 
 - **Quando:** no mesmo commit em que a pasta `apps/api/src/wedding/modules/<módulo>/` é criada.
 - **O quê:** `CLAUDE.md` curto na pasta do módulo, seguindo `references/modelo-claude-md-modulo.md` (até 40 linhas). Ele aponta para `AGENTS.md` e para os docs, e não repete regra geral.
-- **Hoje não existem módulos:** não crie arquivos antecipadamente. Só o modelo existe.
+- **O `identity` já existe** (`D-061`): o `CLAUDE.md` dele é o exemplo vivo. Não crie `CLAUDE.md` de módulo que ainda não existe.
 - **Docs que cada um deve linkar:**
 
 | Módulo | Docs de feature e referência |
