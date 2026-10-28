@@ -21,6 +21,7 @@ import { copy } from '../copy'
 import { myEvaluation, otherEvaluation, type SessionProfile } from '../lib/scope-filters'
 import { CategoryDetails, type GroupOption } from './category-details'
 import { Chip } from './chip'
+import { ReferencesSection } from './references-section'
 import { AlignmentBadge, ScopeStatusBadge } from './scope-badges'
 
 const PRIORITIES: readonly Priority[] = ['Quero muito', 'Se couber', 'Dispenso']
@@ -56,6 +57,7 @@ export function CategorySheet({
         <Summary category={category} />
         <StatusSection category={category} locked={editingDetails} />
         <EvaluationSection category={category} profile={profile} />
+        <ReferencesSection categoryId={category.id} />
         <CategoryDetails
           category={category}
           groups={groups}
