@@ -1258,7 +1258,8 @@
   - Desligar as skills `dharma-*` neste projeto com `skillOverrides`: com as descrições curtas, tudo cabe no orçamento, e isso mexeria na configuração pessoal do usuário. Fica como opção.
   - Pôr a tabela no `CLAUDE.md`: ele não recebe regras (`D-039`).
   - Um hook `UserPromptSubmit` por palavra-chave: mais frágil e mais ruído que a tabela injetada uma vez.
-- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta"); conferir em uma sessão nova, com `/context`, se as 23 skills aparecem com descrição.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário.
+- **Pendente (do usuário):** conferir em uma sessão nova, com `/context`, se as 23 skills aparecem com descrição.
 
 ---
 
@@ -1409,4 +1410,157 @@
   - Exigir cada job do CI pelo nome: o agregador já os cobre e não quebra quando um job é pulado pelo filtro.
   - Ligar o `strict` (branch atualizada com a base): com uma pessoa e PRs em sequência, só criaria *rebases* sem ganho.
   - Detalhar na decisão um resultado de acessibilidade que o usuário não relatou.
-- **Pendente (do usuário):** aprovar esta decisão; dar o merge do PR de release e autorizar a tag `v0.2.0`. A `D-062` (skills carregadas sozinhas) segue como proposta, com a conferência pelo `/context` em uma sessão nova.
+- **Concluído (2026-10-27):** o usuário integrou `develop` na `main` (PRs #23 e #25; a `main` ficou em `7d2ca08`, com a mesma árvore da `develop`) e criou e publicou a tag anotada `v0.2.0` nesse commit. A mensagem da tag ficou com um `...` literal, e o usuário decidiu mantê-la.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário.
+- **Pendente:** nada desta decisão. A conferência pelo `/context` da `D-062`, em uma sessão nova, segue com o usuário. O próximo passo é o Bloco 1.1.
+
+---
+
+## D-066 — Bloco 1.1: plano em 4 PRs, por fatias verticais
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1 (plano)
+- **Pedido do usuário:** planejar o Bloco 1.1 por blocos de execução, lendo a especificação aprovada (`D-029`) e abrindo o guia antes da UI (`D-055`); depois, "execute o plano".
+- **Escolhido pelo usuário (2026-10-28):** fatias verticais (API e web da mesma feature no mesmo PR); a semente do catálogo e das Definições Base numa **migration de dados**; no desktop o Mapa de Escopo abre na **lista por grupo**, com alternador para o **quadro por status**, e o status muda pelo painel lateral, sem arrastar.
+- **Decisão:**
+  1. **Quatro PRs para a `develop`, nesta ordem, cada um com os gates verdes (`altare-testes-qa`):**
+     - **PR 1, `feat/definicoes-base`:** Painel de Definições Base (`F-PLN-01`), com o módulo `wedding`, a migration `0004` e o `MoneyInput` (`D-067`).
+     - **PR 2, `feat/mapa-de-escopo`:** catálogo de categorias, status e motivo de descarte, prioridade individual e alinhamento, estimativa e nota, visões, filtros e progresso (`F-PLN-02` a `F-PLN-05`, `F-PLN-08`), com as abas da área, o `Sheet` e o `Progress` (`D-068`).
+     - **PR 3, `feat/referencias-de-escopo`:** referências por categoria, link e imagem (`F-PLN-06`), com uma consulta pública no módulo `files` (`D-069`).
+     - **PR 4, `test/e2e-planejamento`:** E2E do bloco, conferência visual e de acessibilidade e o fechamento do Bloco 1.1 (`D-070`); depois o PR `develop → main` e, com o merge do usuário, a tag `v0.3.0` (`D-059`: `MINOR` por bloco).
+  2. **Um módulo só, `wedding`** (`architecture.md` §4 e §13), sem `wedding_id`: há um casamento (`D-002`).
+  3. **Derivado na leitura, nunca gravado** (`architecture.md` §5): alinhamento, progresso e totais de estimativa. Os efeitos em cadeia de `F-PLN-07` só passam a valer quando o orçamento e o cronograma existirem (a regra 1 da própria feature); aqui só se registra o status.
+  4. **Primitivos que saem do adiado** (`design-system.md` §13), porque o Bloco 1.1 é a primeira tela que os usa: `MoneyInput` (PR 1), `Sheet` e `Progress` (PR 2). Sem dependência nova: o `Sheet` nasce do `Dialog` do Radix.
+  5. **Estado da tela na URL** (`design-system.md` §10): aba, vista, filtros e categoria aberta, como *search params* validados à mão, numa rota só (`/planejamento`). Rotas-filhas roubariam o foco do `h1` a cada troca de aba (o anúncio de rota, `D-051`).
+- **Razão:** cada PR entrega algo que o casal usa e testa sozinho, e a API não fica meses sem consumidor. O Bloco 1.1 é o primeiro a guardar dado do casamento, então pede a migration, o histórico com valor anterior e o tratamento de conflito de versão em produção.
+- **O que ficou rejeitado:**
+  - Fatiar por camada (toda a API, depois toda a UI): nada ficaria usável até o fim e o contrato só seria exercitado no último PR.
+  - Semear com um comando `wedding seed`: exigiria rodar o comando uma vez por banco novo, inclusive no E2E, e a semente é parte do esquema.
+  - Quadro por status como vista única: o padrão de `F-PLN-08` é por grupo, e o celular não comporta colunas.
+  - `vaul` para a folha inferior: já há o `Dialog`, que vira folha no celular.
+- **Aprovado (2026-10-28):** o plano, pelo usuário ("Execute o plano").
+- **Pendente:** as decisões de cada PR (`D-067` a `D-070`) aguardam aprovação do usuário depois do PR, como nas `D-060` a `D-064`.
+
+---
+
+## D-067 — Definições Base: módulo `wedding`, migration `0004`, rotas e painel (Bloco 1.1, PR 1 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 1 de 4 (`D-066`)
+- **Decisão:**
+  1. **Modelo.** Duas tabelas em `wedding`: `baseline_fields` (uma linha por variável: `date`, `city`, `format`, `size`, `ceiling`, `ceremony`) e `baseline_changes` (histórico). As seis linhas são **semeadas pela migration `0004`**, com ids fixos, vazias e `Em definição`; nenhum caso de uso as cria, e faltar linha é banco mal migrado. O valor mora em coluna `JSON`, sempre validado pelo objeto de valor da chave (`value_objects.py`), e o banco repete as regras que cabem em `CHECK` (`Definido` exige valor; chave e status fechados). Uma linha por variável, e não uma linha com colunas tipadas, para duas pessoas mexendo em campos diferentes não se bloquearem (cada linha tem a sua `version`).
+  2. **Limites de validação** (propostos, ajustáveis): texto curto de 1 a 80 caracteres; nota até 500; rótulo da janela até 60; detalhe da cerimônia até 200; ano de 2000 a 2100; porte de 1 a 10.000 convidados, com mínimo ≤ máximo; teto de 1 centavo a 10^12 centavos. Janela de um mês só vale; "sem data" é o campo vazio, não um valor.
+  3. **Rotas** (`/api/v1/wedding/baseline`): `GET` (o quadro inteiro, com a `version` de cada campo), seis `PUT` tipados (`/date`, `/city`, `/format`, `/size`, `/ceiling`, `/ceremony`; um caso de uso só por trás, `UpdateBaselineField`) e `GET /changes?limit=` (de 1 a 200, padrão 50). Todo `PUT` devolve o quadro inteiro. Autoria e perfil vêm da sessão; nenhum corpo os carrega.
+  4. **Bloqueio otimista explícito.** É a primeira vez que o servidor compara a `version` que a tela viu (`altare-backend-api`, princípio 7): divergir dá `409 version_conflict`, sem gravar nada; o `StaleDataError` do banco, quando duas transações passam juntas pela checagem, vira o mesmo `409`.
+  5. **Histórico com valor anterior** (`F-PLN-01`, regra 3), que o histórico básico de `architecture.md` §10 não guarda: a tabela `baseline_changes` acrescenta uma linha por mudança **real** (repetir o mesmo estado não grava nada nem sobe a versão), com o estado antes e depois (situação, valor e nota) e o **perfil** de quem mudou, gravado na linha para não ler `identity`. O instante vem do `created_at`. O evento `ScopeCategoryStatusChanged` segue adiado com o *dispatcher* (`D-060`).
+  6. **A confirmação de mudar algo já definido** (`F-PLN-01`, regra 2) **é da tela**, não do servidor: o painel mostra o antes, o depois e o impacto e só então envia. O servidor registra a mudança no histórico. O agente do Nível 5 passa pela confirmação humana da `ChangeProposal` (`D-008`).
+  7. **Painel sem página no guia** (`design-system.md` §15). Baseado no cartão "Definições base" da pág. 38 (título em serifa 20, uma linha por variável, selo `Em definição` à direita e *hairline* entre as linhas). Desvios, todos no espírito do guia: a linha mostra o valor em texto miúdo (ou "Ainda sem valor") e uma seta, porque é um botão que abre a edição; **`Definido` é o selo de consenso (sálvia) com o ícone `check`** e o texto completo, pois a pág. 34 só desenha o selo `Em definição`; a edição abre num `Dialog`, que no celular é a folha inferior (pág. 32). Sem aba nem rota nova: a aba "Mapa de Escopo" chega no PR 2.
+  8. **`MoneyInput`** sai dos adiados (`D-028`): campo com prefixo `R$`, em mono tabular (pág. 34), máscara pt-BR, que entrega **centavos inteiros** ou `null` (vazio nunca é zero). `parseMoney` recusa o que é ambíguo (`28.5`) em vez de adivinhar. Entra na vitrine.
+  9. **Conflito na tela:** 409 avisa que a definição mudou, recarrega o quadro e oferece "Ver a versão mais recente", que refaz o formulário com a versão nova; **nunca sobrescreve**. Falha de rede e erro do servidor mantêm o que foi digitado. O foco volta à linha que abriu o diálogo (o Radix só o faz com `DialogTrigger`, e aqui há um diálogo para várias linhas).
+  10. O impacto mostrado para a **data** ("A data recalcula as janelas do cronograma") antecipa o Bloco 1.3, como no exemplo da própria `F-PLN-01`; as demais definições só avisam que a mudança fica no histórico.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15, linhas do painel e do `MoneyInput`; §13, `MoneyInput` sai dos adiados); `planejamento-e-caminhos.md` (nota de implementação); `AGENTS.md` §1; `roadmap.md` (Bloco 1.1).
+- **Razão:** o casal precisa registrar o que já decidiu e o que não decidiu sem perder o histórico de quem mudou o quê, e o produto nunca pode inventar uma data, cidade ou valor.
+- **O que ficou rejeitado:**
+  - Uma linha com colunas tipadas para as seis variáveis: um só `version` faria dois editando campos diferentes se conflitarem.
+  - Exigir a confirmação no servidor (campo `confirm` no corpo): a tela já a faz, e o agente tem a sua.
+  - Atualização otimista: valor do casamento nunca é otimista (`altare-frontend`).
+  - Corpo completo, com todos os subcampos de cada valor, em todo `PUT`: o formulário manda só o que a definição usa, e os omitidos valem vazio.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Porte derivado ao lado da contagem da lista de convidados | Bloco 1.2 (`guests`) |
+| Regra "Definido recalcula o cronograma" valendo de fato | Bloco 1.3 |
+| `public.py` do módulo `wedding` | Outro módulo precisar ler uma definição |
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário, com os limites de validação propostos e os textos novos de `messages.py` (`baseline_value_required`, `invalid_baseline_value`) e do `copy.ts`.
+- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o painel, com o usuário.
+
+---
+
+## D-068 — Mapa de Escopo: categorias, status, avaliações e o painel lateral (Bloco 1.1, PR 2 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 2 de 4 (`D-066`)
+- **Pedido do usuário:** planejar o PR 2, o maior do bloco, "para garantir consistência e integridade durante o desenvolvimento".
+- **Escolhido pelo usuário (2026-10-28):** um PR só, em três etapas verificadas (API, primitivos, tela), com cada commit verificado isolado; gestão completa de grupos e categorias na tela.
+- **Decisão:**
+  1. **Modelo.** Quatro tabelas em `wedding`: `scope_groups`, `scope_categories` (status, estimativa em centavos, `hidden_at`), `scope_evaluations` (uma por perfil) e `scope_status_changes` (histórico com status anterior, motivo e perfil). A migration `0005` semeia o catálogo de `F-PLN-02` (8 grupos, 18 categorias, todas `Em discussão` e sem estimativa) e as 36 avaliações vazias, com ids fixos.
+  2. **Invariantes em três camadas** (domínio, banco e teste): nome único entre os vivos sem diferenciar caixa nem espaços (coluna `name_key` com índice único parcial; as ocultas contam); `Fica de fora` exige motivo (domínio e `CHECK`); status só muda para outro status; o catálogo nunca é excluído, só oculto (`CHECK`); grupo só é excluído se do casal e vazio (`FK RESTRICT`); estimativa vazia é nula, nunca zero (`CHECK > 0`); **toda categoria tem exatamente duas avaliações, criadas junto com ela**, então avaliar sempre atualiza e não há corrida de criar ou atualizar.
+  3. **Limites de validação** (propostos, ajustáveis): nome de 1 a 60 caracteres, estimativa de 1 centavo a 10^12, motivo do descarte até 300, nota até 500.
+  4. **Derivado na leitura, nunca gravado:** alinhamento (`Alinhados`, `Divergem`, `Falta avaliar` com quem falta), visibilidade (categoria e grupo não ocultos), progresso ("N de M", M exclui as ocultas), totais de `Entra` e `Talvez` com a contagem "sem estimativa", e o motivo do descarte anterior de uma categoria reaberta. São funções puras cobertas por propriedades (Hypothesis) e por um teste de máquina de estados que confere as invariantes depois de sequências aleatórias de operações.
+  5. **Contrato** (`/api/v1/wedding/scope`): `GET` do mapa inteiro e uma rota por operação; **toda escrita devolve o mapa atualizado**, e as saídas não têm valores padrão, então o TypeScript gerado vem com campos obrigatórios. `DELETE` leva a `version` na query. Autoria e perfil vêm da sessão (`/my-evaluation`), nunca do corpo.
+  6. **Concorrência.** `version` por agregado (grupo, categoria e avaliação), comparada pelo caso de uso (`409 version_conflict`). Dois pedidos que passam juntos pela checagem de nome são pegos pelo índice único, e o `IntegrityError` vira `409 duplicate_scope_name`; as checagens de nome rodam sem *autoflush*, para o erro de banco não vir antes da mensagem.
+  7. **Estrutura.** O escopo tem pacote próprio de casos de uso (`ScopeUseCases`) e protocolo de UoW próprio (`ScopeUnitOfWork`), separados das Definições Base: cada commit deixa a UoW SQL e o contêiner satisfazendo o que o código exige.
+  8. **Web.** Aba, vista, filtros (`status`, `alinhamento`, `pendente`, `ocultas`) e a categoria aberta moram na URL de `/planejamento`, validados à mão (valor desconhecido é descartado); a lente (`lente`) só destaca, em texto, e nunca esconde. A feature segue carregada sob demanda. Mudar só o *search* não dispara o anúncio de rota.
+  9. **Primitivos novos:** `Sheet` (gaveta à direita a partir de `md`, folha inferior abaixo, `z-30`, modal, com `keyframes` laterais novos) e `Progress` (o número por escrito dá o nome à barra). Saem dos adiados (`D-028`).
+  10. **Desvios do guia** (não há página do Mapa; bases: págs. 32, 34, 35, 38, 39 e 40): selos de alinhamento `Alinhados` em consenso com `circle-check`, `Divergem` em argila com `messages-square` (a frase da pág. 35, adaptada a "frente") e `Falta avaliar` neutro, com "Aguardando avaliação da Noiva" por extenso (o `heart-handshake` fica restrito ao consenso de propostas); filtros em *chips* com `aria-pressed`; o nome da frente é o botão que cobre o cartão; quadro de 4 colunas só a partir de 1024 px, sem repetir o status no cartão; o status muda **só pelo painel**, sem arrastar, para o teclado e o leitor de tela terem o mesmo caminho.
+  11. **Consistência da tela.** Mudar o status é imediato e a única ação com atualização otimista (volta se a API recusar); as demais esperam a API. Cada ação usa a `version` que a tela mostra; os formulários com texto (avaliação, detalhes) guardam a versão de quando abriram, e um conflito oferece "Ver a versão mais recente" em vez de sobrescrever. Enquanto os detalhes estão abertos, o status não muda (uma seção por vez). O outro vê a mudança na próxima leitura (a consulta relê ao voltar o foco à janela), sem prometer tempo real (`D-021`).
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15, linhas novas; §13, `Sheet` e `Progress` saem dos adiados); `planejamento-e-caminhos.md` (nota de implementação); `AGENTS.md` §1; `roadmap.md` (Bloco 1.1); `CLAUDE.md` do módulo `wedding`.
+- **Razão:** o Mapa de Escopo é o primeiro lugar em que duas pessoas editam o mesmo dado ao mesmo tempo e discordam; as regras que sustentam a conversa (motivo do descarte, alinhamento, nome único) não podem depender da tela estar certa.
+- **O que ficou rejeitado:**
+  - Criar a avaliação sob demanda (*upsert*): abre corrida entre os dois perfis e exige tratar a ausência em toda leitura.
+  - Índice único sobre `lower(name)`: índice funcional atrapalha o `compare_metadata` do Alembic e a troca para PostgreSQL; a coluna `name_key` é portátil.
+  - Gravar progresso, totais ou alinhamento: seria uma segunda verdade para sincronizar (`architecture.md` §5).
+  - Arrastar para mudar o status: inacessível por teclado e por leitor de tela.
+  - Um só pacote de casos de uso e de UoW para tudo: um commit intermediário deixaria o contêiner ou a UoW SQL sem satisfazer o protocolo.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Restaurar, pela tela, uma categoria excluída (os dados ficam guardados) | O primeiro pedido de recuperar uma categoria |
+| Travas de `F-PLN-03` (regra 4) e `F-PLN-07` (regra 3): contrato ou proposta `Escolhida` impedem `Fica de fora` | Blocos 3.2 e 3.3 |
+| Efeitos em cadeia no orçamento e no cronograma | Blocos 2.1 e 1.3 |
+| Reordenar categorias e grupos | O casal sentir falta em uso real |
+| Validar o índice parcial de nome no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
+- **Verificação:** API com 613 testes e web com 588, `make e2e` com 32, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; capturas da lista, do painel, do quadro e de 320 px, sem rolagem horizontal.
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário, com os limites de validação propostos, os 5 textos novos de `messages.py` e o `copy.ts`.
+- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o Mapa, inclusive o `Sheet` e o quadro, com o usuário.
+
+---
+
+## D-069 — Referências por categoria: link e imagem, e a consulta pública do módulo de arquivos (Bloco 1.1, PR 3 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 3 de 4 (`D-066`)
+- **Decisão:**
+  1. **Modelo.** Tabela `scope_references` (migration `0006`): tipo `link` ou `imagem`, perfil de quem adicionou, título e comentário opcionais, exclusão lógica. O `CHECK` garante a forma (link tem endereço e não tem arquivo; imagem tem arquivo e não tem endereço), e a FK `RESTRICT` para `file_assets` impede apagar um arquivo que é referência. Sem limite fixo de referências por frente (`F-PLN-06`, regra 1).
+  2. **Link seguro.** Só `http` e `https` valem (nada de `javascript:` nem `data:`), sem espaços, sem usuário e senha no endereço, com domínio de verdade e até 2000 caracteres; o domínio mostrado é derivado do endereço. **Nada é lido da página** (sem *scraping*). No web o endereço só vira `<a>` se for `http(s)`, com `target="_blank"` e `rel="noopener noreferrer"`, mesmo vindo do banco.
+  3. **Imagem é um arquivo já enviado.** A tela envia por `POST /files` (o módulo de arquivos confere a assinatura real e o tamanho) e só então guarda `file_id` como referência. O caso de uso confere que o arquivo existe e **é imagem**: PDF é recusado (`reference_file_not_image`), arquivo inexistente é `404`. Se a segunda etapa falhar, sobra um arquivo sem referência, inofensivo e reaproveitado num novo envio (o conteúdo é endereçado pelo hash).
+  4. **Dois módulos sem se importar.** O `files` ganha a consulta `GetFileInfo` (dados do arquivo, sem o conteúdo). O `wedding` declara a porta `FileCatalog`, e só o `bootstrap`, que conhece os dois módulos, a liga (`FilesImageCatalog`). O contrato do `import-linter` segue valendo sem exceção nova.
+  5. **Só o autor remove a sua** (`Forbidden`, `403`); a remoção é lógica e a linha fica guardada. Autor e perfil vêm da sessão. O outro vê a referência e o seu rótulo de perfil, sem botão de remover (`can_remove` vem da API).
+  6. **Rotas** (`/api/v1/wedding/scope/categories/{id}/references`): `GET`, `POST /links`, `POST /images` e `DELETE /{reference_id}`; toda escrita devolve a lista atualizada da frente (mais nova primeiro). Saídas sem valores padrão.
+  7. **Web.** Seção "Referências" no painel lateral: miniaturas que abrem o arquivo inteiro, links com domínio, autor e hora, "Adicionar link" e "Adicionar imagem" (o `input` aceita JPG, PNG e WebP e não força `capture`, então no celular abre a câmera ou a galeria) e remover com confirmação. Endereço sem `http` e arquivo que não é imagem são barrados na tela com a orientação; o resto vem da API.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1; `roadmap.md`; `planejamento-e-caminhos.md` (nota); `CLAUDE.md` dos módulos `wedding` e `files`.
+- **Razão:** o casal junta inspirações em vários lugares (Pinterest, Instagram, WhatsApp); aqui elas ficam na frente a que pertencem, sem depender de um site de fora nem de ler o conteúdo dele.
+- **O que ficou rejeitado:**
+  - Ler título e miniatura da página do link: viraria uma requisição a terceiros e um risco (`altare-seguranca-privacidade`).
+  - Importar o módulo de arquivos dentro do `wedding`: quebraria a independência dos módulos; a porta resolve.
+  - Aceitar PDF como referência: o PDF tem o seu lugar nos anexos de contatos, propostas e contratos.
+  - Editar uma referência depois de criada: não há na spec; remove-se e adiciona-se outra.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Restaurar, pela tela, uma referência removida (a linha fica guardada) | O primeiro pedido de recuperar |
+| Purga dos arquivos órfãos (enviados sem virar referência) | Quando o armazenamento incomodar (`architecture.md` §10) |
+| Contar referências no cartão da frente | Quando o casal pedir |
+- **Verificação:** API com 677 testes e web com 601, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; fluxo real no navegador (desktop e celular): link guardado, imagem enviada e carregada, remoção.
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário, com os 2 textos novos de `messages.py` e o `copy.ts`.
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre a seção de referências, inclusive o envio de foto num celular real, com o usuário.
+
+---
+
+## D-070 — Bloco 1.1 concluído: E2E do Planejamento e fechamento (Bloco 1.1, PR 4 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 4 de 4 (`D-066`)
+- **Decisão:**
+  1. **O Bloco 1.1 está concluído** (`D-067`, `D-068`, `D-069`). O critério do bloco, "definir as variáveis-base e classificar o que entra e o que fica de fora, cada um com a sua prioridade, com a divergência visível", está cumprido e provado ponta a ponta. O critério do **Nível 1** ainda não: faltam os Blocos 1.2 (convidados) e 1.3 (cronograma).
+  2. **E2E do Planejamento** (`apps/web/e2e/planejamento.e2e.ts`, Playwright, desktop e celular, build de produção e API de verdade): define e redefine uma Definição Base com confirmação e histórico; teto `R$ 28.000,00`; bloqueio de `Definido` sem valor; o catálogo de 8 grupos e 18 frentes; classificar com motivo, reabrir e ver o motivo anterior com o progresso acompanhando; filtro na URL e o botão voltar; **dois perfis em sessões separadas** (um avalia, o outro vê a divergência e não edita a do primeiro); nome repetido recusado, criar, ocultar e excluir; referência por link e por imagem de verdade, arquivo com extensão trocada recusado e remoção; teclado (Enter abre, Esc fecha e o foco volta ao cartão); lente; quadro e lista; 320 px com o painel aberto. Os dois projetos dividem o banco temporário e por isso usam campos e frentes diferentes.
+  3. **O E2E achou um defeito real, corrigido neste PR:** ao fechar o painel lateral da frente, o foco não voltava ao cartão que o abriu (o painel abre pela URL, sem gatilho, e o Radix só devolve o foco a um gatilho). O `ScopeMap` passa a guardar quem abriu e a devolver o foco, com teste de unidade (Esc e botão Fechar). Era a passada de teclado do plano fazendo o seu trabalho.
+  4. **Conferência visual** com capturas em 1440, 768, 390 e 320 px contra as págs. 32, 34, 35, 38, 39 e 40: cartões planos com *hairline*, nomes em serifa, selos em texto completo, gaveta à direita no desktop e folha inferior no celular, sem rolagem horizontal. Os desvios estão nas `D-067` a `D-069` e no §15.
+  5. **Versão.** Pelo esquema da `D-059` (`MINOR` por bloco concluído), o fechamento pede o PR `develop → main` (`chore(release): conclui o Bloco 1.1`) e, depois do merge do usuário, a tag anotada **`v0.3.0`** (`D-041`, item 5). Os dois ficam com o usuário.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e "Como Retomar"; `roadmap.md` (Bloco 1.1).
+- **Razão:** um bloco só está concluído quando o casal consegue fazer o que ele promete, e a única prova disso é o fluxo inteiro rodando num navegador, nos dois perfis.
+- **O que ficou rejeitado:**
+  - Dar o bloco por concluído só com testes de unidade e de API: foi o E2E que achou o foco perdido.
+  - Um banco por projeto no E2E: o ganho é pequeno, e dividir o banco prova melhor que dois perfis convivem.
+- **Verificação:** API com 677 testes e web com 603, E2E com 59 passando (1 pulado de propósito: o teto só roda no desktop), Ruff, Biome, Pyright, `tsc`, 7 contratos, `make api-types` sem diferença.
+- **Aprovado (2026-10-28):** esta decisão, pelo usuário. Com ela, as `D-068` e `D-069` também estão aprovadas.
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas do bloco (teclado, VoiceOver, zoom de 200%, foto no celular real), que o usuário não confirmou como feita; o PR de release e a tag `v0.3.0`; a conferência de `/context` (`D-062`).
+

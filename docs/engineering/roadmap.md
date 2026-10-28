@@ -36,7 +36,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
   - Setup do monorepo (`apps/api` em Python/FastAPI + `apps/web` em React/Vite) com SPA responsiva (PWA instalável no celular e ampla no desktop) — *revisado em `D-020`*.
   - Banco SQLite com migrações (Alembic) e `FileStorage` local para anexos (PDFs). No Nível 0, modelam-se apenas `User`, `Session` e `FileAsset` (`Profile` é enum); as demais entidades entram junto do bloco que as usa.
   - **Login individual** do `Noivo` e da `Noiva` (sem cadastro público) e **Seletor de lente (`Visão do Casal` / `Minha visão`)** persistente no topo da aplicação. Arquitetura Clean pragmática com `import-linter` (`docs/engineering/architecture.md`) e detalhes em `docs/engineering/stack.md` §11.
-- **Execução em duas partes (`D-028`):** primeiro, só o necessário para o `apps/web` existir (monorepo pnpm, Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`), junto com o Bloco 0.2. Depois, em outra sessão, API, banco, login, PWA e o E2E com Playwright. O plano dessa segunda parte, em 4 PRs (esqueleto da API e CI; login; `files`; PWA e E2E), está em `D-059`; os quatro estão feitos (`D-060`, `D-061`, `D-063`, `D-064`), e o Bloco 0.1 está completo. O Nível 0 está concluído (`D-065`); falta o release `v0.2.0`.
+- **Execução em duas partes (`D-028`):** primeiro, só o necessário para o `apps/web` existir (monorepo pnpm, Vite + React + TypeScript, Tailwind v4, Vitest, Biome e `tsc`), junto com o Bloco 0.2. Depois, em outra sessão, API, banco, login, PWA e o E2E com Playwright. O plano dessa segunda parte, em 4 PRs (esqueleto da API e CI; login; `files`; PWA e E2E), está em `D-059`; os quatro estão feitos (`D-060`, `D-061`, `D-063`, `D-064`), e o Bloco 0.1 está completo. O Nível 0 está concluído (`D-065`) e marcado pela tag `v0.2.0`.
 
 ### Bloco 0.2 — Design System "Editorial Acolhedor & Estruturado", versão enxuta (`D-015` + `D-016` + `D-028`)
 - **O que é construído** (ordem e detalhes em `docs/design/design-system.md` §13):
@@ -56,6 +56,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
 *Os blocos fundamentais que não dependem de ter fornecedores nem orçamentos fechados e permitem sair imediatamente do marco zero.*
 
 ### Bloco 1.1 — Definições Base & Mapa de Escopo do Casamento
+- **Andamento (`D-066`):** 4 PRs. **PR 1, Definições Base (`F-PLN-01`): feito** (`D-067`). **PR 2, Mapa de Escopo (`F-PLN-02` a `F-PLN-05` e `F-PLN-08`): feito** (`D-068`). **PR 3, referências (`F-PLN-06`): feito** (`D-069`). **PR 4, E2E e fechamento: feito** (`D-070`). **O Bloco 1.1 está concluído**; o release `v0.3.0` aguarda o usuário.
 - **O que é construído:**
   - Painel de **Definições Base** (data/época, cidade/região, formato, porte e teto macro) com suporte ao estado `Em definição` ou `Definido`.
   - **Mapa de Escopo do Casamento:** catálogo de frentes de um casamento brasileiro onde o Noivo e a Noiva avaliam prioridades e classificam cada categoria como `Entra (Essencial)`, `Talvez (Se couber)`, `Em discussão` ou `Fica de fora` (com registro do motivo do descarte).

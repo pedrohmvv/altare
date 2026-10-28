@@ -96,6 +96,24 @@
   }
 }
 
+@keyframes altare-sheet-side-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes altare-sheet-side-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes altare-dialog-in {
   from {
     opacity: 0;
@@ -132,6 +150,14 @@
 
 @utility animate-sheet-out {
   animation: altare-sheet-out var(--duration-base) var(--ease-exit) both;
+}
+
+@utility animate-sheet-side-in {
+  animation: altare-sheet-side-in var(--duration-base) var(--ease-standard) both;
+}
+
+@utility animate-sheet-side-out {
+  animation: altare-sheet-side-out var(--duration-base) var(--ease-exit) both;
 }
 
 @utility animate-dialog-in {

@@ -30,6 +30,16 @@ export function problemResponse(
   })
 }
 
+/** JSON quando é JSON; o texto cru quando não é (um envio de arquivo, por exemplo). */
+function parseBody(text: string): unknown {
+  if (!text) return undefined
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
 export function mockApi(handlers: FakeApiHandlers = {}) {
   const calls: { method: string; path: string; body: unknown; request: Request }[] = []
 
@@ -39,7 +49,7 @@ export function mockApi(handlers: FakeApiHandlers = {}) {
     calls.push({
       method: request.method,
       path,
-      body: text ? JSON.parse(text) : undefined,
+      body: parseBody(text),
       request,
     })
     const handler = handlers[`${request.method} ${path}`]

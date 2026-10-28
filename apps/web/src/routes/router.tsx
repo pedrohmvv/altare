@@ -14,6 +14,7 @@ import { AppShell } from '@/app/shell/app-shell'
 import { RouteAnnouncer } from '@/app/shell/route-announcer'
 import { AssistantPage } from '@/features/assistant'
 import { LOGIN_PATH, LoginPage, meQueryOptions, safeDestination } from '@/features/identity'
+import { validatePlanningSearch } from '@/features/wedding/search'
 import { queryClient } from '@/lib/query-client'
 import { NotFoundPage } from './not-found'
 import { redirectToLoginOnUnauthenticated } from './session-watch'
@@ -109,7 +110,10 @@ const routeTree = rootRoute.addChildren([
     }),
     createRoute({
       ...area('/planejamento', 'Planejamento & Caminhos'),
-      component: lazyRouteComponent(() => import('@/features/wedding'), 'WeddingPage'),
+      // Aba, vista, filtros e categoria aberta moram na URL (design-system.md §10). O validador é
+      // um módulo puro e pequeno; a feature em si continua carregada só quando a rota abre.
+      validateSearch: validatePlanningSearch,
+      component: lazyRouteComponent(() => import('@/features/wedding'), 'WeddingRoute'),
     }),
     createRoute({
       ...area('/cronograma', 'Cronograma & Dependências'),

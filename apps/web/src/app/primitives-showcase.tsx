@@ -1,4 +1,5 @@
 import { BadgeCheck, CircleAlert, HeartHandshake, Plus, Save, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -13,9 +14,12 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Money } from '@/components/ui/money'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Progress } from '@/components/ui/progress'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Select } from '@/components/ui/select'
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import {
   Table,
   TableBody,
@@ -57,6 +61,7 @@ const ETAPAS = [
 // passe o mouse, clique e use Tab. Os exemplos são fictícios (AGENTS.md §2).
 export function PrimitivesShowcase() {
   const { toast } = useToast()
+  const [teto, setTeto] = useState<number | null>(2_800_000)
 
   return (
     <div className="mt-12 flex flex-col gap-12">
@@ -120,6 +125,18 @@ export function PrimitivesShowcase() {
           defaultValue="abc"
           error="Informe um número de convidados."
           required
+        />
+        <MoneyInput
+          label="Teto macro"
+          hint="Digite em reais; o app guarda em centavos"
+          value={teto}
+          onValueChange={setTeto}
+        />
+        <MoneyInput
+          label="Teto macro com erro"
+          value={null}
+          onValueChange={() => {}}
+          error="Informe o teto."
         />
         <Input label="Campo desabilitado" disabled defaultValue="Espaço Exemplo B" />
         <Textarea label="Observações" hint="Só vocês dois veem isto" />
@@ -200,6 +217,11 @@ export function PrimitivesShowcase() {
         <h2 id="conf-selos" className="text-heading">
           Selos e cartões
         </h2>
+        <div className="flex max-w-md flex-col gap-4">
+          <Progress value={0} max={18} label="0 de 18 categorias classificadas" />
+          <Progress value={7} max={18} label="7 de 18 categorias classificadas" />
+          <Progress value={18} max={18} label="18 de 18 categorias classificadas" />
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <Badge>Neutro</Badge>
           <Badge variant="primary">Primário</Badge>
@@ -314,6 +336,20 @@ export function PrimitivesShowcase() {
         </h2>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="secondary">Abrir painel lateral</Button>
+            </SheetTrigger>
+            <SheetContent
+              title="Fotografia Exemplo"
+              description="Gaveta à direita no desktop e folha inferior no celular."
+            >
+              <p className="text-body">Detalhes da frente, sem sair da lista.</p>
+              <SheetClose asChild>
+                <Button variant="secondary">Voltar à lista</Button>
+              </SheetClose>
+            </SheetContent>
+          </Sheet>
           <Dialog>
             <DialogTrigger asChild>
               <Button>Registrar decisão</Button>
