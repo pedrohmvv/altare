@@ -6,11 +6,14 @@ from uuid import UUID
 
 import pytest
 
+from wedding.modules.wedding.application.commands.add_image_reference import AddImageReference
+from wedding.modules.wedding.application.commands.add_link_reference import AddLinkReference
 from wedding.modules.wedding.application.commands.change_scope_status import ChangeScopeStatus
 from wedding.modules.wedding.application.commands.create_scope_category import CreateScopeCategory
 from wedding.modules.wedding.application.commands.create_scope_group import CreateScopeGroup
 from wedding.modules.wedding.application.commands.delete_scope_category import DeleteScopeCategory
 from wedding.modules.wedding.application.commands.delete_scope_group import DeleteScopeGroup
+from wedding.modules.wedding.application.commands.remove_reference import RemoveReference
 from wedding.modules.wedding.application.commands.rename_scope_group import RenameScopeGroup
 from wedding.modules.wedding.application.commands.set_my_evaluation import SetMyEvaluation
 from wedding.modules.wedding.application.commands.set_scope_category_visibility import (
@@ -22,16 +25,20 @@ from wedding.modules.wedding.application.commands.set_scope_group_visibility imp
 from wedding.modules.wedding.application.commands.update_baseline_field import UpdateBaselineField
 from wedding.modules.wedding.application.commands.update_scope_category import UpdateScopeCategory
 from wedding.modules.wedding.application.dto import BaselineChangeDto, to_snapshot_dto
+from wedding.modules.wedding.application.ports import StoredFile
 from wedding.modules.wedding.application.queries.get_baseline import GetBaseline
 from wedding.modules.wedding.application.queries.get_scope_map import GetScopeMap
 from wedding.modules.wedding.application.queries.list_baseline_changes import ListBaselineChanges
+from wedding.modules.wedding.application.queries.list_references import ListReferences
 from wedding.modules.wedding.application.queries.list_scope_category_history import (
     ListScopeCategoryHistory,
 )
+from wedding.modules.wedding.application.reference_use_cases import ReferenceUseCases
 from wedding.modules.wedding.application.scope_dto import StatusChangeDto
 from wedding.modules.wedding.application.scope_use_cases import ScopeUseCases
 from wedding.modules.wedding.application.use_cases import WeddingUseCases
 from wedding.modules.wedding.domain.entities import BaselineChange, BaselineField
+from wedding.modules.wedding.domain.reference import ScopeReference
 from wedding.modules.wedding.domain.scope_entities import (
     ScopeCategory,
     ScopeEvaluation,
@@ -186,6 +193,35 @@ class ScopeStore:
                     item.version = original.version + 1  # type: ignore[attr-defined]
 
 
+class _References:
+    def __init__(self, world: "World", store: dict[UUID, ScopeReference]) -> None:
+        self._world = world
+        self.store = store
+
+    def add(self, reference: ScopeReference) -> None:
+        self.store[reference.id] = reference
+
+    def get(self, reference_id: UUID) -> ScopeReference | None:
+        found = self.store.get(reference_id)
+        return found if found and found.deleted_at is None else None
+
+    def list_for(self, category_id: UUID) -> list[ScopeReference]:
+        live = [
+            r for r in self.store.values() if r.category_id == category_id and r.deleted_at is None
+        ]
+        return sorted(live, key=lambda r: r.created_at or self._world.clock.now(), reverse=True)
+
+
+class _Files:
+    def __init__(self, world: "World") -> None:
+        self._world = world
+
+    def find(self, file_id: UUID, actor: Actor) -> StoredFile | None:
+        if file_id not in self._world.files:
+            return None
+        return StoredFile(file_id, self._world.files[file_id])
+
+
 class _UnitOfWork:
     """Transação de mentira: trabalha numa cópia e só a publica no commit, subindo a `version`
     dos campos que mudaram, como o mapeamento faz."""
@@ -198,6 +234,8 @@ class _UnitOfWork:
         self._scope_before = world.scope_store.snapshot()
         self._scope_store = copy.deepcopy(world.scope_store)
         self.scope = _Scope(world, self._scope_store)
+        self._reference_store = copy.deepcopy(world.reference_store)
+        self.references = _References(world, self._reference_store)
 
     def __enter__(self) -> "_UnitOfWork":
         return self
@@ -223,6 +261,13 @@ class _UnitOfWork:
         self._world.scope_store = self._scope_store
         for change in self.scope.new_changes:
             self._world.stamps[change.id] = self._world.clock.now()
+        for ref in self._reference_store.values():
+            if ref.created_at is None:
+                ref.created_at = self._world.clock.now()
+            ref.version = ref.version or 1
+        self._world.reference_store = self._reference_store
+        self._reference_store = copy.deepcopy(self._reference_store)
+        self.references = _References(self._world, self._reference_store)
         self._world.status_changes.extend(self.scope.new_changes)
         self.scope.new_changes = []
         self._scope_before = self._scope_store.snapshot()
@@ -249,6 +294,9 @@ class World:
         self.stamps: dict[UUID, datetime] = {}
         self.scope_store = ScopeStore()
         self.status_changes: list[ScopeStatusChange] = []
+        self.reference_store: dict[UUID, ScopeReference] = {}
+        # id do arquivo enviado -> é imagem?
+        self.files: dict[UUID, bool] = {}
         # A semente da migration: seis campos vazios e `Em definição`.
         self.fields = {
             key: BaselineField(
@@ -284,6 +332,16 @@ class World:
             delete_scope_category=DeleteScopeCategory(self.uow_factory, self.clock),
             change_scope_status=ChangeScopeStatus(self.uow_factory, self.ids),
             set_my_evaluation=SetMyEvaluation(self.uow_factory),
+        )
+
+    def reference_use_cases(self) -> ReferenceUseCases:
+        return ReferenceUseCases(
+            list_references=ListReferences(self.uow_factory, self.clock),
+            add_link_reference=AddLinkReference(self.uow_factory, self.ids, self.clock),
+            add_image_reference=AddImageReference(
+                self.uow_factory, self.ids, self.clock, _Files(self)
+            ),
+            remove_reference=RemoveReference(self.uow_factory, self.clock),
         )
 
     def seed_catalog(self) -> tuple[UUID, UUID]:

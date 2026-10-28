@@ -5,7 +5,7 @@
 **Propósito:** é dono do arquivo enviado (`FileAsset`) e das regras de upload e download. Não é dono do vínculo do arquivo a contatos, propostas, contratos e parcelas (`ATTACHMENT`): ele nasce no bloco que anexa.
 
 ## Superfície pública
-- `application/public.py`: `FileAssetDto`, o que outro módulo guarda para apontar para um arquivo.
+- `application/public.py`: `FileAssetDto`, o que outro módulo guarda para apontar para um arquivo. O `GetFileInfo` (dados sem o conteúdo) é ligado a quem precisa pelo `bootstrap`, que é o único que conhece os dois módulos; o `wedding` o usa para conferir que uma referência é imagem (`D-069`).
 - `domain/events.py`: nenhum evento.
 
 Nada além disso pode ser importado por outro módulo (`architecture.md` §4; contrato 5 de §9).

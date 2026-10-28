@@ -94,10 +94,12 @@ class World:
     def use_cases(self) -> FilesUseCases:
         from wedding.modules.files.application.commands.upload_file import UploadFile
         from wedding.modules.files.application.queries.get_file import GetFile
+        from wedding.modules.files.application.queries.get_file_info import GetFileInfo
 
         return FilesUseCases(
             upload_file=UploadFile(self.uow_factory, self.storage, self.ids),
             get_file=GetFile(self.uow_factory, self.storage),
+            get_file_info=GetFileInfo(self.uow_factory),
         )
 
 

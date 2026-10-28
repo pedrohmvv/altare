@@ -145,3 +145,13 @@ def test_nao_ha_migracao_que_pule_o_downgrade():
 @pytest.mark.parametrize("nome", ["alembic.ini", "migrations/env.py"])
 def test_arquivos_de_configuracao_existem(nome):
     assert (API_DIR / nome).exists()
+
+
+def test_a_migracao_das_referencias_cria_e_remove_a_tabela(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    assert "scope_references" in _estado(url)[0]
+    command.downgrade(config, "0005")
+    assert "scope_references" not in _estado(url)[0]
+    assert {"scope_categories", "file_assets"} <= _estado(url)[0]

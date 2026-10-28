@@ -1512,3 +1512,33 @@
 - **Verificação:** API com 613 testes e web com 588, `make e2e` com 32, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; capturas da lista, do painel, do quadro e de 320 px, sem rolagem horizontal.
 - **Pendente:** aprovação do usuário; revisar os 5 textos novos de `messages.py` e o `copy.ts`; a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o Mapa, inclusive o `Sheet` e o quadro.
 
+---
+
+## D-069 — Referências por categoria: link e imagem, e a consulta pública do módulo de arquivos (Bloco 1.1, PR 3 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 3 de 4 (`D-066`)
+- **Decisão:**
+  1. **Modelo.** Tabela `scope_references` (migration `0006`): tipo `link` ou `imagem`, perfil de quem adicionou, título e comentário opcionais, exclusão lógica. O `CHECK` garante a forma (link tem endereço e não tem arquivo; imagem tem arquivo e não tem endereço), e a FK `RESTRICT` para `file_assets` impede apagar um arquivo que é referência. Sem limite fixo de referências por frente (`F-PLN-06`, regra 1).
+  2. **Link seguro.** Só `http` e `https` valem (nada de `javascript:` nem `data:`), sem espaços, sem usuário e senha no endereço, com domínio de verdade e até 2000 caracteres; o domínio mostrado é derivado do endereço. **Nada é lido da página** (sem *scraping*). No web o endereço só vira `<a>` se for `http(s)`, com `target="_blank"` e `rel="noopener noreferrer"`, mesmo vindo do banco.
+  3. **Imagem é um arquivo já enviado.** A tela envia por `POST /files` (o módulo de arquivos confere a assinatura real e o tamanho) e só então guarda `file_id` como referência. O caso de uso confere que o arquivo existe e **é imagem**: PDF é recusado (`reference_file_not_image`), arquivo inexistente é `404`. Se a segunda etapa falhar, sobra um arquivo sem referência, inofensivo e reaproveitado num novo envio (o conteúdo é endereçado pelo hash).
+  4. **Dois módulos sem se importar.** O `files` ganha a consulta `GetFileInfo` (dados do arquivo, sem o conteúdo). O `wedding` declara a porta `FileCatalog`, e só o `bootstrap`, que conhece os dois módulos, a liga (`FilesImageCatalog`). O contrato do `import-linter` segue valendo sem exceção nova.
+  5. **Só o autor remove a sua** (`Forbidden`, `403`); a remoção é lógica e a linha fica guardada. Autor e perfil vêm da sessão. O outro vê a referência e o seu rótulo de perfil, sem botão de remover (`can_remove` vem da API).
+  6. **Rotas** (`/api/v1/wedding/scope/categories/{id}/references`): `GET`, `POST /links`, `POST /images` e `DELETE /{reference_id}`; toda escrita devolve a lista atualizada da frente (mais nova primeiro). Saídas sem valores padrão.
+  7. **Web.** Seção "Referências" no painel lateral: miniaturas que abrem o arquivo inteiro, links com domínio, autor e hora, "Adicionar link" e "Adicionar imagem" (o `input` aceita JPG, PNG e WebP e não força `capture`, então no celular abre a câmera ou a galeria) e remover com confirmação. Endereço sem `http` e arquivo que não é imagem são barrados na tela com a orientação; o resto vem da API.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1; `roadmap.md`; `planejamento-e-caminhos.md` (nota); `CLAUDE.md` dos módulos `wedding` e `files`.
+- **Razão:** o casal junta inspirações em vários lugares (Pinterest, Instagram, WhatsApp); aqui elas ficam na frente a que pertencem, sem depender de um site de fora nem de ler o conteúdo dele.
+- **O que ficou rejeitado:**
+  - Ler título e miniatura da página do link: viraria uma requisição a terceiros e um risco (`altare-seguranca-privacidade`).
+  - Importar o módulo de arquivos dentro do `wedding`: quebraria a independência dos módulos; a porta resolve.
+  - Aceitar PDF como referência: o PDF tem o seu lugar nos anexos de contatos, propostas e contratos.
+  - Editar uma referência depois de criada: não há na spec; remove-se e adiciona-se outra.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Restaurar, pela tela, uma referência removida (a linha fica guardada) | O primeiro pedido de recuperar |
+| Purga dos arquivos órfãos (enviados sem virar referência) | Quando o armazenamento incomodar (`architecture.md` §10) |
+| Contar referências no cartão da frente | Quando o casal pedir |
+- **Verificação:** API com 677 testes e web com 601, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; fluxo real no navegador (desktop e celular): link guardado, imagem enviada e carregada, remoção.
+- **Pendente:** aprovação do usuário; revisar os 2 textos novos de `messages.py` e o `copy.ts`; a passada manual de `altare-acessibilidade` sobre a seção de referências, inclusive o envio de foto no celular real.
+

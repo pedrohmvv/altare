@@ -98,6 +98,38 @@ export const copy = {
         reload: 'Ver a versão mais recente',
         network: 'Não conseguimos salvar agora. O que vocês escreveram continua aqui.',
       },
+      references: {
+        title: 'Referências',
+        loading: 'Carregando as referências',
+        loadError: 'Não conseguimos carregar as referências.',
+        empty: 'Nenhuma referência ainda.',
+        addLink: 'Adicionar link',
+        addImage: 'Adicionar imagem',
+        titleLabel: 'Título',
+        commentLabel: 'Comentário',
+        optional: 'Opcional.',
+        cancel: 'Cancelar',
+        link: {
+          url: 'Endereço do link',
+          save: 'Guardar link',
+          invalid: 'Cole um endereço completo, começando com http:// ou https://.',
+        },
+        image: {
+          file: 'Imagem',
+          hint: 'JPG, PNG ou WebP. No celular, abre a câmera ou a galeria.',
+          save: 'Guardar imagem',
+          invalid: 'Escolha uma imagem JPG, PNG ou WebP.',
+          alt: 'Imagem de referência',
+          label: 'imagem',
+        },
+        remove: (label: string) => `Remover ${label}`,
+        removeDialog: {
+          title: 'Remover esta referência?',
+          body: 'Ela sai da frente. Só quem a adicionou pode removê-la, e o registro fica guardado.',
+          confirm: 'Sim, remover',
+          cancel: 'Cancelar',
+        },
+      },
       divergence:
         'Vocês avaliaram esta frente de forma diferente. Vale conversar antes de decidir.',
       history: {

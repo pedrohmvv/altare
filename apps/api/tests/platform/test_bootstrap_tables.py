@@ -14,6 +14,7 @@ def test_carregar_as_tabelas_registra_as_de_cada_modulo_no_metadata():
         "scope_categories",
         "scope_evaluations",
         "scope_status_changes",
+        "scope_references",
     } <= set(metadata.tables)
 
 

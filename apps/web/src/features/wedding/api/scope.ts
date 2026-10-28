@@ -10,6 +10,7 @@ export type ScopeCategory = Schemas['CategoryOut']
 export type ScopeStatus = Schemas['ScopeStatus']
 export type Priority = Schemas['Priority']
 export type StatusChange = Schemas['StatusChangeOut']
+export type ScopeReference = Schemas['ReferenceOut']
 
 /** A ordem dos quatro status, a mesma das colunas do quadro. */
 export const SCOPE_STATUSES: readonly ScopeStatus[] = [
@@ -22,6 +23,7 @@ export const SCOPE_STATUSES: readonly ScopeStatus[] = [
 export const scopeKeys = {
   map: ['wedding', 'scope'] as const,
   history: (categoryId: string) => ['wedding', 'scope', 'history', categoryId] as const,
+  references: (categoryId: string) => ['wedding', 'scope', 'references', categoryId] as const,
 }
 
 /**
@@ -40,6 +42,17 @@ export const scopeHistoryQueryOptions = (categoryId: string) =>
     queryFn: async () =>
       unwrap(
         await api.GET('/api/v1/wedding/scope/categories/{category_id}/history', {
+          params: { path: { category_id: categoryId } },
+        }),
+      ),
+  })
+
+export const scopeReferencesQueryOptions = (categoryId: string) =>
+  queryOptions({
+    queryKey: scopeKeys.references(categoryId),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/api/v1/wedding/scope/categories/{category_id}/references', {
           params: { path: { category_id: categoryId } },
         }),
       ),
