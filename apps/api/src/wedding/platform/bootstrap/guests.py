@@ -16,6 +16,7 @@ from wedding.modules.guests.application.commands.restore_household import Restor
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
 from wedding.modules.guests.application.commands.update_guest_settings import UpdateGuestSettings
 from wedding.modules.guests.application.commands.update_household import UpdateHousehold
+from wedding.modules.guests.application.queries.build_guest_export import BuildGuestExport
 from wedding.modules.guests.application.queries.get_guest_headcount import GetGuestHeadcount
 from wedding.modules.guests.application.queries.get_guest_list import GetGuestList
 from wedding.modules.guests.application.queries.list_guest_status_history import (
@@ -57,6 +58,7 @@ class GuestsContainer:
         return GuestsUseCases(
             get_guest_list=GetGuestList(uow_factory),
             get_guest_headcount=GetGuestHeadcount(uow_factory),
+            build_guest_export=BuildGuestExport(uow_factory, clock),
             list_guest_status_history=ListGuestStatusHistory(uow_factory),
             create_household=CreateHousehold(uow_factory, ids),
             update_household=UpdateHousehold(uow_factory),

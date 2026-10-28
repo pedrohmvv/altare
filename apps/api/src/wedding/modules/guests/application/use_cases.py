@@ -17,6 +17,7 @@ from wedding.modules.guests.application.commands.restore_household import Restor
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
 from wedding.modules.guests.application.commands.update_guest_settings import UpdateGuestSettings
 from wedding.modules.guests.application.commands.update_household import UpdateHousehold
+from wedding.modules.guests.application.queries.build_guest_export import BuildGuestExport
 from wedding.modules.guests.application.queries.get_guest_headcount import GetGuestHeadcount
 from wedding.modules.guests.application.queries.get_guest_list import GetGuestList
 from wedding.modules.guests.application.queries.list_guest_status_history import (
@@ -28,6 +29,7 @@ from wedding.modules.guests.application.queries.list_guest_status_history import
 class GuestsUseCases:
     get_guest_list: GetGuestList
     get_guest_headcount: GetGuestHeadcount
+    build_guest_export: BuildGuestExport
     list_guest_status_history: ListGuestStatusHistory
     create_household: CreateHousehold
     update_household: UpdateHousehold

@@ -1,8 +1,14 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
+from wedding.modules.guests.adapters.http.exporters import (
+    CSV_MEDIA_TYPE,
+    XLSX_MEDIA_TYPE,
+    write_csv,
+    write_xlsx,
+)
 from wedding.modules.guests.adapters.http.mappers import (
     to_guest_fields,
     to_guest_list_out,
@@ -11,6 +17,8 @@ from wedding.modules.guests.adapters.http.mappers import (
 )
 from wedding.modules.guests.adapters.http.schemas import (
     CompanionIn,
+    ExportFormat,
+    ExportIn,
     GuestFieldsIn,
     GuestListOut,
     GuestSettingsIn,
@@ -61,6 +69,15 @@ Companion = Annotated[
     Query(description="O que fazer com o acompanhante ao excluir o titular: delete ou keep."),
 ]
 _WRITE_ERRORS = problem_responses(401, 404, 409, 422)
+_EXPORT_OK = {
+    200: {
+        "description": "O arquivo da lista, para baixar.",
+        "content": {
+            XLSX_MEDIA_TYPE: {"schema": {"type": "string", "format": "binary"}},
+            CSV_MEDIA_TYPE: {"schema": {"type": "string", "format": "binary"}},
+        },
+    }
+}
 
 
 def build_router(provide: GuestsProvider) -> APIRouter:
@@ -244,6 +261,29 @@ def build_router(provide: GuestsProvider) -> APIRouter:
     def move_guest(guest_id: UUID, body: MoveIn, actor: CurrentActor) -> GuestListOut:
         command = MoveGuestCommand(guest_id, body.household_id, body.version)
         return to_guest_list_out(provide().move_guest.execute(command, actor))
+
+    @router.post(
+        "/exports",
+        operation_id="export_guests",
+        response_class=Response,
+        responses={**_EXPORT_OK, **problem_responses(401, 404, 422)},
+    )
+    def export_guests(body: ExportIn, actor: CurrentActor) -> Response:
+        """Gera o arquivo no servidor, atrás da sessão. É um `POST` para o que está na tela viajar
+        no corpo e nenhum dado pessoal ir para a URL nem para o log de acesso."""
+        export = provide().build_guest_export.execute(body.guest_ids, actor)
+        is_xlsx = body.format is ExportFormat.XLSX
+        content = write_xlsx(export.rows) if is_xlsx else write_csv(export.rows)
+        filename = f"lista-de-convidados-{export.day.isoformat()}.{body.format.value}"
+        return Response(
+            content=content,
+            media_type=XLSX_MEDIA_TYPE if is_xlsx else CSV_MEDIA_TYPE,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "private, no-store",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
 
     @router.get(
         "/people/{guest_id}/history",

@@ -25,6 +25,7 @@ from wedding.modules.guests.application.commands.update_guest_settings import (
 )
 from wedding.modules.guests.application.commands.update_household import UpdateHousehold
 from wedding.modules.guests.application.dto import GuestStatusChangeDto
+from wedding.modules.guests.application.queries.build_guest_export import BuildGuestExport
 from wedding.modules.guests.application.queries.get_guest_headcount import GetGuestHeadcount
 from wedding.modules.guests.application.queries.get_guest_list import GetGuestList
 from wedding.modules.guests.application.queries.list_guest_status_history import (
@@ -215,6 +216,7 @@ class World:
         return GuestsUseCases(
             get_guest_list=GetGuestList(factory),
             get_guest_headcount=GetGuestHeadcount(factory),
+            build_guest_export=BuildGuestExport(factory, self.clock),
             list_guest_status_history=ListGuestStatusHistory(factory),
             create_household=CreateHousehold(factory, self.ids),
             update_household=UpdateHousehold(factory),

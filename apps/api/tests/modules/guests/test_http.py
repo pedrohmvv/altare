@@ -255,6 +255,7 @@ def test_operation_ids_estaveis(api):
         "update_guest_settings",
         "record_household_invite",
         "clear_household_invite",
+        "export_guests",
     }
 
 
