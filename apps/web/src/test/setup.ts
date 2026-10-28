@@ -1,9 +1,14 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 // Com `globals: false` o Testing Library não registra a limpeza do DOM sozinho.
 afterEach(cleanup)
+
+// O `fetch` falso de um teste (test/fake-api.ts) não pode vazar para o seguinte.
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 // O jsdom não implementa ResizeObserver, que o Radix usa para medir controles e popovers.
 class ResizeObserverStub {
