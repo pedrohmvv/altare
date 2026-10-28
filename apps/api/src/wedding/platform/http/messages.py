@@ -84,6 +84,29 @@ MESSAGES: dict[str, Message] = {
         "Valor não aceito",
         "Confira o valor deste campo: o formato ou o limite informado não é aceito.",
     ),
+    "invalid_scope_value": Message(
+        "Valor não aceito",
+        (
+            "Confira o texto ou o valor: o nome vai até 60 caracteres, "
+            "e a estimativa precisa ser maior que zero."
+        ),
+    ),
+    "discard_reason_required": Message(
+        "Falta o motivo",
+        "Escreva por que esta frente fica de fora antes de salvar.",
+    ),
+    "catalog_item_not_deletable": Message(
+        "Não dá para excluir",
+        "Itens que já vieram com o Altare não são excluídos. Oculte para tirar das telas.",
+    ),
+    "group_not_empty": Message(
+        "O grupo ainda tem categorias",
+        "Mova ou exclua as categorias do grupo antes de excluí-lo.",
+    ),
+    "duplicate_scope_name": Message(
+        "Nome já usado",
+        "Já existe uma frente ou um grupo com este nome. Escolha outro.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",

@@ -16,8 +16,10 @@ import { Input } from '@/components/ui/input'
 import { Money } from '@/components/ui/money'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Progress } from '@/components/ui/progress'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Select } from '@/components/ui/select'
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import {
   Table,
   TableBody,
@@ -215,6 +217,11 @@ export function PrimitivesShowcase() {
         <h2 id="conf-selos" className="text-heading">
           Selos e cartões
         </h2>
+        <div className="flex max-w-md flex-col gap-4">
+          <Progress value={0} max={18} label="0 de 18 categorias classificadas" />
+          <Progress value={7} max={18} label="7 de 18 categorias classificadas" />
+          <Progress value={18} max={18} label="18 de 18 categorias classificadas" />
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <Badge>Neutro</Badge>
           <Badge variant="primary">Primário</Badge>
@@ -329,6 +336,20 @@ export function PrimitivesShowcase() {
         </h2>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="secondary">Abrir painel lateral</Button>
+            </SheetTrigger>
+            <SheetContent
+              title="Fotografia Exemplo"
+              description="Gaveta à direita no desktop e folha inferior no celular."
+            >
+              <p className="text-body">Detalhes da frente, sem sair da lista.</p>
+              <SheetClose asChild>
+                <Button variant="secondary">Voltar à lista</Button>
+              </SheetClose>
+            </SheetContent>
+          </Sheet>
           <Dialog>
             <DialogTrigger asChild>
               <Button>Registrar decisão</Button>

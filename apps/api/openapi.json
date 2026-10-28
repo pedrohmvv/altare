@@ -870,10 +870,947 @@
           }
         }
       }
+    },
+    "/api/v1/wedding/scope": {
+      "get": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Read Scope Map",
+        "operationId": "read_scope_map",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/groups": {
+      "post": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Create Scope Group",
+        "operationId": "create_scope_group",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/groups/{group_id}": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Scope Group",
+        "operationId": "update_scope_group",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupRenameIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Delete Scope Group",
+        "operationId": "delete_scope_group",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/groups/{group_id}/visibility": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Set Scope Group Visibility",
+        "operationId": "set_scope_group_visibility",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisibilityIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/categories": {
+      "post": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Create Scope Category",
+        "operationId": "create_scope_category",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/categories/{category_id}": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Update Scope Category",
+        "operationId": "update_scope_category",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Delete Scope Category",
+        "operationId": "delete_scope_category",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/categories/{category_id}/visibility": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Set Scope Category Visibility",
+        "operationId": "set_scope_category_visibility",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisibilityIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/categories/{category_id}/status": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Change Scope Status",
+        "operationId": "change_scope_status",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/categories/{category_id}/my-evaluation": {
+      "put": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "Set My Evaluation",
+        "operationId": "set_my_evaluation",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeMapOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wedding/scope/categories/{category_id}/history": {
+      "get": {
+        "tags": [
+          "wedding"
+        ],
+        "summary": "List Scope Category History",
+        "operationId": "list_scope_category_history",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StatusChangeOut"
+                  },
+                  "title": "Response List Scope Category History"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AlignmentOut": {
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/AlignmentState"
+          },
+          "missing": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "Noivo",
+                "Noiva"
+              ]
+            },
+            "type": "array",
+            "title": "Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "missing"
+        ],
+        "title": "AlignmentOut"
+      },
+      "AlignmentState": {
+        "type": "string",
+        "enum": [
+          "alinhados",
+          "divergem",
+          "falta"
+        ],
+        "title": "AlignmentState"
+      },
       "BaselineChangeOut": {
         "properties": {
           "id": {
@@ -972,6 +1909,167 @@
           "file"
         ],
         "title": "Body_upload_file"
+      },
+      "CategoryCreateIn": {
+        "properties": {
+          "group_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Group Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "estimate_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate Cents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_id",
+          "name"
+        ],
+        "title": "CategoryCreateIn"
+      },
+      "CategoryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "group_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Group Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "visible": {
+            "type": "boolean",
+            "title": "Visible"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ScopeStatus"
+          },
+          "estimate_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate Cents"
+          },
+          "discard_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discard Reason"
+          },
+          "noivo": {
+            "$ref": "#/components/schemas/EvaluationOut"
+          },
+          "noiva": {
+            "$ref": "#/components/schemas/EvaluationOut"
+          },
+          "alignment": {
+            "$ref": "#/components/schemas/AlignmentOut"
+          },
+          "can_delete": {
+            "type": "boolean",
+            "title": "Can Delete"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "group_id",
+          "name",
+          "position",
+          "origin",
+          "hidden",
+          "visible",
+          "status",
+          "estimate_cents",
+          "discard_reason",
+          "noivo",
+          "noiva",
+          "alignment",
+          "can_delete",
+          "version"
+        ],
+        "title": "CategoryOut"
+      },
+      "CategoryUpdateIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "group_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Group Id"
+          },
+          "estimate_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate Cents"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "group_id",
+          "version"
+        ],
+        "title": "CategoryUpdateIn"
       },
       "CeilingFieldIn": {
         "properties": {
@@ -1325,6 +2423,78 @@
         ],
         "title": "DefinitionStatus"
       },
+      "EvaluationIn": {
+        "properties": {
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "EvaluationIn"
+      },
+      "EvaluationOut": {
+        "properties": {
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "priority",
+          "note",
+          "version"
+        ],
+        "title": "EvaluationOut"
+      },
       "FieldError": {
         "properties": {
           "field": {
@@ -1386,6 +2556,90 @@
         ],
         "title": "FileKind"
       },
+      "GroupCreateIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "GroupCreateIn"
+      },
+      "GroupOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "can_delete": {
+            "type": "boolean",
+            "title": "Can Delete"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryOut"
+            },
+            "type": "array",
+            "title": "Categories"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "position",
+          "origin",
+          "hidden",
+          "can_delete",
+          "version",
+          "categories"
+        ],
+        "title": "GroupOut"
+      },
+      "GroupRenameIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "GroupRenameIn"
+      },
       "HealthOut": {
         "properties": {
           "status": {
@@ -1440,6 +2694,23 @@
         ],
         "title": "MonthYearSchema"
       },
+      "Origin": {
+        "type": "string",
+        "enum": [
+          "catalogo",
+          "casal"
+        ],
+        "title": "Origin"
+      },
+      "Priority": {
+        "type": "string",
+        "enum": [
+          "Quero muito",
+          "Se couber",
+          "Dispenso"
+        ],
+        "title": "Priority"
+      },
       "ProblemDetails": {
         "properties": {
           "type": {
@@ -1487,6 +2758,58 @@
         ],
         "title": "ProblemDetails",
         "description": "Erro no formato RFC 9457, com `code` estável de máquina e `detail` em pt-BR."
+      },
+      "ProgressOut": {
+        "properties": {
+          "classified": {
+            "type": "integer",
+            "title": "Classified"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "classified",
+          "total"
+        ],
+        "title": "ProgressOut"
+      },
+      "ScopeMapOut": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupOut"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ProgressOut"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TotalsOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "groups",
+          "progress",
+          "totals"
+        ],
+        "title": "ScopeMapOut"
+      },
+      "ScopeStatus": {
+        "type": "string",
+        "enum": [
+          "Em discussão",
+          "Entra (Essencial)",
+          "Talvez (Se couber)",
+          "Fica de fora"
+        ],
+        "title": "ScopeStatus"
       },
       "SizeFieldIn": {
         "properties": {
@@ -1631,6 +2954,85 @@
         ],
         "title": "SnapshotOut"
       },
+      "StatusChangeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "from_status": {
+            "$ref": "#/components/schemas/ScopeStatus"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/ScopeStatus"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "by": {
+            "type": "string",
+            "enum": [
+              "Noivo",
+              "Noiva"
+            ],
+            "title": "By"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "from_status",
+          "to_status",
+          "reason",
+          "by",
+          "at"
+        ],
+        "title": "StatusChangeOut"
+      },
+      "StatusIn": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ScopeStatus"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "StatusIn"
+      },
       "TextFieldIn": {
         "properties": {
           "status": {
@@ -1712,6 +3114,54 @@
           "value"
         ],
         "title": "TextFieldOut"
+      },
+      "TotalsOut": {
+        "properties": {
+          "essential_cents": {
+            "type": "integer",
+            "title": "Essential Cents"
+          },
+          "essential_without_estimate": {
+            "type": "integer",
+            "title": "Essential Without Estimate"
+          },
+          "maybe_cents": {
+            "type": "integer",
+            "title": "Maybe Cents"
+          },
+          "maybe_without_estimate": {
+            "type": "integer",
+            "title": "Maybe Without Estimate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "essential_cents",
+          "essential_without_estimate",
+          "maybe_cents",
+          "maybe_without_estimate"
+        ],
+        "title": "TotalsOut"
+      },
+      "VisibilityIn": {
+        "properties": {
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "hidden",
+          "version"
+        ],
+        "title": "VisibilityIn"
       }
     }
   }

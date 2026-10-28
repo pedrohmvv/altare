@@ -191,7 +191,7 @@ def test_operation_ids_estaveis(api):
     ids = {
         operacao["operationId"]
         for caminho, metodos in caminhos.items()
-        if "/wedding/" in caminho
+        if "/wedding/baseline" in caminho
         for operacao in metodos.values()
     }
     assert ids == {

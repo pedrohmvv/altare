@@ -1472,3 +1472,42 @@
 | `public.py` do módulo `wedding` | Outro módulo precisar ler uma definição |
 - **Pendente:** aprovação do usuário. Revisar os textos novos: `baseline_value_required` e `invalid_baseline_value` em `messages.py` e o `copy.ts` da feature.
 
+---
+
+## D-068 — Mapa de Escopo: categorias, status, avaliações e o painel lateral (Bloco 1.1, PR 2 de 4)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.1, PR 2 de 4 (`D-066`)
+- **Pedido do usuário:** planejar o PR 2, o maior do bloco, "para garantir consistência e integridade durante o desenvolvimento".
+- **Escolhido pelo usuário (2026-10-28):** um PR só, em três etapas verificadas (API, primitivos, tela), com cada commit verificado isolado; gestão completa de grupos e categorias na tela.
+- **Decisão:**
+  1. **Modelo.** Quatro tabelas em `wedding`: `scope_groups`, `scope_categories` (status, estimativa em centavos, `hidden_at`), `scope_evaluations` (uma por perfil) e `scope_status_changes` (histórico com status anterior, motivo e perfil). A migration `0005` semeia o catálogo de `F-PLN-02` (8 grupos, 18 categorias, todas `Em discussão` e sem estimativa) e as 36 avaliações vazias, com ids fixos.
+  2. **Invariantes em três camadas** (domínio, banco e teste): nome único entre os vivos sem diferenciar caixa nem espaços (coluna `name_key` com índice único parcial; as ocultas contam); `Fica de fora` exige motivo (domínio e `CHECK`); status só muda para outro status; o catálogo nunca é excluído, só oculto (`CHECK`); grupo só é excluído se do casal e vazio (`FK RESTRICT`); estimativa vazia é nula, nunca zero (`CHECK > 0`); **toda categoria tem exatamente duas avaliações, criadas junto com ela**, então avaliar sempre atualiza e não há corrida de criar ou atualizar.
+  3. **Limites de validação** (propostos, ajustáveis): nome de 1 a 60 caracteres, estimativa de 1 centavo a 10^12, motivo do descarte até 300, nota até 500.
+  4. **Derivado na leitura, nunca gravado:** alinhamento (`Alinhados`, `Divergem`, `Falta avaliar` com quem falta), visibilidade (categoria e grupo não ocultos), progresso ("N de M", M exclui as ocultas), totais de `Entra` e `Talvez` com a contagem "sem estimativa", e o motivo do descarte anterior de uma categoria reaberta. São funções puras cobertas por propriedades (Hypothesis) e por um teste de máquina de estados que confere as invariantes depois de sequências aleatórias de operações.
+  5. **Contrato** (`/api/v1/wedding/scope`): `GET` do mapa inteiro e uma rota por operação; **toda escrita devolve o mapa atualizado**, e as saídas não têm valores padrão, então o TypeScript gerado vem com campos obrigatórios. `DELETE` leva a `version` na query. Autoria e perfil vêm da sessão (`/my-evaluation`), nunca do corpo.
+  6. **Concorrência.** `version` por agregado (grupo, categoria e avaliação), comparada pelo caso de uso (`409 version_conflict`). Dois pedidos que passam juntos pela checagem de nome são pegos pelo índice único, e o `IntegrityError` vira `409 duplicate_scope_name`; as checagens de nome rodam sem *autoflush*, para o erro de banco não vir antes da mensagem.
+  7. **Estrutura.** O escopo tem pacote próprio de casos de uso (`ScopeUseCases`) e protocolo de UoW próprio (`ScopeUnitOfWork`), separados das Definições Base: cada commit deixa a UoW SQL e o contêiner satisfazendo o que o código exige.
+  8. **Web.** Aba, vista, filtros (`status`, `alinhamento`, `pendente`, `ocultas`) e a categoria aberta moram na URL de `/planejamento`, validados à mão (valor desconhecido é descartado); a lente (`lente`) só destaca, em texto, e nunca esconde. A feature segue carregada sob demanda. Mudar só o *search* não dispara o anúncio de rota.
+  9. **Primitivos novos:** `Sheet` (gaveta à direita a partir de `md`, folha inferior abaixo, `z-30`, modal, com `keyframes` laterais novos) e `Progress` (o número por escrito dá o nome à barra). Saem dos adiados (`D-028`).
+  10. **Desvios do guia** (não há página do Mapa; bases: págs. 32, 34, 35, 38, 39 e 40): selos de alinhamento `Alinhados` em consenso com `circle-check`, `Divergem` em argila com `messages-square` (a frase da pág. 35, adaptada a "frente") e `Falta avaliar` neutro, com "Aguardando avaliação da Noiva" por extenso (o `heart-handshake` fica restrito ao consenso de propostas); filtros em *chips* com `aria-pressed`; o nome da frente é o botão que cobre o cartão; quadro de 4 colunas só a partir de 1024 px, sem repetir o status no cartão; o status muda **só pelo painel**, sem arrastar, para o teclado e o leitor de tela terem o mesmo caminho.
+  11. **Consistência da tela.** Mudar o status é imediato e a única ação com atualização otimista (volta se a API recusar); as demais esperam a API. Cada ação usa a `version` que a tela mostra; os formulários com texto (avaliação, detalhes) guardam a versão de quando abriram, e um conflito oferece "Ver a versão mais recente" em vez de sobrescrever. Enquanto os detalhes estão abertos, o status não muda (uma seção por vez). O outro vê a mudança na próxima leitura (a consulta relê ao voltar o foco à janela), sem prometer tempo real (`D-021`).
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15, linhas novas; §13, `Sheet` e `Progress` saem dos adiados); `planejamento-e-caminhos.md` (nota de implementação); `AGENTS.md` §1; `roadmap.md` (Bloco 1.1); `CLAUDE.md` do módulo `wedding`.
+- **Razão:** o Mapa de Escopo é o primeiro lugar em que duas pessoas editam o mesmo dado ao mesmo tempo e discordam; as regras que sustentam a conversa (motivo do descarte, alinhamento, nome único) não podem depender da tela estar certa.
+- **O que ficou rejeitado:**
+  - Criar a avaliação sob demanda (*upsert*): abre corrida entre os dois perfis e exige tratar a ausência em toda leitura.
+  - Índice único sobre `lower(name)`: índice funcional atrapalha o `compare_metadata` do Alembic e a troca para PostgreSQL; a coluna `name_key` é portátil.
+  - Gravar progresso, totais ou alinhamento: seria uma segunda verdade para sincronizar (`architecture.md` §5).
+  - Arrastar para mudar o status: inacessível por teclado e por leitor de tela.
+  - Um só pacote de casos de uso e de UoW para tudo: um commit intermediário deixaria o contêiner ou a UoW SQL sem satisfazer o protocolo.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Restaurar, pela tela, uma categoria excluída (os dados ficam guardados) | O primeiro pedido de recuperar uma categoria |
+| Travas de `F-PLN-03` (regra 4) e `F-PLN-07` (regra 3): contrato ou proposta `Escolhida` impedem `Fica de fora` | Blocos 3.2 e 3.3 |
+| Efeitos em cadeia no orçamento e no cronograma | Blocos 2.1 e 1.3 |
+| Reordenar categorias e grupos | O casal sentir falta em uso real |
+| Validar o índice parcial de nome no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
+- **Verificação:** API com 613 testes e web com 588, `make e2e` com 32, Ruff, Pyright, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; capturas da lista, do painel, do quadro e de 320 px, sem rolagem horizontal.
+- **Pendente:** aprovação do usuário; revisar os 5 textos novos de `messages.py` e o `copy.ts`; a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre o Mapa, inclusive o `Sheet` e o quadro.
+

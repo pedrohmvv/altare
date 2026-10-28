@@ -1,4 +1,5 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi } from '@/test/fake-api'
 import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
@@ -99,5 +100,73 @@ describe('lente na URL', () => {
     const router = await renderRoute('/cronograma?lente=banana')
 
     expect(router.state.matches.at(-1)?.search.lente).toBeUndefined()
+  })
+
+  it('os filtros do Mapa de Escopo moram na URL e o botão voltar os desfaz (F-PLN-08)', async () => {
+    const api = planningApi()
+    api.handlers['GET /api/v1/wedding/scope'] = jsonResponse(200, {
+      groups: [
+        {
+          id: 'g1',
+          name: 'Grupo Exemplo',
+          position: 0,
+          origin: 'casal',
+          hidden: false,
+          can_delete: false,
+          version: 1,
+          categories: [
+            {
+              id: '0190a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b',
+              group_id: 'g1',
+              name: 'Fotografia Exemplo',
+              position: 0,
+              origin: 'casal',
+              hidden: false,
+              visible: true,
+              status: 'Em discussão',
+              estimate_cents: null,
+              discard_reason: null,
+              noivo: { priority: null, note: null, version: 1 },
+              noiva: { priority: null, note: null, version: 1 },
+              alignment: { state: 'falta', missing: ['Noivo', 'Noiva'] },
+              can_delete: true,
+              version: 1,
+            },
+          ],
+        },
+      ],
+      progress: { classified: 0, total: 1 },
+      totals: {
+        essential_cents: 0,
+        essential_without_estimate: 0,
+        maybe_cents: 0,
+        maybe_without_estimate: 0,
+      },
+    })
+    const router = await renderRoute('/planejamento?aba=escopo&lente=minha', { api })
+    const chip = await screen.findByRole('button', { name: 'Fica de fora' }, { timeout: 4000 })
+    await userEvent.click(chip)
+    expect(router.state.location.search).toMatchObject({
+      aba: 'escopo',
+      status: 'fora',
+      lente: 'minha',
+    })
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+
+    router.history.back()
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('status'))
+    expect(await screen.findByRole('button', { name: 'Fica de fora' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('um parâmetro inválido na URL é ignorado, e a página abre normalmente', async () => {
+    await renderRoute('/planejamento?aba=lixo&status=quase', { api: planningApi() })
+    expect(await screen.findByRole('heading', { level: 1, name: 'O rumo de vocês' })).toBeVisible()
+    expect(screen.getByRole('tab', { name: 'Definições Base' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
   })
 })
