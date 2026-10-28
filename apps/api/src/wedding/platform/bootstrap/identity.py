@@ -12,8 +12,8 @@ from wedding.modules.identity.infrastructure.argon2_hasher import Argon2Password
 from wedding.modules.identity.infrastructure.login_attempts import InMemoryLoginAttempts
 from wedding.modules.identity.infrastructure.mapping import start_mappers
 from wedding.modules.identity.infrastructure.uow import SqlIdentityUnitOfWork
+from wedding.platform.bootstrap.database import Database
 from wedding.platform.config import Settings
-from wedding.platform.db.engine import create_db_engine, create_session_factory
 from wedding.shared_kernel.clock import Clock, SystemClock
 from wedding.shared_kernel.ids import UuidGenerator
 
@@ -31,8 +31,10 @@ class IdentityContainer:
         *,
         clock: Clock | None = None,
         hasher: PasswordHasher | None = None,
+        database: Database | None = None,
     ) -> None:
         self._settings = settings
+        self._database = database or Database(settings.database_url)
         self._clock = clock or SystemClock()
         self._hasher = hasher
         self._lock = Lock()
@@ -46,7 +48,7 @@ class IdentityContainer:
 
     def _build(self) -> IdentityUseCases:
         start_mappers()
-        sessions = create_session_factory(create_db_engine(self._settings.database_url))
+        sessions = self._database.sessions()
         clock = self._clock
         ids = UuidGenerator()
         hasher = self._hasher or Argon2PasswordHasher()
