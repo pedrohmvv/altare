@@ -33,9 +33,9 @@ O pipeline roda, nesta ordem lógica, com *path filters* conforme `altare-monore
 2. Web: Biome, `tsc`, Vitest (inclui o gate de limites, `D-051`), build.
 3. Contrato: regenerar tipos do OpenAPI e falhar se houver diff.
 4. Antes do deploy: suíte de integração contra **PostgreSQL** em contêiner efêmero.
-5. E2E com Playwright (desktop e mobile), quando o login existir.
+5. E2E com Playwright (desktop e mobile) contra o build de produção e a API de verdade, com banco temporário: job `e2e` (`D-064`).
 
-O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`). O provedor é o GitHub Actions, e o workflow está em `.github/workflows/ci.yml` (`D-059`, `D-060`): jobs `changes`, `api`, `web` e o agregador `CI`, o único check a exigir na proteção das branches.
+O CI só vale com remoto configurado; o remoto existe (`github.com/pedrohmvv/altare`). O provedor é o GitHub Actions, e o workflow está em `.github/workflows/ci.yml` (`D-059`, `D-060`): jobs `changes`, `api`, `web`, `contract`, `e2e` e o agregador `CI`, o único check a exigir na proteção das branches.
 
 ## Ambientes
 

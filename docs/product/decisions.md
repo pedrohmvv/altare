@@ -1344,3 +1344,45 @@
   | Limite de corpo no proxy | decisão de deploy |
 - **Riscos conhecidos:** o Starlette processa o *multipart* antes da rota, então o limite de 20 MB protege o disco mas não a memória de um envio muito maior; no uso local com duas pessoas isso é irrelevante, e a defesa real é o limite do proxy no deploy. Um envio que falha depois de gravar o conteúdo deixa um arquivo órfão (inofensivo). A pasta `FILES_DIR` precisa entrar no backup junto do banco (`D-038`, item 4). As mensagens de erro novas (`platform/http/messages.py`) são propostas do agente.
 - **Pendente (do usuário):** revisar os textos das três mensagens novas; a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.
+
+
+---
+
+## D-064 — PWA instalável e E2E com Playwright (Bloco 0.1, PR 4)
+- **Data:** 2026-10-27
+- **Fase:** Implementação — Nível 0 (Bloco 0.1, parte 2, PR 4 de 4)
+- **Pedido do usuário:** fechar o Bloco 0.1 com o app instalável e com a prova, de ponta a ponta, do critério do Nível 0 (entrar, navegar e alternar a lente no computador e no celular).
+- **Escolhido pelo usuário (2026-10-27):**
+  1. **Atualização do app:** a versão nova espera a **próxima abertura**; nada de tela nova nem de recarregar no meio do uso.
+  2. **E2E no CI:** sim, como job próprio, exigido pelo agregador `CI`.
+- **Decisão:**
+  1. **PWA (`vite-plugin-pwa` 2.0.0, Workbox `generateSW`):** `registerType: 'prompt'`, sem `skipWaiting` fora da mensagem do próprio cliente, o que mantém a escolha 1. O manifesto (`apps/web/scripts/pwa-manifest.ts`) usa `Altare`, `pt-BR`, `display: standalone`, `start_url` e `scope` `/` e o `theme_color` e o `background_color` de `marca.app_icon.theme_color_claro` do `tokens.json` (sem cor escrita à mão); os ícones são os de `public/brand/app-icon`, em 192 e 512, `any` e `maskable`. Um teste de unidade confere o manifesto, os tamanhos reais dos PNGs, a cor contra o `index.html`, e a configuração do cache.
+  2. **Cache só do *app shell*:** pré-cache dos estáticos do build (cerca de 1,4 MiB) e *fallback* de navegação para `/index.html`, **com `/api/` na lista de exceção** e `runtimeCaching: []`. Nada da API é guardado (`stack.md` §5: sem escrita nem leitura offline de dados). A lista de exceção foi provada por controle negativo: sem ela, a navegação a `/api/v1/health` devolvia `text/html`, e o E2E falhou.
+  3. **Só existe no build de produção:** o service worker não roda no `vite` de desenvolvimento, para não esconder mudança atrás de cache. Por isso o E2E sobe o `vite preview`, e o `preview` ganha o mesmo proxy de `/api` do servidor de desenvolvimento (`API_ORIGIN` escolhe o destino).
+  4. **E2E (Playwright 1.64.0, `make e2e`):** roda contra o **build de produção** e a **API de verdade**, com banco SQLite e pasta de arquivos temporários, criados do zero a cada execução (`e2e/start-api.mjs`: `alembic upgrade head` e os dois usuários, pela CLI, com a senha fictícia de `e2e/credentials.json`). Usa o **Chrome instalado** (`channel: 'chrome'`, sem baixar navegador), nas portas 8105 (API) e 4175 (web), que não colidem com o `make dev`. Dois projetos: *desktop* (1440 × 900, usuário Noivo) e *mobile* (Pixel 7, usuário Noiva), sequenciais; cada projeto tem o seu usuário para que o limite de tentativas de um não pese no outro. Os arquivos são `*.e2e.ts`, que o Vitest não enxerga.
+  5. **O que os 16 cenários provam (32 execuções):**
+     - *instalação:* o manifesto e os ícones são servidos; o service worker ativa e passa a controlar a página; a casca abre **sem rede**; um endereço da API nunca devolve a casca;
+     - *acesso:* sem sessão, uma área leva a `/entrar?destino=…` com a lente; destino de outro site é ignorado; senha errada avisa, guarda o usuário e põe o foco na senha vazia; entrar leva ao destino com a lente e a sessão sobrevive a recarregar; quem já entrou e abre a entrada vai à Visão Geral; sair encerra a sessão; o bloco mostra o perfil;
+     - *navegação:* as 8 áreas abrem o título e o título do documento certos e cabem na largura; o foco vai ao título da página nova; a lente fica na URL e acompanha a navegação; caminho desconhecido abre a página não encontrada dentro da casca. No celular, pela barra inferior e pela folha "Mais".
+  6. **CI:** o job `E2E` (API e web mudaram) instala `uv` e `pnpm`, roda `make e2e` e, se falhar, guarda o relatório e os *traces* por 7 dias (`actions/upload-artifact` v7.0.2, fixado por SHA, publicado há mais de 14 dias). Entra nas dependências do agregador `CI`.
+- **Ajustes em arquivos aprovados:** `stack.md` §5 e §7 (PWA e E2E deixam de ser futuros) e `AGENTS.md` §1; `roadmap.md` (Bloco 0.1); skills `altare-testes-qa`, `altare-devops` e `altare-monorepo`.
+- **Razão:** o critério do Nível 0 é de comportamento (abrir, entrar, alternar a lente, navegar), e só um navegador de verdade, contra a API de verdade, prova isso. O service worker é a peça que mais esconde erro (cache velho, API servida do cache, tela em branco sem rede), então ele é testado no build que o casal vai usar.
+- **O que ficou rejeitado:**
+  - `registerType: 'autoUpdate'`: recarrega a página no meio do uso e pode apagar o que o casal está digitando.
+  - Guardar respostas da API (`runtimeCaching`): dois lugares para o mesmo dado envelhecer, e fora do escopo aprovado.
+  - Baixar os navegadores do Playwright (Chromium, Firefox e WebKit): centenas de MB por execução do CI para um app de duas pessoas; o Chrome já está no runner e no computador.
+  - Rodar o E2E contra o servidor de desenvolvimento: o service worker não existe lá.
+  - Um banco fixo para o E2E: uma execução herdaria o estado da anterior.
+  - Tela própria de "instalar o app" ou de "há versão nova": o navegador já oferece a instalação, e a atualização é silenciosa (escolha 1).
+- **Adiado, com gatilho para retomar:**
+
+  | Item | Gatilho |
+  | :--- | :--- |
+  | Projeto de E2E em WebKit (Safari) e em Firefox | um defeito que só apareça no Safari, ou o casal usar outro navegador |
+  | `axe` automatizado | o gatilho da `D-028` |
+  | Aviso de "há versão nova" e instalação guiada | o casal estranhar a atualização na próxima abertura |
+  | Consulta offline do último estado | o casal pedir (nova decisão, `stack.md` §5) |
+  | Web Push no service worker | Bloco 5.2 |
+  | E2E dos fluxos de negócio | cada bloco acrescenta os seus (`altare-testes-qa`) |
+- **Riscos conhecidos:** o service worker só se prova no build, então um erro de configuração não aparece no `make dev`; o E2E depende do Chrome da máquina (no CI, o da imagem do runner); a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só.") é proposta do agente; o aviso de *chunk* grande no `make build` já existia e segue como está.
+- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta") e revisar a `description` do manifesto; a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.
