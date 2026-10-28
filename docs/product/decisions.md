@@ -1304,7 +1304,8 @@
   | Dispatcher de eventos | o primeiro evento de domínio |
   | `openapi-react-query` | mais de duas features com consulta |
 - **Riscos conhecidos:** o `env.py` usa o engine com `foreign_keys` ligado, e migração em *batch* no SQLite costuma exigir desligá-lo (a `0002` só cria tabelas; trata-se na primeira migração com `ALTER`); `/api/v1/docs` fica aberto sem autenticação, inclusive em produção (decide-se no deploy); os textos de erro do login e de `platform/http/messages.py` são propostas do agente.
-- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na tela de entrada e no bloco de sessão (teclado, zoom de 200%, VoiceOver e "reduzir movimento"; a conferência visual por captura contra as págs. 37 e 38 foi feita, em 1440, 768, 390 e 320 px); revisar os textos propostos; exigir o check `CI` na proteção de `develop` e `main` (`D-041`, item 6); `pre-commit install` neste clone.
+- **Pendente (do usuário):** a passada manual de `altare-acessibilidade` na tela de entrada e no bloco de sessão (teclado, zoom de 200%, VoiceOver e "reduzir movimento"; a conferência visual por captura contra as págs. 37 e 38 foi feita, em 1440, 768, 390 e 320 px); exigir o check `CI` na proteção de `develop` e `main` (`D-041`, item 6); `pre-commit install` neste clone.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário, e os textos de erro propostos (`platform/http/messages.py` e os de erro de `features/identity/copy.ts`), como estão.
 
 ---
 
@@ -1343,7 +1344,8 @@
   | Purga administrativa dos arquivos excluídos | o produto ter exclusão de anexo |
   | Limite de corpo no proxy | decisão de deploy |
 - **Riscos conhecidos:** o Starlette processa o *multipart* antes da rota, então o limite de 20 MB protege o disco mas não a memória de um envio muito maior; no uso local com duas pessoas isso é irrelevante, e a defesa real é o limite do proxy no deploy. Um envio que falha depois de gravar o conteúdo deixa um arquivo órfão (inofensivo). A pasta `FILES_DIR` precisa entrar no backup junto do banco (`D-038`, item 4). As mensagens de erro novas (`platform/http/messages.py`) são propostas do agente.
-- **Pendente (do usuário):** revisar os textos das três mensagens novas; a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.
+- **Pendente (do usuário):** a passada manual de acessibilidade do Nível 0 e o check `CI` nas proteções, que seguem como nas decisões anteriores.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário, e as três mensagens novas de `platform/http/messages.py` (`unsupported_file_type`, `file_too_large` e `empty_file`), como estão.
 
 
 ---
@@ -1385,4 +1387,5 @@
   | Web Push no service worker | Bloco 5.2 |
   | E2E dos fluxos de negócio | cada bloco acrescenta os seus (`altare-testes-qa`) |
 - **Riscos conhecidos:** o service worker só se prova no build, então um erro de configuração não aparece no `make dev`; o E2E depende do Chrome da máquina (no CI, o da imagem do runner); a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só.") é proposta do agente; o aviso de *chunk* grande no `make build` já existia e segue como está.
-- **Pendente (do usuário):** aprovar esta decisão (até lá, "proposta") e revisar a `description` do manifesto; a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.
+- **Pendente (do usuário):** a passada manual de acessibilidade do Nível 0 (teclado, zoom de 200%, VoiceOver, "reduzir movimento"), que é o que falta, com o release `develop → main` e a tag `v0.2.0`, para fechar o Nível 0; exigir o check `CI` nas proteções de `develop` e `main`.
+- **Aprovado (2026-10-27):** esta decisão, pelo usuário, e a `description` do manifesto ("O planejamento do casamento de vocês, num lugar só."), como está.
