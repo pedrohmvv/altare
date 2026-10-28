@@ -3,6 +3,9 @@ export const copy = {
   title: 'O rumo de vocês',
   description: 'Definições Base, Caminhos Macro e o Mapa de Escopo do casamento.',
   panel: {
+    // Derivado da lista de convidados na hora de ler (Total Nominal); nunca gravado no Porte.
+    guestsOnList: (count: number) =>
+      count === 1 ? 'Na lista agora: 1 pessoa' : `Na lista agora: ${count} pessoas`,
     title: 'Definições base',
     intro: 'Cada uma começa em definição e passa a definida quando vocês decidem.',
     empty: 'Ainda sem valor',
