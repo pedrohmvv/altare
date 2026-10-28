@@ -22,7 +22,7 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 - Referências (`D-069`): link só `http(s)`, sem credenciais e sem ler a página; imagem é um arquivo já enviado e conferido como imagem; só o autor remove a sua (remoção lógica); a forma link ou imagem também é `CHECK` do banco.
 
 ## Dependências permitidas
-- Não importa nenhum outro módulo: o que precisa do `files` (saber se um arquivo é imagem) entra pela porta `FileCatalog`, que o `bootstrap` liga.
+- Não importa nenhum outro módulo: o que precisa do `files` (saber se um arquivo é imagem) entra pela porta `FileCatalog`, que o `bootstrap` liga. O Total Nominal que o Porte mostra ao lado da faixa entra pela porta `GuestCountReader`, também ligada pelo `bootstrap` ao contrato público do `guests` (`D-073`): é derivado na hora e nunca gravado na linha `size`.
 - Camadas: domínio só usa a biblioteca padrão e o `shared_kernel` (`architecture.md` §2 e §9).
 
 ## Docs

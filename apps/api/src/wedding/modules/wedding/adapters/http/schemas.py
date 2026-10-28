@@ -85,6 +85,8 @@ class TextFieldOut(FieldOut):
 
 class SizeFieldOut(FieldOut):
     value: SizeValueSchema
+    # Quantas pessoas a lista tem agora (Total Nominal): derivado, nunca gravado no Porte.
+    guest_count: int
 
 
 class CeilingFieldOut(FieldOut):

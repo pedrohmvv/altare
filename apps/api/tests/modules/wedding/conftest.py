@@ -276,6 +276,16 @@ class _UnitOfWork:
         return None
 
 
+class _GuestCount:
+    """O leitor da contagem da lista, que o `bootstrap` liga ao módulo de convidados."""
+
+    def __init__(self, world: "World") -> None:
+        self._world = world
+
+    def total_nominal(self, actor: Actor) -> int:
+        return self._world.guest_count
+
+
 class _Ids:
     def __init__(self) -> None:
         self._next = 100
@@ -297,6 +307,8 @@ class World:
         self.reference_store: dict[UUID, ScopeReference] = {}
         # id do arquivo enviado -> é imagem?
         self.files: dict[UUID, bool] = {}
+        # O Total Nominal da lista de convidados, que as Definições Base mostram ao lado do Porte.
+        self.guest_count = 0
         # A semente da migration: seis campos vazios e `Em definição`.
         self.fields = {
             key: BaselineField(
@@ -313,8 +325,10 @@ class World:
 
     def use_cases(self) -> WeddingUseCases:
         return WeddingUseCases(
-            get_baseline=GetBaseline(self.uow_factory),
-            update_baseline_field=UpdateBaselineField(self.uow_factory, self.ids),
+            get_baseline=GetBaseline(self.uow_factory, _GuestCount(self)),
+            update_baseline_field=UpdateBaselineField(
+                self.uow_factory, self.ids, _GuestCount(self)
+            ),
             list_baseline_changes=ListBaselineChanges(self.uow_factory),
         )
 

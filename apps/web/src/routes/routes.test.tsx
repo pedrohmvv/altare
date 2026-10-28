@@ -25,7 +25,7 @@ function planningApi() {
       date: { ...EMPTY_FIELD, value: { kind: 'nenhuma' } },
       city: { ...EMPTY_FIELD, value: null },
       format: { ...EMPTY_FIELD, value: null },
-      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null } },
+      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null }, guest_count: 0 },
       ceiling: { ...EMPTY_FIELD, value: { cents: null } },
       ceremony: { ...EMPTY_FIELD, value: { kinds: [], detail: null } },
     }),

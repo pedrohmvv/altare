@@ -5581,6 +5581,10 @@
           },
           "value": {
             "$ref": "#/components/schemas/SizeValueSchema"
+          },
+          "guest_count": {
+            "type": "integer",
+            "title": "Guest Count"
           }
         },
         "type": "object",
@@ -5588,7 +5592,8 @@
           "status",
           "note",
           "version",
-          "value"
+          "value",
+          "guest_count"
         ],
         "title": "SizeFieldOut"
       },

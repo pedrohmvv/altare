@@ -1482,6 +1482,8 @@ export interface components {
             /** Version */
             version: number;
             value: components["schemas"]["SizeValueSchema"];
+            /** Guest Count */
+            guest_count: number;
         };
         /** SizeValueSchema */
         SizeValueSchema: {

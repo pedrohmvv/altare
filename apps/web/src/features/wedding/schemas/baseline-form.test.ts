@@ -7,7 +7,13 @@ const EMPTY_BASELINE: Baseline = {
   date: { status: 'Em definição', note: null, version: 1, value: { kind: 'nenhuma' } },
   city: { status: 'Em definição', note: null, version: 1, value: null },
   format: { status: 'Em definição', note: null, version: 1, value: null },
-  size: { status: 'Em definição', note: null, version: 1, value: { minimum: null, maximum: null } },
+  size: {
+    status: 'Em definição',
+    note: null,
+    version: 1,
+    value: { minimum: null, maximum: null },
+    guest_count: 0,
+  },
   ceiling: { status: 'Em definição', note: null, version: 1, value: { cents: null } },
   ceremony: { status: 'Em definição', note: null, version: 1, value: { kinds: [], detail: null } },
 }
@@ -234,7 +240,13 @@ describe('toUpdate', () => {
         version: 3,
         value: { kind: 'exata', exact: '2027-05-01' },
       },
-      size: { status: 'Definido', note: null, version: 2, value: { minimum: 80, maximum: 120 } },
+      size: {
+        status: 'Definido',
+        note: null,
+        version: 2,
+        value: { minimum: 80, maximum: 120 },
+        guest_count: 0,
+      },
     }
     expect(toUpdate('date', toFormValues('date', baseline), 3).body).toMatchObject({
       status: 'Definido',

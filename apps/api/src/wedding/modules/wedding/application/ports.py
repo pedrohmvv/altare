@@ -164,3 +164,11 @@ class FileCatalog(Protocol):
     """Porta para o módulo de arquivos: o `wedding` não o importa; o bootstrap liga os dois."""
 
     def find(self, file_id: UUID, actor: Actor) -> StoredFile | None: ...
+
+
+class GuestCountReader(Protocol):
+    """Porta para a lista de convidados: o `wedding` não importa o módulo `guests`; o bootstrap
+    liga os dois. Devolve o Total Nominal, a "contagem de cabeças" que o Porte mostra ao lado da
+    faixa que o casal definiu, derivada na hora e nunca copiada (`F-PLN-01`, `D-067`)."""
+
+    def total_nominal(self, actor: Actor) -> int: ...

@@ -22,6 +22,7 @@ function emptyBaseline(): Baseline {
       note: null,
       version: 1,
       value: { minimum: null, maximum: null },
+      guest_count: 0,
     },
     ceiling: { status: 'Em definição', note: null, version: 1, value: { cents: null } },
     ceremony: {
