@@ -28,3 +28,25 @@ export function formatMoney(
 
   return `${sign && `${sign}${NBSP}`}R$${NBSP}${reais}${decimals}`
 }
+
+/** Reais com ponto de milhar e vírgula nos centavos: `28.000`, `28.000,00`, `28000,5`. */
+const MONEY_PATTERN = /^(\d+|\d{1,3}(?:\.\d{3})+)(?:,(\d{1,2}))?$/
+
+/**
+ * Lê o que a pessoa digitou ("R$ 28.000,00") como centavos inteiros, ou `null` quando não dá para
+ * ter certeza. No Brasil o ponto separa milhar: `28.5` não vira 28,50, é recusado em vez de adivinhado.
+ */
+export function parseMoney(text: string): number | null {
+  const cleaned = text.replace(/R\$/g, '').replace(/[\s ]/g, '')
+  const match = MONEY_PATTERN.exec(cleaned)
+  if (!match) return null
+  const reais = Number((match[1] ?? '').replaceAll('.', ''))
+  const cents = Number((match[2] ?? '').padEnd(2, '0'))
+  const total = reais * 100 + cents
+  return Number.isSafeInteger(total) ? total : null
+}
+
+/** O número como vai no campo de entrada, sem o `R$` (que é o prefixo do campo): `28.000,00`. */
+export function formatMoneyPlain(cents: number): string {
+  return formatMoney(cents, { precision: 'always' }).replace(/^R\$ /, '')
+}

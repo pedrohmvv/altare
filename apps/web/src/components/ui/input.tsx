@@ -11,6 +11,8 @@ export type InputProps = Omit<ComponentProps<'input'>, 'prefix' | 'id'> & {
   prefix?: ReactNode
   /** Texto fixo depois do valor (ex.: "por pessoa"); fica fora do valor digitado. */
   suffix?: ReactNode
+  /** Acrescenta classes ao `<input>` em si (o campo de dinheiro usa mono tabular). */
+  inputClassName?: string
 }
 
 export function Input({
@@ -22,6 +24,7 @@ export function Input({
   prefix,
   suffix,
   className,
+  inputClassName,
   ...props
 }: InputProps) {
   return (
@@ -63,7 +66,10 @@ export function Input({
               {...props}
               {...control}
               aria-describedby={describedBy || undefined}
-              className="min-w-0 flex-1 bg-transparent py-2 text-body text-ink outline-none placeholder:text-ink-subtle focus-visible:shadow-none disabled:cursor-default"
+              className={cn(
+                'min-w-0 flex-1 bg-transparent py-2 text-body text-ink outline-none placeholder:text-ink-subtle focus-visible:shadow-none disabled:cursor-default',
+                inputClassName,
+              )}
             />
             {suffix != null && (
               <span id={suffixId} className="text-body-sm text-ink-muted">

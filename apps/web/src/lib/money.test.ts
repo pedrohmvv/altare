@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMoney } from './money'
+import { formatMoney, formatMoneyPlain, parseMoney } from './money'
 
 const NBSP = ' '
 const MINUS = '−'
@@ -69,5 +69,52 @@ describe('formatMoney', () => {
 
       expect(Number(digits)).toBe(Math.abs(cents))
     }
+  })
+})
+
+describe('parseMoney', () => {
+  it.each([
+    ['28000', 2_800_000],
+    ['28.000', 2_800_000],
+    ['28.000,00', 2_800_000],
+    [`R$${NBSP}28.000,00`, 2_800_000], // F-PLN-01: "R$ 28.000,00" é gravado como 2800000
+    ['R$ 28.000,00', 2_800_000],
+    ['1.234,56', 123_456],
+    ['0,5', 50],
+    ['0,05', 5],
+    ['10,5', 1_050],
+    ['  1.000  ', 100_000],
+    ['0', 0],
+  ])('lê %j como %i centavos', (text, cents) => {
+    expect(parseMoney(text)).toBe(cents)
+  })
+
+  it.each([
+    '',
+    '   ',
+    'abc',
+    '1,2,3',
+    '12,345',
+    '-5',
+    '28.5',
+    '1.2.3',
+    '1..000',
+    'R$',
+    '9'.repeat(20),
+  ])('recusa %j em vez de adivinhar', (text) => {
+    expect(parseMoney(text)).toBeNull()
+  })
+
+  it('volta exatamente o que formatMoneyPlain escreve', () => {
+    for (const cents of [0, 1, 99, 100, 123_456, 2_800_000, 999_999_999_99]) {
+      expect(parseMoney(formatMoneyPlain(cents))).toBe(cents)
+    }
+  })
+})
+
+describe('formatMoneyPlain', () => {
+  it('escreve só o número, sempre com centavos, para o campo de entrada', () => {
+    expect(formatMoneyPlain(2_800_000)).toBe('28.000,00')
+    expect(formatMoneyPlain(5)).toBe('0,05')
   })
 })
