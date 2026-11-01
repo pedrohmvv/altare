@@ -1772,3 +1772,20 @@
   - O agente gravar o `permissions.allow` no repositório: o classificador do modo Auto o barrou como autoalteração de permissões, e a decisão de liberar comandos é do usuário.
 - **Verificação:** `pnpm cursor:rules:check` em dia; `settings.json` válido, com o `SessionStart` preservado. **Pendente:** o usuário liberar os comandos nas próprias permissões e conferir, em sessão nova, que "commita" dispara a skill sem prompt.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário. As permissões `allow` e `deny` de commit, push, PR e merge foram adicionadas por ele em `~/.claude/settings.json`.
+
+---
+
+## D-079 — Ajustes do time de agentes: o reviewer lê o trabalho não commitado e o AGENTS.md volta a refletir a D-078
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1 (infraestrutura de trabalho, entre os Blocos 1.2 e 1.3)
+- **Pedido do usuário:** ler a sessão do Bloco 1.3 para ver se o time de agentes funciona como esperado, corrigir o que não funciona e reiniciar o bloco em sessão nova.
+- **Decisão:**
+  1. **O `altare-reviewer` revisa antes do commit.** O GATE 2 (diff e pareceres) vem antes do GATE 3 (commit), então `git diff develop...HEAD` chegava vazio. O procedimento passa a usar `git diff develop --stat` (índice e árvore) e `git status --porcelain --untracked-files=all` (arquivos novos, lidos com Read), e mantém `develop...HEAD` para a branch que já tem commits. O `readonly-git.sh` já aceita esses comandos. A `altare-bloco` avisa o reviewer de que o trabalho não está commitado.
+  2. **O `AGENTS.md` volta a refletir a `D-078`.** O commit da D-078 chegou à `develop` sem as edições do `AGENTS.md` (o arquivo foi sobrescrito por uma versão antiga e reformatada do editor, que também tirou os espaços ao redor de código inline). O arquivo é restaurado da versão anterior à reformatação e as edições da D-078 são reaplicadas: `skills-map` (commit e PR sem restrição, `altare-bloco` listada), §5, fase e "Como retomar".
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e §5; `.claude/agents/altare-reviewer.md`; `.claude/skills/altare-bloco/SKILL.md`; `D-077` (o procedimento do reviewer) e `D-078` (o que ela afirma ter ajustado no `AGENTS.md`).
+- **Razão:** a primeira execução real achou dois defeitos que só aparecem em uso: um desenho que revisava o diff errado e uma documentação que contradizia o mecanismo e era injetada em toda sessão.
+- **O que ficou rejeitado:**
+  - Pedir ao orquestrador que faça `git add -N` antes da revisão: altera o índice sem necessidade, e o reviewer já lê arquivo novo com Read.
+  - Mover o GATE 2 para depois do commit: o usuário perderia a chance de ver o diff antes de o histórico existir (`altare-commit`).
+  - Manter o `AGENTS.md` reformatado e só adicionar a D-078: carregaria os espaços perdidos em código inline.
+- **Verificação:** `readonly-git.sh` testado com os dois comandos novos; `AGENTS.md` conferido contra reformatação. **Pendente:** o primeiro dev e o primeiro reviewer de verdade, na sessão nova do Bloco 1.3.
