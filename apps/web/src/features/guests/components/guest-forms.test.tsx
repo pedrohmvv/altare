@@ -140,6 +140,59 @@ describe('novo núcleo (F-CNV-01)', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
+  it('depois de Concluir, adicionar outro núcleo abre o formulário em branco, não a sequência do anterior', async () => {
+    const mem = memory(EMPTY)
+    const created = household({
+      id: 'n-novo',
+      name: 'Família Nova',
+      side: 'Noiva',
+      guests: [guest({ id: 'p-1', household_id: 'n-novo' })],
+    })
+    const { user } = renderGuests({
+      [GET_GUESTS]: mem.get,
+      [POST_HOUSEHOLDS]: mem.write(listOf([created])),
+    })
+    const dialog = await fillNewHousehold(user)
+    await user.click(within(dialog).getByRole('button', { name: 'Criar núcleo' }))
+    const sequence = await screen.findByRole('dialog', { name: 'Pessoas de Família Nova' })
+    await user.click(within(sequence).getByRole('button', { name: 'Concluir' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await user.click(await screen.findByRole('button', { name: 'Adicionar núcleo' }))
+
+    const next = await screen.findByRole('dialog', { name: 'Novo núcleo' })
+    expect(within(next).getByRole('button', { name: 'Criar núcleo' })).toBeVisible()
+    expect(screen.queryByRole('dialog', { name: /^Pessoas de/ })).not.toBeInTheDocument()
+  })
+
+  it('na sequência, sair do nome vazio não acusa erro: só adicionar sem nome acusa', async () => {
+    const mem = memory(EMPTY)
+    const created = household({
+      id: 'n-novo',
+      name: 'Família Nova',
+      side: 'Noiva',
+      guests: [guest({ id: 'p-1', household_id: 'n-novo' })],
+    })
+    const { user, api } = renderGuests({
+      [GET_GUESTS]: mem.get,
+      [POST_HOUSEHOLDS]: mem.write(listOf([created])),
+    })
+    const dialog = await fillNewHousehold(user)
+    await user.click(within(dialog).getByRole('button', { name: 'Criar núcleo' }))
+    const sequence = await screen.findByRole('dialog', { name: 'Pessoas de Família Nova' })
+    const name = within(sequence).getByRole('textbox', { name: 'Nome' })
+
+    // Quem vai concluir passa pelo campo vazio: o aviso que nasce ao sair dele empurra o botão
+    // "Concluir" antes de o clique soltar, e o clique se perde.
+    await user.click(name)
+    await user.tab()
+    expect(within(sequence).queryByText('Informem o nome da pessoa.')).not.toBeInTheDocument()
+
+    await user.click(within(sequence).getByRole('button', { name: 'Adicionar pessoa' }))
+    expect(await within(sequence).findByText('Informem o nome da pessoa.')).toBeVisible()
+    expect(api.callsTo(POST_GUESTS('n-novo'))).toHaveLength(0)
+  })
+
   it('nome repetido aparece no campo do nome, em português', async () => {
     const mem = memory(LIST)
     const { user } = renderGuests({

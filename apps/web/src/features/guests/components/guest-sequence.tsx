@@ -40,7 +40,9 @@ export function GuestSequence({
   const schema = useMemo(() => makeGuestSchema({ nameRequired: true }), [])
   const form = useForm<GuestFormValues>({
     resolver: zodResolver(schema),
-    mode: 'onTouched',
+    // Só ao adicionar: o campo vazio é o estado normal de quem vai concluir, e um aviso ao sair dele
+    // empurraria o botão "Concluir" para baixo antes de o clique soltar.
+    mode: 'onSubmit',
     defaultValues: EMPTY_GUEST,
   })
 

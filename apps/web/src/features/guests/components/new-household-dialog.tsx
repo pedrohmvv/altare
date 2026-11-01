@@ -39,7 +39,9 @@ export function NewHouseholdDialog({ children }: { children: ReactNode }) {
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (!next) setCreated(null)
+        // Zera ao abrir: "Concluir" fecha direto, sem passar por aqui, e o núcleo anterior não
+        // pode reaparecer; zerar ao fechar também faria o formulário piscar na saída do diálogo.
+        if (next) setCreated(null)
       }}
     >
       {children}
