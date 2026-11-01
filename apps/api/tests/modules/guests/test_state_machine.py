@@ -7,7 +7,7 @@ depois de cada passo as invariantes que o domínio e o banco prometem (plano do 
 
 import contextlib
 import math
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from fractions import Fraction
 
 from hypothesis import settings
@@ -21,6 +21,9 @@ from wedding.modules.guests.application.commands.add_guest import AddGuestComman
 from wedding.modules.guests.application.commands.change_guest_status import (
     ChangeGuestStatusCommand,
 )
+from wedding.modules.guests.application.commands.clear_household_invite import (
+    ClearHouseholdInviteCommand,
+)
 from wedding.modules.guests.application.commands.create_household import CreateHouseholdCommand
 from wedding.modules.guests.application.commands.delete_guest import (
     CompanionChoice,
@@ -28,6 +31,9 @@ from wedding.modules.guests.application.commands.delete_guest import (
 )
 from wedding.modules.guests.application.commands.delete_household import DeleteHouseholdCommand
 from wedding.modules.guests.application.commands.move_guest import MoveGuestCommand
+from wedding.modules.guests.application.commands.record_household_invite import (
+    RecordHouseholdInviteCommand,
+)
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuestCommand
 from wedding.modules.guests.application.commands.restore_household import RestoreHouseholdCommand
 from wedding.modules.guests.application.commands.update_guest import UpdateGuestCommand
@@ -49,6 +55,7 @@ from wedding.modules.guests.domain.errors import (
 from wedding.modules.guests.domain.values import (
     AgeBand,
     GuestStatus,
+    InviteChannel,
     Probability,
     Side,
     name_key,
@@ -269,6 +276,46 @@ class GuestsMachine(RuleBasedStateMachine):
         # F-CNV-03, regra 4: mudar pesos ou limites nunca toca em nenhuma pessoa.
         assert people_before == {g.id: (g.band, g.age, g.version) for g in self._guests()}
 
+    @rule(
+        pick=PICK,
+        day=st.integers(1, 27),
+        channel=st.sampled_from(list(InviteChannel)),
+        move_drafts=st.booleans(),
+        actor=ACTORS,
+    )
+    def record_invite(self, pick, day, channel, move_drafts, actor):
+        households = self._households()
+        if households:
+            household = households[pick % len(households)]
+            statuses_before = {g.id: g.status for g in household.guests}
+            self.clock.advance(minutes=1)
+            self.uc.record_household_invite.execute(
+                RecordHouseholdInviteCommand(
+                    household.id, household.version, date(2026, 10, day), channel, move_drafts
+                ),
+                actor,
+            )
+            after = {g.id: g.status for g in self._guests() if g.id in statuses_before}
+            for guest_id, before in statuses_before.items():
+                # F-CNV-05: só Rascunho muda, e só com a oferta aceita; o resto nunca é tocado.
+                if move_drafts and before is GuestStatus.DRAFT:
+                    assert after[guest_id] is GuestStatus.INVITED
+                else:
+                    assert after[guest_id] is before
+
+    @rule(pick=PICK, actor=ACTORS)
+    def clear_invite(self, pick, actor):
+        households = self._households()
+        if households:
+            household = households[pick % len(households)]
+            statuses_before = {g.id: g.status for g in household.guests}
+            self.uc.clear_household_invite.execute(
+                ClearHouseholdInviteCommand(household.id, household.version), actor
+            )
+            assert statuses_before == {
+                g.id: g.status for g in self._guests() if g.id in statuses_before
+            }
+
     @rule(pick=PICK)
     def stale_version_is_always_refused(self, pick):
         guests = self._guests()
@@ -390,6 +437,13 @@ class GuestsMachine(RuleBasedStateMachine):
             assert headcount.weighted_rounded_up == math.ceil(exact)
         # O contrato que o orçamento lê é a mesma conta da lista.
         assert self.uc.get_guest_headcount.execute(NOIVO) == headcount
+
+    @invariant()
+    def the_invite_is_a_date_and_a_channel_together_and_never_in_the_future(self):
+        for household in self._live_households():
+            assert (household.invite_sent_on is None) == (household.invite_channel is None)
+            if household.invite_sent_on is not None:
+                assert household.invite_sent_on <= date(2026, 10, 27)
 
 
 GuestsMachine.TestCase.settings = settings(max_examples=60, stateful_step_count=30, deadline=None)

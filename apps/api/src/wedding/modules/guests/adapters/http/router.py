@@ -19,12 +19,16 @@ from wedding.modules.guests.adapters.http.schemas import (
     GuestUpdateIn,
     HouseholdCreateIn,
     HouseholdUpdateIn,
+    InviteIn,
     MoveIn,
 )
 from wedding.modules.guests.application.commands.add_companion import AddCompanionCommand
 from wedding.modules.guests.application.commands.add_guest import AddGuestCommand
 from wedding.modules.guests.application.commands.change_guest_status import (
     ChangeGuestStatusCommand,
+)
+from wedding.modules.guests.application.commands.clear_household_invite import (
+    ClearHouseholdInviteCommand,
 )
 from wedding.modules.guests.application.commands.create_household import CreateHouseholdCommand
 from wedding.modules.guests.application.commands.delete_guest import (
@@ -33,6 +37,9 @@ from wedding.modules.guests.application.commands.delete_guest import (
 )
 from wedding.modules.guests.application.commands.delete_household import DeleteHouseholdCommand
 from wedding.modules.guests.application.commands.move_guest import MoveGuestCommand
+from wedding.modules.guests.application.commands.record_household_invite import (
+    RecordHouseholdInviteCommand,
+)
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuestCommand
 from wedding.modules.guests.application.commands.restore_household import RestoreHouseholdCommand
 from wedding.modules.guests.application.commands.update_guest import UpdateGuestCommand
@@ -123,6 +130,32 @@ def build_router(provide: GuestsProvider) -> APIRouter:
     def delete_household(household_id: UUID, version: Version, actor: CurrentActor) -> GuestListOut:
         command = DeleteHouseholdCommand(household_id, version)
         return to_guest_list_out(provide().delete_household.execute(command, actor))
+
+    @router.put(
+        "/households/{household_id}/invite",
+        operation_id="record_household_invite",
+        response_model=GuestListOut,
+        responses=_WRITE_ERRORS,
+    )
+    def record_household_invite(
+        household_id: UUID, body: InviteIn, actor: CurrentActor
+    ) -> GuestListOut:
+        command = RecordHouseholdInviteCommand(
+            household_id, body.version, body.sent_on, body.channel, body.move_drafts
+        )
+        return to_guest_list_out(provide().record_household_invite.execute(command, actor))
+
+    @router.delete(
+        "/households/{household_id}/invite",
+        operation_id="clear_household_invite",
+        response_model=GuestListOut,
+        responses=_WRITE_ERRORS,
+    )
+    def clear_household_invite(
+        household_id: UUID, version: Version, actor: CurrentActor
+    ) -> GuestListOut:
+        command = ClearHouseholdInviteCommand(household_id, version)
+        return to_guest_list_out(provide().clear_household_invite.execute(command, actor))
 
     @router.post(
         "/households/{household_id}/restore",

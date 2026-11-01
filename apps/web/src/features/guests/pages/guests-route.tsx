@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { meQueryOptions } from '@/features/identity'
 import { type GuestsSearch, validateGuestsSearch } from '../search'
 import { GuestsPage } from './guests-page'
 
@@ -8,7 +10,13 @@ import { GuestsPage } from './guests-page'
  */
 export function GuestsRoute() {
   const search = validateGuestsSearch(useSearch({ strict: false }) as Record<string, unknown>)
+  const lens = useSearch({
+    strict: false,
+    select: (all) => (all.lente === 'minha' ? 'minha' : 'casal'),
+  })
   const navigate = useNavigate()
+  const me = useQuery(meQueryOptions)
+  if (!me.data) return null
 
   const onSearchChange = (patch: Partial<GuestsSearch>) => {
     void navigate({
@@ -17,5 +25,12 @@ export function GuestsRoute() {
     })
   }
 
-  return <GuestsPage search={search} onSearchChange={onSearchChange} />
+  return (
+    <GuestsPage
+      search={search}
+      onSearchChange={onSearchChange}
+      profile={me.data.profile as 'Noivo' | 'Noiva'}
+      lens={lens}
+    />
+  )
 }

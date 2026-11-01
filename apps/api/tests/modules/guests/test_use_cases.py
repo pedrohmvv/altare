@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import uuid4
 
 import pytest
@@ -8,6 +9,9 @@ from wedding.modules.guests.application.commands.add_guest import AddGuestComman
 from wedding.modules.guests.application.commands.change_guest_status import (
     ChangeGuestStatusCommand,
 )
+from wedding.modules.guests.application.commands.clear_household_invite import (
+    ClearHouseholdInviteCommand,
+)
 from wedding.modules.guests.application.commands.create_household import CreateHouseholdCommand
 from wedding.modules.guests.application.commands.delete_guest import (
     CompanionChoice,
@@ -15,6 +19,9 @@ from wedding.modules.guests.application.commands.delete_guest import (
 )
 from wedding.modules.guests.application.commands.delete_household import DeleteHouseholdCommand
 from wedding.modules.guests.application.commands.move_guest import MoveGuestCommand
+from wedding.modules.guests.application.commands.record_household_invite import (
+    RecordHouseholdInviteCommand,
+)
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuestCommand
 from wedding.modules.guests.application.commands.restore_household import (
     RestoreHouseholdCommand,
@@ -39,10 +46,17 @@ from wedding.modules.guests.domain.errors import (
     GuestNameRequired,
     InvalidAgeLimits,
     InvalidGuestValue,
+    InvalidInvite,
     InvalidWeights,
     LastGuestInHousehold,
 )
-from wedding.modules.guests.domain.values import AgeBand, GuestStatus, Probability, Side
+from wedding.modules.guests.domain.values import (
+    AgeBand,
+    GuestStatus,
+    InviteChannel,
+    Probability,
+    Side,
+)
 from wedding.shared_kernel.errors import NotFound, VersionConflict
 from wedding.shared_kernel.profile import ProfileKind
 
@@ -813,3 +827,155 @@ class TestContagem:
             "exempt_children",
         ]
         assert "weighted_rounded_up" in dir(GuestHeadcount)
+
+
+def enviar(
+    world, nucleo, dia=date(2026, 10, 20), canal=InviteChannel.WHATSAPP, mover=False, ator=NOIVO
+):
+    return world.use_cases().record_household_invite.execute(
+        RecordHouseholdInviteCommand(nucleo.id, nucleo.version, dia, canal, mover), ator
+    )
+
+
+class TestConvite:
+    """O convite é por núcleo (F-CNV-05). O relógio dos testes marca 2026-10-27, em Brasília."""
+
+    def test_o_nucleo_nasce_sem_convite_enviado(self, world):
+        _, nucleo = novo_nucleo(world)
+
+        assert (nucleo.invite_sent_on, nucleo.invite_channel) == (None, None)
+
+    def test_registra_a_data_e_o_canal_e_sobe_a_versao_do_nucleo(self, world):
+        _, nucleo = novo_nucleo(world)
+
+        lista = enviar(world, nucleo)
+
+        enviado = household_of(lista, "Família Exemplo")
+        assert (enviado.invite_sent_on, enviado.invite_channel) == (
+            date(2026, 10, 20),
+            InviteChannel.WHATSAPP,
+        )
+        assert enviado.version == nucleo.version + 1
+
+    def test_aceitar_a_oferta_move_so_os_rascunhos_para_convidado(self, world):  # F-CNV-05, regra 2
+        _, nucleo = novo_nucleo(world)
+        _, b = nova_pessoa(world, nucleo, "Convidado Exemplo B")
+        nova_pessoa(world, nucleo, "Convidado Exemplo C")
+        mudar_status(world, b, GuestStatus.CONFIRMED)
+        lista = world.use_cases().get_guest_list.execute(NOIVO)
+        lista = mudar_status(world, pessoa_de(lista, "Convidado Exemplo C"), GuestStatus.DECLINED)
+        nucleo = household_of(lista, "Família Exemplo")
+
+        lista = enviar(world, nucleo, mover=True, ator=NOIVA)
+
+        status = {g.name: g.status for g in household_of(lista, "Família Exemplo").guests}
+        assert status == {
+            "Convidado Exemplo A": GuestStatus.INVITED,  # estava em Rascunho
+            "Convidado Exemplo B": GuestStatus.CONFIRMED,  # nunca é tocado
+            "Convidado Exemplo C": GuestStatus.DECLINED,
+        }
+        historico = world.use_cases().list_guest_status_history.execute(nucleo.guests[0].id, NOIVO)
+        assert [(h.from_status, h.to_status, h.profile) for h in historico] == [
+            (GuestStatus.DRAFT, GuestStatus.INVITED, ProfileKind.NOIVA)
+        ]
+
+    def test_recusar_a_oferta_mantem_os_status(self, world):  # F-CNV-05, critério de aceite
+        _, nucleo = novo_nucleo(world)
+        nova_pessoa(world, nucleo, "Convidado Exemplo B")
+        nucleo = household_of(world.use_cases().get_guest_list.execute(NOIVO), "Família Exemplo")
+
+        lista = enviar(world, nucleo, mover=False)
+
+        assert {g.status for g in household_of(lista, "Família Exemplo").guests} == {
+            GuestStatus.DRAFT
+        }
+
+    def test_o_acompanhante_em_rascunho_tambem_vai_para_convidado(self, world):
+        _, nucleo = novo_nucleo(world)
+        lista = world.use_cases().add_companion.execute(
+            AddCompanionCommand(nucleo.guests[0].id, None), NOIVO
+        )
+        nucleo = household_of(lista, "Família Exemplo")
+
+        lista = enviar(world, nucleo, mover=True)
+
+        assert {g.status for g in household_of(lista, "Família Exemplo").guests} == {
+            GuestStatus.INVITED
+        }
+
+    def test_editar_o_envio_nao_reverte_nenhum_status(self, world):  # F-CNV-05, regra 3
+        _, nucleo = novo_nucleo(world)
+        lista = enviar(world, nucleo, mover=True)
+        nucleo = household_of(lista, "Família Exemplo")
+
+        lista = enviar(world, nucleo, dia=date(2026, 10, 21), canal=InviteChannel.EMAIL)
+
+        assert household_of(lista, "Família Exemplo").guests[0].status is GuestStatus.INVITED
+        assert household_of(lista, "Família Exemplo").invite_channel is InviteChannel.EMAIL
+
+    def test_limpar_o_envio_nao_reverte_nenhum_status(self, world):  # F-CNV-05, regra 3
+        _, nucleo = novo_nucleo(world)
+        nucleo = household_of(enviar(world, nucleo, mover=True), "Família Exemplo")
+
+        lista = world.use_cases().clear_household_invite.execute(
+            ClearHouseholdInviteCommand(nucleo.id, nucleo.version), NOIVO
+        )
+
+        limpo = household_of(lista, "Família Exemplo")
+        assert (limpo.invite_sent_on, limpo.invite_channel) == (None, None)
+        assert limpo.guests[0].status is GuestStatus.INVITED
+
+    def test_data_futura_e_recusada_e_nada_e_gravado(self, world):
+        _, nucleo = novo_nucleo(world)
+
+        with pytest.raises(InvalidInvite):
+            enviar(world, nucleo, dia=date(2026, 10, 28), mover=True)
+
+        atual = world.use_cases().get_guest_list.execute(NOIVO)
+        assert household_of(atual, "Família Exemplo").invite_sent_on is None
+        assert household_of(atual, "Família Exemplo").guests[0].status is GuestStatus.DRAFT
+
+    def test_o_dia_de_hoje_em_brasilia_vale(self, world):
+        _, nucleo = novo_nucleo(world)
+
+        lista = enviar(world, nucleo, dia=date(2026, 10, 27))
+
+        assert household_of(lista, "Família Exemplo").invite_sent_on == date(2026, 10, 27)
+
+    def test_versao_velha_e_recusada_no_envio_e_na_limpeza(self, world):
+        _, nucleo = novo_nucleo(world)
+
+        with pytest.raises(VersionConflict):
+            world.use_cases().record_household_invite.execute(
+                RecordHouseholdInviteCommand(
+                    nucleo.id, nucleo.version + 1, date(2026, 10, 20), InviteChannel.OTHER, False
+                ),
+                NOIVO,
+            )
+        with pytest.raises(VersionConflict):
+            world.use_cases().clear_household_invite.execute(
+                ClearHouseholdInviteCommand(nucleo.id, nucleo.version + 1), NOIVO
+            )
+
+    def test_repetir_o_mesmo_envio_nao_sobe_a_versao(self, world):
+        _, nucleo = novo_nucleo(world)
+        enviado = household_of(enviar(world, nucleo), "Família Exemplo")
+
+        igual = enviar(world, enviado)
+
+        assert household_of(igual, "Família Exemplo").version == enviado.version
+
+    def test_limpar_quem_nao_tem_envio_nao_muda_nada(self, world):
+        _, nucleo = novo_nucleo(world)
+
+        lista = world.use_cases().clear_household_invite.execute(
+            ClearHouseholdInviteCommand(nucleo.id, nucleo.version), NOIVO
+        )
+
+        assert household_of(lista, "Família Exemplo").version == nucleo.version
+
+    def test_nucleo_inexistente_e_nao_encontrado(self, world):
+        with pytest.raises(NotFound):
+            world.use_cases().clear_household_invite.execute(
+                ClearHouseholdInviteCommand(uuid4(), 1), NOIVO
+            )

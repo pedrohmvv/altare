@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi } from '@/test/fake-api'
-import { listOf } from '@/test/guest-fixtures'
+import { LIST, listOf } from '@/test/guest-fixtures'
 import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
 
 const AREAS = [
@@ -113,6 +113,32 @@ describe('lente na URL', () => {
     const router = await renderRoute('/cronograma?lente=banana')
 
     expect(router.state.matches.at(-1)?.search.lente).toBeUndefined()
+  })
+
+  it('os filtros de Convidados moram na URL, o voltar os desfaz e a busca nunca vai para ela (F-CNV-07)', async () => {
+    const api = mockApi({
+      'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+      'GET /api/v1/guests': jsonResponse(200, LIST),
+    })
+    const router = await renderRoute('/convidados?lente=minha', { api })
+    const chip = await screen.findByRole('button', { name: 'Confirmado' }, { timeout: 4000 })
+
+    await userEvent.click(chip)
+    expect(router.state.location.search).toMatchObject({ status: 'confirmado', lente: 'minha' })
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar por nome' }), 'silva')
+    expect(Object.keys(router.state.location.search)).toEqual(
+      expect.not.arrayContaining(['busca', 'q', 'query']),
+    )
+    expect(JSON.stringify(router.state.location.search)).not.toContain('silva')
+
+    router.history.back()
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('status'))
+    expect(await screen.findByRole('button', { name: 'Confirmado' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('os filtros do Mapa de Escopo moram na URL e o botão voltar os desfaz (F-PLN-08)', async () => {

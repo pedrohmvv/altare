@@ -1,6 +1,7 @@
 from sqlalchemy import (
     CheckConstraint,
     Column,
+    Date,
     Enum,
     ForeignKey,
     Index,
@@ -11,7 +12,13 @@ from sqlalchemy import (
     text,
 )
 
-from wedding.modules.guests.domain.values import AgeBand, GuestStatus, Probability, Side
+from wedding.modules.guests.domain.values import (
+    AgeBand,
+    GuestStatus,
+    InviteChannel,
+    Probability,
+    Side,
+)
 from wedding.platform.db.audit import audit_columns
 from wedding.platform.db.metadata import metadata
 from wedding.shared_kernel.profile import ProfileKind
@@ -66,7 +73,17 @@ guest_households = Table(
         nullable=False,
         comment="Sobe quando uma pessoa sai do núcleo: duas saídas simultâneas se conflitam.",
     ),
+    Column("invite_sent_on", Date, comment="Quando o convite do núcleo foi enviado (F-CNV-05)."),
+    Column(
+        "invite_channel",
+        _enum(InviteChannel, "guest_invite_channel", 12),
+        comment="Canal do envio; anda junto com a data.",
+    ),
     CheckConstraint("state IS NULL OR length(state) = 2", name="state_has_two_letters"),
+    CheckConstraint(
+        "(invite_sent_on IS NULL) = (invite_channel IS NULL)",
+        name="invite_date_and_channel_together",
+    ),
     CheckConstraint(
         "postal_code IS NULL OR length(postal_code) = 8", name="postal_code_has_eight_digits"
     ),

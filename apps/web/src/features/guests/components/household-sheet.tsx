@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { formatDay } from '@/lib/date'
 import type { Guest, Household } from '../api/guests'
-import { useAddCompanion, useRestoreGuest } from '../api/use-guest-mutations'
+import {
+  useAddCompanion,
+  useClearHouseholdInvite,
+  useRestoreGuest,
+} from '../api/use-guest-mutations'
 import { copy } from '../copy'
 import { addressLines } from '../lib/address'
 import { displayName } from '../lib/names'
@@ -14,6 +19,7 @@ import { DeleteHouseholdDialog } from './delete-household-dialog'
 import { EditGuestDialog } from './edit-guest-dialog'
 import { EditHouseholdDialog } from './edit-household-dialog'
 import { GuestHistory } from './guest-history'
+import { InviteDialog } from './invite-dialog'
 import { MoveGuestDialog } from './move-guest-dialog'
 import { StatusControl } from './status-control'
 import { WhatsAppButton } from './whatsapp-button'
@@ -71,6 +77,7 @@ export function HouseholdSheet({
             ))}
           </ul>
         </section>
+        <InviteSection household={household} />
         <section aria-label={copy.sheet.address} className="flex flex-col gap-2">
           <h3 className="text-body font-semibold text-ink">{copy.sheet.address}</h3>
           {lines.length === 0 ? (
@@ -191,5 +198,34 @@ function RemovedNotice({
         </div>
       )}
     </div>
+  )
+}
+
+/** O convite do núcleo (F-CNV-05): quando e como foi enviado, ou que ainda não foi. */
+function InviteSection({ household }: { household: Household }) {
+  const clear = useClearHouseholdInvite()
+  const sent = household.invite_sent_on !== null && household.invite_channel !== null
+  return (
+    <section aria-label={copy.invite.section} className="flex flex-col gap-2">
+      <h3 className="text-body font-semibold text-ink">{copy.invite.section}</h3>
+      <p className="text-body-sm text-ink">
+        {sent && household.invite_sent_on && household.invite_channel
+          ? copy.invite.sent(formatDay(household.invite_sent_on), household.invite_channel)
+          : copy.invite.notSent}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <InviteDialog household={household} />
+        {sent && (
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={clear.isPending}
+            onClick={() => clear.mutate({ householdId: household.id, version: household.version })}
+          >
+            {copy.invite.clear}
+          </Button>
+        )}
+      </div>
+    </section>
   )
 }

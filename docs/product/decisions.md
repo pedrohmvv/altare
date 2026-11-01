@@ -1657,3 +1657,28 @@
 - **Verificação:** API com 931 testes e web com 676, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
 - **Pendente:** aprovação do usuário depois do PR, e a passada manual de `altare-acessibilidade` sobre os contadores e o diálogo de pesos e idades.
 
+---
+
+## D-074 — Convite por núcleo, busca, filtros e a lente Minha visão (Bloco 1.2, PR 3 de 5)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.2, PR 3 de 5 (`D-071`)
+- **Decisão:**
+  1. **Convite por núcleo** (`F-CNV-05`): duas colunas em `guest_households` (migration `0009`, em lote porque o SQLite não acrescenta restrição a uma tabela existente): `invite_sent_on` e `invite_channel`, que o banco obriga a andar **juntas**, com os cinco canais da spec (`WhatsApp`, `E-mail`, `Impresso`, `Pessoalmente`, `Outro`). A data é a de hoje ou de um dia que já passou, **medida em Brasília** (UTC-3 fixo, sem depender do banco de fusos). Um teste confere que a migration não perde dado nem o índice parcial do nome do núcleo, e que desce sem perder nada.
+  2. **A oferta de mover os rascunhos** é um aceite explícito: `PUT /households/{id}/invite` recebe `move_drafts`; só com ele as pessoas em `Rascunho` (acompanhante incluso) passam a `Convidado`, uma a uma, com a linha de histórico e o perfil de quem aceitou. Quem está em outro status **nunca** é tocado; editar ou limpar o envio **não reverte** nenhum status. A tela faz a oferta com duas saídas ("Mover para Convidado" e "Manter como estão"), e quem recusa mantém tudo.
+  3. **Busca, filtros e lente** (`F-CNV-07`): lado, faixa, probabilidade, status, "convite não enviado" e "com restrição alimentar" são chips cujo estado mora na URL (`lado`, `faixa`, `probabilidade`, `status`, `semconvite`, `restricao`, `outro`), validada à mão, com valor desconhecido descartado e o botão voltar desfazendo cada um. **A busca por nome ou por núcleo, sem diferenciar caixa nem acento, fica no navegador e nunca vai para a URL.** Lado e convite filtram o núcleo; faixa, probabilidade, status e restrição filtram a pessoa, e o núcleo sem ninguém que sobre some; se o nome do núcleo bate com a busca, todas as pessoas dele entram. O resumo do núcleo segue o real.
+  4. **Lente `Minha visão`:** mostra o lado de quem está logado mais o `Comum`, com "Mostrar também o outro lado" a um toque; um filtro de lado explícito vence a lente; a lente `Casal` mostra tudo. A lente muda o foco, nunca a autoria nem o acesso.
+  5. **Contadores sempre globais** (decisão 10 do plano): filtro e lente não os mudam; a tela diz "N de M pessoas" à parte quando algo estreita a lista.
+  6. **A regra de filtrar é uma função pura** (`lib/guest-filters.ts`) que também entrega os ids visíveis, que a exportação leva (PR 4); o predicado do filtro mora só no navegador, como o `filterGroups` do Mapa.
+  7. **Guia.** Sem página para os filtros nem para o convite: chips como os do Mapa (`D-068`), campo e seleção da pág. 34, aviso e diálogo no espírito das págs. 32 e 35 (desvios no §15). O `Chip` do Mapa foi copiado para a feature, sem criar primitivo (`D-028`); sobe para `components/ui` quando uma terceira feature o usar.
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15); `convidados-enxoval-e-dia-d.md` (nota); `AGENTS.md` §1; `roadmap.md`; `CLAUDE.md` do `guests`.
+- **Razão:** o convite é um ato por família, e a lista de 150 pessoas só é usável com busca e filtros; ambos tocam dado de terceiros, então o texto da busca não pode sair do navegador.
+- **O que ficou rejeitado:**
+  - Convite por pessoa: mais trabalho para um ato que é por família (`D-030`).
+  - Mover os rascunhos automaticamente ao registrar o envio: tiraria do casal a decisão.
+  - Busca por texto na URL: ficaria no histórico, na barra de endereço e no log de quem serve a página.
+  - Filtrar no servidor: a busca trafegaria nome de convidado, e o predicado viveria em dois lugares.
+  - Esconder do `Minha visão` o outro lado sem volta: a lente é foco, não permissão.
+- **Adiado, com gatilho para retomar:** os da `D-071`; subir o `Chip` para `components/ui` quando houver um terceiro uso.
+- **Verificação:** API com 965 testes e web com 719, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
+- **Pendente:** aprovação do usuário depois do PR, e a passada manual de `altare-acessibilidade` sobre os filtros (teclado e leitor de tela nos chips e na busca) e o diálogo do convite.
+

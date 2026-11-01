@@ -3,10 +3,14 @@ from threading import Lock
 from wedding.modules.guests.application.commands.add_companion import AddCompanion
 from wedding.modules.guests.application.commands.add_guest import AddGuest
 from wedding.modules.guests.application.commands.change_guest_status import ChangeGuestStatus
+from wedding.modules.guests.application.commands.clear_household_invite import ClearHouseholdInvite
 from wedding.modules.guests.application.commands.create_household import CreateHousehold
 from wedding.modules.guests.application.commands.delete_guest import DeleteGuest
 from wedding.modules.guests.application.commands.delete_household import DeleteHousehold
 from wedding.modules.guests.application.commands.move_guest import MoveGuest
+from wedding.modules.guests.application.commands.record_household_invite import (
+    RecordHouseholdInvite,
+)
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuest
 from wedding.modules.guests.application.commands.restore_household import RestoreHousehold
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
@@ -66,4 +70,6 @@ class GuestsContainer:
             delete_guest=DeleteGuest(uow_factory, clock),
             restore_guest=RestoreGuest(uow_factory),
             update_guest_settings=UpdateGuestSettings(uow_factory),
+            record_household_invite=RecordHouseholdInvite(uow_factory, ids, clock),
+            clear_household_invite=ClearHouseholdInvite(uow_factory),
         )

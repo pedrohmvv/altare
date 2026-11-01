@@ -62,6 +62,14 @@ class Probability(StrEnum):
     PHASE_2 = "Fase 2"
 
 
+class InviteChannel(StrEnum):
+    WHATSAPP = "WhatsApp"
+    EMAIL = "E-mail"
+    PRINTED = "Impresso"
+    IN_PERSON = "Pessoalmente"
+    OTHER = "Outro"
+
+
 class GuestStatus(StrEnum):
     DRAFT = "Rascunho"
     INVITED = "Convidado"

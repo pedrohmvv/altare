@@ -2442,6 +2442,172 @@
         }
       }
     },
+    "/api/v1/guests/households/{household_id}/invite": {
+      "put": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "Record Household Invite",
+        "operationId": "record_household_invite",
+        "parameters": [
+          {
+            "name": "household_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Household Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestListOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "Clear Household Invite",
+        "operationId": "clear_household_invite",
+        "parameters": [
+          {
+            "name": "household_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Household Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestListOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/guests/households/{household_id}/restore": {
       "post": {
         "tags": [
@@ -4963,6 +5129,28 @@
             ],
             "title": "Note"
           },
+          "invite_sent_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invite Sent On"
+          },
+          "invite_channel": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InviteChannel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "summary": {
             "$ref": "#/components/schemas/HouseholdSummaryOut"
           },
@@ -4991,6 +5179,8 @@
           "state",
           "postal_code",
           "note",
+          "invite_sent_on",
+          "invite_channel",
           "summary",
           "guests",
           "version"
@@ -5177,6 +5367,48 @@
           "file_id"
         ],
         "title": "ImageReferenceIn"
+      },
+      "InviteChannel": {
+        "type": "string",
+        "enum": [
+          "WhatsApp",
+          "E-mail",
+          "Impresso",
+          "Pessoalmente",
+          "Outro"
+        ],
+        "title": "InviteChannel"
+      },
+      "InviteIn": {
+        "properties": {
+          "sent_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Sent On"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/InviteChannel"
+          },
+          "move_drafts": {
+            "type": "boolean",
+            "title": "Move Drafts",
+            "default": false
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "sent_on",
+          "channel",
+          "version"
+        ],
+        "title": "InviteIn",
+        "description": "O envio do convite do núcleo (F-CNV-05): data e canal juntos. `move_drafts` é o aceite da\noferta de mover os rascunhos para `Convidado`; sem ele nenhum status muda."
       },
       "LinkReferenceIn": {
         "properties": {

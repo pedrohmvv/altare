@@ -551,6 +551,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/guests/households/{household_id}/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Record Household Invite */
+        put: operations["record_household_invite"];
+        post?: never;
+        /** Clear Household Invite */
+        delete: operations["clear_household_invite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guests/households/{household_id}/restore": {
         parameters: {
             query?: never;
@@ -1267,6 +1285,9 @@ export interface components {
             postal_code: string | null;
             /** Note */
             note: string | null;
+            /** Invite Sent On */
+            invite_sent_on: string | null;
+            invite_channel: components["schemas"]["InviteChannel"] | null;
             summary: components["schemas"]["HouseholdSummaryOut"];
             /** Guests */
             guests: components["schemas"]["GuestOut"][];
@@ -1324,6 +1345,34 @@ export interface components {
             title?: string | null;
             /** Comment */
             comment?: string | null;
+        };
+        /**
+         * InviteChannel
+         * @enum {string}
+         */
+        InviteChannel: "WhatsApp" | "E-mail" | "Impresso" | "Pessoalmente" | "Outro";
+        /**
+         * InviteIn
+         * @description O envio do convite do núcleo (F-CNV-05): data e canal juntos. `move_drafts` é o aceite da
+         *     oferta de mover os rascunhos para `Convidado`; sem ele nenhum status muda.
+         */
+        InviteIn: {
+            /**
+             * Sent On
+             * Format: date
+             */
+            sent_on: string;
+            channel: components["schemas"]["InviteChannel"];
+            /**
+             * Move Drafts
+             * @default false
+             */
+            move_drafts: boolean;
+            /**
+             * Version
+             * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
         };
         /** LinkReferenceIn */
         LinkReferenceIn: {
@@ -3475,6 +3524,129 @@ export interface operations {
         };
     };
     delete_household: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    record_household_invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    clear_household_invite: {
         parameters: {
             query: {
                 /** @description A versão que a tela viu; divergir dá 409. */

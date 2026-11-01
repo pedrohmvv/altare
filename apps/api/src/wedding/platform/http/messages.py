@@ -170,6 +170,10 @@ MESSAGES: dict[str, Message] = {
         "Limites de idade não aceitos",
         "Use idades de 0 a 17 anos, com o limite da isenta menor ou igual ao da pagante.",
     ),
+    "invalid_invite": Message(
+        "Convite não aceito",
+        "Informem a data e o canal do envio. A data é a de hoje ou de um dia que já passou.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",
