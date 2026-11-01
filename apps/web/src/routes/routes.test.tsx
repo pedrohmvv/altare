@@ -31,12 +31,24 @@ function planningApi() {
   })
 }
 
+// Convidados já tem conteúdo de verdade: lê a lista, então a API falsa responde a ela.
+function guestsApi() {
+  return mockApi({
+    'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+    'GET /api/v1/guests': jsonResponse(200, { households: [] }),
+  })
+}
+
+const WITH_CONTENT = ['/planejamento', '/convidados']
+
 // As áreas que ainda são esqueleto: um estado vazio acolhedor e nenhuma ação.
-const SKELETONS = AREAS.filter(([path]) => path !== '/planejamento')
+const SKELETONS = AREAS.filter(([path]) => !WITH_CONTENT.includes(path))
 
 describe('rotas das áreas', () => {
   it.each(AREAS)('%s mostra o título editorial da área como o único h1', async (path, title) => {
-    await renderRoute(path, path === '/planejamento' ? { api: planningApi() } : {})
+    const api =
+      path === '/planejamento' ? planningApi() : path === '/convidados' ? guestsApi() : undefined
+    await renderRoute(path, api ? { api } : {})
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)

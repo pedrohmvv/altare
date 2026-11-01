@@ -155,3 +155,20 @@ def test_a_migracao_das_referencias_cria_e_remove_a_tabela(tmp_path):
     command.downgrade(config, "0005")
     assert "scope_references" not in _estado(url)[0]
     assert {"scope_categories", "file_assets"} <= _estado(url)[0]
+
+
+def test_a_migracao_dos_convidados_cria_e_remove_as_tabelas(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    tabelas = {"guest_households", "guests", "guest_status_changes"}
+    command.upgrade(config, "head")
+    assert tabelas <= _estado(url)[0]
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        # Diferente do escopo, a lista nasce vazia: nenhum convidado é semeado (AGENTS.md §2).
+        contagens = [conn.execute(text(f"SELECT COUNT(*) FROM {t}")).scalar() for t in tabelas]
+    engine.dispose()
+    assert contagens == [0, 0, 0]
+    command.downgrade(config, "0006")
+    assert tabelas.isdisjoint(_estado(url)[0])
+    assert {"scope_references", "scope_categories"} <= _estado(url)[0]

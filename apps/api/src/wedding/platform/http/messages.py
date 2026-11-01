@@ -115,6 +115,53 @@ MESSAGES: dict[str, Message] = {
         "Só imagens",
         ("Referências aceitam imagens JPG, PNG ou WebP. Um PDF não entra como referência."),
     ),
+    "invalid_guest_value": Message(
+        "Valor não aceito",
+        (
+            "Confira os textos e a idade: o nome vai até 80 caracteres, a idade de criança "
+            "vai de 0 a 17 e o estado é a sigla, como SP."
+        ),
+    ),
+    "guest_name_required": Message(
+        "Falta o nome",
+        "Informe o nome do convidado. Só o acompanhante pode ficar sem nome por enquanto.",
+    ),
+    "invalid_phone": Message(
+        "Telefone não aceito",
+        "Confira o telefone: informe o DDD e o número, como (11) 91234-5678.",
+    ),
+    "invalid_email": Message(
+        "E-mail não aceito",
+        "Confira o e-mail: ele precisa ter o formato nome@dominio.com.",
+    ),
+    "duplicate_household_name": Message(
+        "Nome já usado",
+        "Já existe um núcleo com este nome. Escolham outro ou acrescentem a pessoa a esse núcleo.",
+    ),
+    "last_guest_in_household": Message(
+        "Último convidado do núcleo",
+        "Este é o último convidado do núcleo. Excluam o núcleo ou deixem alguém nele.",
+    ),
+    "companion_already_exists": Message(
+        "Já tem acompanhante",
+        "Este convidado já tem um acompanhante. Editem o que já está na lista.",
+    ),
+    "companion_cannot_have_companion": Message(
+        "Acompanhante sem acompanhante",
+        "Um acompanhante não leva outro acompanhante. Adicionem uma pessoa ao núcleo.",
+    ),
+    "companion_moves_with_holder": Message(
+        "Mudem o titular",
+        "O acompanhante muda de núcleo junto com o titular. Movam o titular.",
+    ),
+    "companion_needs_name": Message(
+        "Falta o nome do acompanhante",
+        "Para manter o acompanhante, informem o nome dele. Sem nome, ele sai junto com o titular.",
+    ),
+    "companion_choice_required": Message(
+        "Escolham o que fazer com o acompanhante",
+        "Este convidado tem um acompanhante. Excluam os dois ou mantenham o acompanhante na lista.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",

@@ -2,6 +2,8 @@
 
 > **Status:** **Parte Convidados aprovada pelo usuário em 2026-10-27** (`D-030`). **Parte Enxoval e Lista de Presentes (Bloco 4.1) aprovada pelo usuário em 2026-10-27** (`D-037`), no fim deste arquivo. **Parte Dossiê do Dia D (Bloco 4.2) aprovada pelo usuário em 2026-10-27** (`D-038`), também no fim deste arquivo.
 >
+> **Implementação (parte Convidados):** em 5 PRs (`D-071`). `F-CNV-01`, `02` e `04` estão implementadas (`D-072`): núcleo que nasce com a primeira pessoa, acompanhante a confirmar, status livre com motivo e histórico e o "Abrir WhatsApp"; os outros itens seguem nos PRs 2 a 4.
+>
 > **Fontes:** `docs/product/scope.md` §6, `docs/design/experience.md` (Fluxo 5, objeto 9), `docs/product/jobs.md` (J2, J10), `D-029` e `D-030`.
 >
 > **Convenções:** `F-CNV-xx` identifica a feature. "Autor" é o usuário da sessão. Nenhum dado de convidado é pré-carregado. Dados de terceiros (telefone, e-mail, endereço) ficam só no banco do casal e **não vão para logs**.
