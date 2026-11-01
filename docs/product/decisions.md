@@ -1730,3 +1730,26 @@
 - **Verificação:** API com 1031 testes e web com 729, E2E com 86 passando (2 pulados de propósito: o teto e o conflito entre perfis rodam só no desktop), Ruff, Biome, Pyright, `tsc`, 7 contratos, `make api-types` sem diferença; cada commit é verificado isolado num worktree.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário. Com ela, as `D-072` a `D-075` também estão aprovadas.
 - **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%, reduzir movimento) sobre a lista, o painel, os pesos e a exportação, e o `.xlsx` e o `.csv` no Excel pt-BR, pelo usuário, sem problemas. O release `v0.4.0` foi publicado na mesma data.
+
+---
+
+## D-077 — Time de agentes: a sessão principal orquestra subagents com gates duros
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1 (infraestrutura de trabalho, entre os Blocos 1.2 e 1.3)
+- **Pedido do usuário:** mudar a forma de desenvolver os blocos: a sessão principal orquestra subagents, com gates duros por permissions e hooks; só a infraestrutura, sem implementar bloco.
+- **Decisão:**
+  1. **Três subagents de projeto** em `.claude/agents/`: `altare-api-dev` e `altare-web-dev` (implementam um PR aprovado, com TDD, e não commitam) e `altare-reviewer` (somente leitura, Opus, lente por chamada: corretude, seguranca-lgpd ou design-a11y). As skills `altare-*` de cada papel vêm pré-carregadas; o reviewer e o web-dev também têm a Skill tool, para ler a skill da lente e usar a `run`.
+  2. **Gates por mecanismo, não por pedido:** o reviewer só roda git de leitura, `rg`, `ls` e `wc` (hook `PreToolUse`, `readonly-git.sh`, que também recusa quebra de linha, `branch -D`, `--output` e `rg --pre`); os devs só encerram com `lint`, `typecheck` e `test` do seu lado verdes (hook `Stop`, que vira `SubagentStop`, `gates.sh api|web`, com uma segunda tentativa por `stop_hook_active` e sem rodar nada quando não há mudança em `apps`, `tools` ou `Makefile`). `permissions.ask` cobre `git commit`, `git push`, `gh pr create` e `gh pr merge`.
+  3. **Quatro gates do usuário:** plano, diff com pareceres, commit e PR. `altare-commit` e `altare-pull-request` ganham `disable-model-invocation: true`: só o usuário as invoca (`/altare-commit`). No `skills-map` do `AGENTS.md`, as linhas "Commitar" e "Abrir PR" passam a dizer isso.
+  4. **Skill orquestradora `altare-bloco`** (`/altare-bloco 1.3`), manual (fora do `skills-map`) e sem `context: fork`: roda na sessão principal. Aponta para roadmap, features e decisões; não copia o conteúdo do bloco (`D-039`).
+  5. **Subagents nunca commitam nem registram decisões.** A principal reroda os gates da raiz e lê o `git diff` real, sem confiar no relatório do agente.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 (fase, status e "Como retomar", inclusive a frase do release `v0.4.0`, já publicado em `D-076`) e §5 (precedência, tabela de skills e `skills-map`); `.claude/settings.json`; frontmatter de `altare-commit` e `altare-pull-request`.
+- **Razão:** o usuário conduzia o bloco passo a passo; faltava separar quem implementa de quem revisa e transformar as regras de processo em barreiras que não dependem de lembrar.
+- **O que ficou rejeitado:**
+  - *Agent teams*: experimental, custo alto e sem o ponto de gate humano que o fluxo precisa.
+  - *Workflows* (`Workflow`): pensados para escala e paralelismo largo; este fluxo é sequencial por PR, com decisões do usuário no meio.
+  - *Um agente por papel de empresa* (PM, QA, designer): mais entregas entre agentes e menos contexto; as skills já codificam esses papéis.
+  - *QA como subagent*: os gates são `make`; a independência vem do reviewer.
+  - *Commit e PR como subagent*: o commit atômico exige o plano aprovado pelo usuário e a skill é o único caminho (`D-039`).
+- **Verificação:** hooks testados por pipe (23 casos), `make lint typecheck test` verde (API com 1031 testes e web com 729, 7 contratos), `claude plugin validate` sem avisos (evidência fraca: não lista conteúdo) e `pnpm cursor:rules:check` em dia. Os três agentes apareceram na lista de agentes da sessão depois de criados. **Pendente:** o primeiro uso real (`/altare-bloco 1.3`), que exercita os hooks de agente, que só rodam com a pasta confiada.
+- **Aprovado (2026-11-01):** esta decisão, pelo usuário.
