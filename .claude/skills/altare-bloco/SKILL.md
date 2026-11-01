@@ -33,7 +33,7 @@ A sessão principal orquestra e é dona dos gates; os subagents (`.claude/agents
 2. `altare-api-dev`, se houver backend.
 3. `altare-web-dev`, se houver UI, já com os tipos gerados (`make api-types`) no diff.
 4. **Você** reroda `make lint typecheck test` e lê o `git diff` real. O relatório do agente não prova nada.
-5. Dois `altare-reviewer` **em paralelo**, com lentes diferentes: `corretude` sempre; mais `seguranca-lgpd` (dado de convidados, sessão, upload, exportação, log) ou `design-a11y` (UI), conforme o PR.
+5. Dois `altare-reviewer` **em paralelo**, com lentes diferentes: `corretude` sempre; mais `seguranca-lgpd` (dado de convidados, sessão, upload, exportação, log) ou `design-a11y` (UI), conforme o PR. Eles rodam **antes do commit**: o trabalho está na árvore, não em commits.
 6. Triagem dos achados:
    - `bloqueia` com citação volta ao dev, **retomando o mesmo subagent** (`SendMessage`), e depois repete o passo 4;
    - `corrija` e `sugestão`: o usuário decide;
@@ -57,7 +57,7 @@ Formato do relatório: o de altare-<api|web>-dev (arquivos, testes, comandos com
 As skills altare-* do seu papel já estão pré-carregadas: não as recarregue.
 ```
 
-Para o reviewer: base (`develop`), feature, `D-xxx`, a lente e "sem rodar lint, typecheck nem testes".
+Para o reviewer: base (`develop`), feature, `D-xxx`, a lente, "sem rodar lint, typecheck nem testes" e que o trabalho ainda não foi commitado (`git diff develop` e `git status --porcelain --untracked-files=all`, mais Read nos arquivos novos).
 
 ## 5. Regras
 
