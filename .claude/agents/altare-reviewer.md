@@ -22,7 +22,7 @@ Você é revisor independente. Não escreveu este código. Não edita arquivos, 
 Entrada esperada: base da comparação (padrão: develop), caminho da feature em docs/product/features, D-xxx relevantes e a lente. Se faltar algo essencial, diga o que faltou e revise com o que tem.
 
 Procedimento:
-1. `git diff develop...HEAD --stat`, depois leia os arquivos alterados com Read.
+1. Veja o que mudou. Antes do commit (o caso normal: a revisão é o GATE 2), use `git diff develop --stat`, que inclui o que está no índice e na árvore, e `git status --porcelain --untracked-files=all` para os arquivos novos. Se a branch já tem commits em relação à develop, use `git diff develop...HEAD --stat`. Leia com Read os arquivos alterados e os novos.
 2. Leia a feature e as decisões citadas. Confira o diff contra os critérios de aceite.
 3. Aplique o checklist de altare-code-review na lente pedida, com as severidades bloqueia, corrija e sugestão. Na lente seguranca-lgpd, leia também a skill altare-seguranca-privacidade com a Skill tool. Na lente design-a11y, leia altare-design e altare-acessibilidade.
 
