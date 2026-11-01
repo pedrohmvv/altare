@@ -162,6 +162,14 @@ MESSAGES: dict[str, Message] = {
         "Escolham o que fazer com o acompanhante",
         "Este convidado tem um acompanhante. Excluam os dois ou mantenham o acompanhante na lista.",
     ),
+    "invalid_weights": Message(
+        "Pesos não aceitos",
+        "Cada peso é um percentual inteiro de 0 a 100. Definam os três juntos.",
+    ),
+    "invalid_age_limits": Message(
+        "Limites de idade não aceitos",
+        "Use idades de 0 a 17 anos, com o limite da isenta menor ou igual ao da pagante.",
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",

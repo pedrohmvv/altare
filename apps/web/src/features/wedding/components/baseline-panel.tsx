@@ -74,6 +74,11 @@ export function BaselinePanel() {
                     <span className="truncate text-body-sm text-ink-muted">
                       {value ?? copy.panel.empty}
                     </span>
+                    {key === 'size' && data.size.guest_count > 0 && (
+                      <span className="truncate text-ui-sm text-ink-muted">
+                        {copy.panel.guestsOnList(data.size.guest_count)}
+                      </span>
+                    )}
                   </span>
                   <span className="flex shrink-0 items-center gap-2">
                     <DefinitionBadge status={data[key].status} />

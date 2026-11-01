@@ -3,6 +3,7 @@ from threading import Lock
 from uuid import UUID
 
 from wedding.modules.files.application.use_cases import FilesUseCases
+from wedding.modules.guests.application.use_cases import GuestsUseCases
 from wedding.modules.wedding.application.commands.add_image_reference import AddImageReference
 from wedding.modules.wedding.application.commands.add_link_reference import AddLinkReference
 from wedding.modules.wedding.application.commands.change_scope_status import ChangeScopeStatus
@@ -56,6 +57,17 @@ class FilesImageCatalog:
         return StoredFile(file_id, info.content_type.startswith("image/"))
 
 
+class GuestsTotalNominal:
+    """Liga o `wedding` à lista de convidados sem um importar o outro: só o bootstrap conhece os
+    dois. Lê o Total Nominal pelo contrato público do `guests`, na hora, sem copiá-lo."""
+
+    def __init__(self, guests: Callable[[], GuestsUseCases]) -> None:
+        self._guests = guests
+
+    def total_nominal(self, actor: Actor) -> int:
+        return self._guests().get_guest_headcount.execute(actor).total_nominal.total
+
+
 class WeddingContainer:
     """Monta os casos de uso do casamento na primeira vez que alguém os pede."""
 
@@ -63,11 +75,13 @@ class WeddingContainer:
         self,
         database: Database,
         files: Callable[[], FilesUseCases],
+        guests: Callable[[], GuestsUseCases],
         *,
         clock: Clock | None = None,
     ) -> None:
         self._database = database
         self._files = files
+        self._guests = guests
         self._clock = clock or SystemClock()
         self._lock = Lock()
         self._use_cases: WeddingUseCases | None = None
@@ -138,12 +152,13 @@ class WeddingContainer:
         start_mappers()
         sessions = self._database.sessions()
         clock = self._clock
+        guest_count = GuestsTotalNominal(self._guests)
 
         def uow_factory(actor: Actor) -> SqlWeddingUnitOfWork:
             return SqlWeddingUnitOfWork(sessions, clock, actor)
 
         return WeddingUseCases(
-            get_baseline=GetBaseline(uow_factory),
-            update_baseline_field=UpdateBaselineField(uow_factory, UuidGenerator()),
+            get_baseline=GetBaseline(uow_factory, guest_count),
+            update_baseline_field=UpdateBaselineField(uow_factory, UuidGenerator(), guest_count),
             list_baseline_changes=ListBaselineChanges(uow_factory),
         )

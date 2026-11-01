@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { jsonResponse, problemResponse } from '@/test/fake-api'
+import { guest, household, listOf } from '@/test/guest-fixtures'
 import { GET_GUESTS, renderGuests, stubWideScreen } from '@/test/render-guests'
 
 describe('lista de convidados: leitura', () => {
@@ -13,7 +14,7 @@ describe('lista de convidados: leitura', () => {
   })
 
   it('a lista vazia acolhe e explica por onde começar', async () => {
-    renderGuests({ [GET_GUESTS]: jsonResponse(200, { households: [] }) })
+    renderGuests({ [GET_GUESTS]: jsonResponse(200, listOf([])) })
 
     expect(await screen.findByRole('heading', { name: 'Ainda sem convidados' })).toBeVisible()
     expect(screen.getByText(/Comecem por um núcleo/)).toBeVisible()
@@ -26,7 +27,7 @@ describe('lista de convidados: leitura', () => {
         tentativas += 1
         return tentativas === 1
           ? problemResponse(500, 'internal_error')
-          : jsonResponse(200, { households: [] })
+          : jsonResponse(200, listOf([]))
       },
     })
 
@@ -71,20 +72,13 @@ describe('lista de convidados: leitura', () => {
   })
 
   it('um endereço que não é do WhatsApp nunca vira link, mesmo vindo da API', async () => {
-    const lista = {
-      households: [
-        {
-          ...(await import('@/test/guest-fixtures')).LIST.households[1],
-          guests: [
-            {
-              ...(await import('@/test/guest-fixtures')).guest({
-                whatsapp_url: 'javascript:alert(1)',
-              }),
-            },
-          ],
-        },
-      ],
-    }
+    const lista = listOf([
+      household({
+        id: 'n-b',
+        name: 'Outra Família Exemplo',
+        guests: [guest({ household_id: 'n-b', whatsapp_url: 'javascript:alert(1)' })],
+      }),
+    ])
     renderGuests({ [GET_GUESTS]: jsonResponse(200, lista) })
 
     await screen.findByRole('heading', { name: 'Outra Família Exemplo' })

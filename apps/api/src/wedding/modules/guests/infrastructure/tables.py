@@ -172,3 +172,44 @@ guest_status_changes = Table(
     Index("ix_guest_status_changes_guest_id", "guest_id", "created_at"),
     comment="Histórico de status das pessoas (F-CNV-04): só se acrescenta.",
 )
+
+guest_settings = Table(
+    "guest_settings",
+    metadata,
+    *audit_columns(),
+    Column(
+        "weight_certain_pct",
+        Integer,
+        comment="Peso de Certeza no Estimado Ponderado, de 0 a 100; nulo até o casal definir.",
+    ),
+    Column(
+        "weight_probable_pct", Integer, comment="Peso de Provável, de 0 a 100; nulo até definir."
+    ),
+    Column("weight_phase_2_pct", Integer, comment="Peso de Fase 2, de 0 a 100; nulo até definir."),
+    Column("exempt_until_age", Integer, comment="Criança isenta até esta idade; nulo até definir."),
+    Column(
+        "paying_until_age", Integer, comment="Criança pagante até esta idade; nulo até definir."
+    ),
+    CheckConstraint(
+        "(weight_certain_pct IS NULL) = (weight_probable_pct IS NULL) "
+        "AND (weight_probable_pct IS NULL) = (weight_phase_2_pct IS NULL)",
+        name="weights_all_or_none",
+    ),
+    CheckConstraint(
+        "(weight_certain_pct IS NULL OR weight_certain_pct BETWEEN 0 AND 100) "
+        "AND (weight_probable_pct IS NULL OR weight_probable_pct BETWEEN 0 AND 100) "
+        "AND (weight_phase_2_pct IS NULL OR weight_phase_2_pct BETWEEN 0 AND 100)",
+        name="weights_between_0_and_100",
+    ),
+    CheckConstraint(
+        "(exempt_until_age IS NULL OR exempt_until_age BETWEEN 0 AND 17) "
+        "AND (paying_until_age IS NULL OR paying_until_age BETWEEN 0 AND 17)",
+        name="ages_between_0_and_17",
+    ),
+    CheckConstraint(
+        "exempt_until_age IS NULL OR paying_until_age IS NULL "
+        "OR exempt_until_age <= paying_until_age",
+        name="exempt_not_above_paying",
+    ),
+    comment="Pesos e limites de idade da lista (F-CNV-03 e F-CNV-06): uma linha.",
+)

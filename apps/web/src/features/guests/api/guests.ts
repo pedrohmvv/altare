@@ -12,6 +12,9 @@ export type AgeBand = Schemas['AgeBand']
 export type Probability = Schemas['Probability']
 export type Side = Schemas['Side']
 export type GuestStatusChange = Schemas['GuestStatusChangeOut']
+export type Headcount = Schemas['HeadcountOut']
+export type BandCounts = Schemas['BandCountsOut']
+export type GuestSettings = Schemas['GuestSettingsOut']
 
 /** A ordem dos quatro status, a mesma do seletor. */
 export const GUEST_STATUSES: readonly GuestStatus[] = [

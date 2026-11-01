@@ -28,8 +28,8 @@ def build_app(
     database = Database(settings.database_url)
     identity = IdentityContainer(settings, clock=clock, hasher=hasher, database=database)
     files = FilesContainer(settings, database, clock=clock)
-    wedding = WeddingContainer(database, files.use_cases, clock=clock)
     guests = GuestsContainer(database, clock=clock)
+    wedding = WeddingContainer(database, files.use_cases, guests.use_cases, clock=clock)
     app = create_app(
         routers=[
             build_identity_router(identity.use_cases, cookie_secure=settings.session_cookie_secure),

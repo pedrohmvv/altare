@@ -8,6 +8,7 @@ import { addressLines } from '../lib/address'
 import { displayName } from '../lib/names'
 import { summaryText } from '../lib/summary'
 import { AddGuestDialog } from './add-guest-dialog'
+import { BandSuggestion } from './band-suggestion'
 import { DeleteGuestDialog } from './delete-guest-dialog'
 import { DeleteHouseholdDialog } from './delete-household-dialog'
 import { EditGuestDialog } from './edit-guest-dialog'
@@ -123,6 +124,7 @@ function GuestDetails({
         <p className="text-ui-sm text-ink-muted">{copy.companion.of(guest.holder_name)}</p>
       )}
       <p className="text-body-sm text-ink-muted">{facts.join(' · ')}</p>
+      <BandSuggestion guest={guest} name={name} />
       <dl className="flex flex-col gap-1 text-body-sm">
         {guest.decline_reason && (
           <Fact label={copy.sheet.declineReason} value={guest.decline_reason} />

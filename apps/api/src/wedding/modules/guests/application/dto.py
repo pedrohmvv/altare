@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from wedding.modules.guests.domain.age import AgeLimits
+from wedding.modules.guests.domain.headcount import Headcount, Weights
 from wedding.modules.guests.domain.rules import HouseholdSummary
 from wedding.modules.guests.domain.values import AgeBand, GuestStatus, Probability, Side
 from wedding.shared_kernel.profile import ProfileKind
@@ -16,6 +18,7 @@ class GuestDto:
     holder_name: str | None
     band: AgeBand
     age: int | None
+    suggested_band: AgeBand | None
     probability: Probability
     status: GuestStatus
     decline_reason: str | None
@@ -46,8 +49,19 @@ class HouseholdDto:
 
 
 @dataclass(frozen=True)
+class SettingsDto:
+    """Os pesos e os limites de idade que o casal definiu; ambos vazios no início."""
+
+    weights: Weights | None
+    age_limits: AgeLimits
+    version: int
+
+
+@dataclass(frozen=True)
 class GuestListDto:
     households: tuple[HouseholdDto, ...]
+    headcount: Headcount
+    settings: SettingsDto
 
 
 @dataclass(frozen=True)

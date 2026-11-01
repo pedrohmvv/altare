@@ -35,6 +35,8 @@ class BaselineDto:
     size: BaselineFieldDto[SizeValue]
     ceiling: BaselineFieldDto[CeilingValue]
     ceremony: BaselineFieldDto[CeremonyValue]
+    # Derivado da lista de convidados na hora de ler; a linha `size` nunca o guarda.
+    guest_count: int
 
 
 @dataclass(frozen=True)
@@ -74,7 +76,7 @@ def _field_dto[V: BaselineValue](
     )
 
 
-def to_baseline_dto(fields: Iterable[BaselineField]) -> BaselineDto:
+def to_baseline_dto(fields: Iterable[BaselineField], guest_count: int) -> BaselineDto:
     by_key = {field.key: field for field in fields}
     missing = set(BaselineKey) - by_key.keys()
     if missing:
@@ -87,4 +89,5 @@ def to_baseline_dto(fields: Iterable[BaselineField]) -> BaselineDto:
         size=_field_dto(by_key[BaselineKey.SIZE], SizeValue.from_json),
         ceiling=_field_dto(by_key[BaselineKey.CEILING], CeilingValue.from_json),
         ceremony=_field_dto(by_key[BaselineKey.CEREMONY], CeremonyValue.from_json),
+        guest_count=guest_count,
     )

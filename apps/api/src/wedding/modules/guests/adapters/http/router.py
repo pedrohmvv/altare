@@ -13,6 +13,7 @@ from wedding.modules.guests.adapters.http.schemas import (
     CompanionIn,
     GuestFieldsIn,
     GuestListOut,
+    GuestSettingsIn,
     GuestStatusChangeOut,
     GuestStatusIn,
     GuestUpdateIn,
@@ -35,6 +36,10 @@ from wedding.modules.guests.application.commands.move_guest import MoveGuestComm
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuestCommand
 from wedding.modules.guests.application.commands.restore_household import RestoreHouseholdCommand
 from wedding.modules.guests.application.commands.update_guest import UpdateGuestCommand
+from wedding.modules.guests.application.commands.update_guest_settings import (
+    UpdateGuestSettingsCommand,
+    WeightsCommand,
+)
 from wedding.modules.guests.application.commands.update_household import UpdateHouseholdCommand
 from wedding.modules.guests.application.use_cases import GuestsProvider
 from wedding.platform.http.private_cache import private_no_store
@@ -65,6 +70,24 @@ def build_router(provide: GuestsProvider) -> APIRouter:
     )
     def read_guest_list(actor: CurrentActor) -> GuestListOut:
         return to_guest_list_out(provide().get_guest_list.execute(actor))
+
+    @router.put(
+        "/settings",
+        operation_id="update_guest_settings",
+        response_model=GuestListOut,
+        responses=_WRITE_ERRORS,
+    )
+    def update_guest_settings(body: GuestSettingsIn, actor: CurrentActor) -> GuestListOut:
+        weights = body.weights
+        command = UpdateGuestSettingsCommand(
+            version=body.version,
+            weights=WeightsCommand(weights.certain_pct, weights.probable_pct, weights.phase_2_pct)
+            if weights
+            else None,
+            exempt_until_age=body.exempt_until_age,
+            paying_until_age=body.paying_until_age,
+        )
+        return to_guest_list_out(provide().update_guest_settings.execute(command, actor))
 
     @router.post(
         "/households",

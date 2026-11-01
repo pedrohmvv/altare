@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi } from '@/test/fake-api'
+import { listOf } from '@/test/guest-fixtures'
 import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
 
 const AREAS = [
@@ -24,7 +25,7 @@ function planningApi() {
       date: { ...EMPTY_FIELD, value: { kind: 'nenhuma' } },
       city: { ...EMPTY_FIELD, value: null },
       format: { ...EMPTY_FIELD, value: null },
-      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null } },
+      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null }, guest_count: 0 },
       ceiling: { ...EMPTY_FIELD, value: { cents: null } },
       ceremony: { ...EMPTY_FIELD, value: { kinds: [], detail: null } },
     }),
@@ -35,7 +36,7 @@ function planningApi() {
 function guestsApi() {
   return mockApi({
     'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
-    'GET /api/v1/guests': jsonResponse(200, { households: [] }),
+    'GET /api/v1/guests': jsonResponse(200, listOf([])),
   })
 }
 

@@ -2,8 +2,10 @@ from sqlalchemy import inspect
 from sqlalchemy.orm import relationship
 
 from wedding.modules.guests.domain.entities import Guest, GuestStatusChange, Household
+from wedding.modules.guests.domain.settings import GuestSettings
 from wedding.modules.guests.infrastructure.tables import (
     guest_households,
+    guest_settings,
     guest_status_changes,
     guests,
 )
@@ -34,4 +36,8 @@ def start_mappers() -> None:
             guest_status_changes,
             version_id_col=guest_status_changes.c.version,
             properties={"_guest": relationship(Guest, lazy="raise")},
+        )
+    if inspect(GuestSettings, raiseerr=False) is None:
+        mapper_registry.map_imperatively(
+            GuestSettings, guest_settings, version_id_col=guest_settings.c.version
         )

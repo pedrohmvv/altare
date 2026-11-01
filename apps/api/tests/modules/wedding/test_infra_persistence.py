@@ -41,6 +41,13 @@ NOIVO = Actor(user_id=uuid4(), profile=ProfileKind.NOIVO)
 NOIVA = Actor(user_id=uuid4(), profile=ProfileKind.NOIVA)
 
 
+class _SemLista:
+    """Estas provas são do banco das Definições Base, não da lista: a contagem aqui é zero."""
+
+    def total_nominal(self, actor: Actor) -> int:
+        return 0
+
+
 @pytest.fixture
 def banco(tmp_path, clock):
     """O banco como a migration o deixa, semente incluída: é o que o app encontra em produção."""
@@ -60,8 +67,8 @@ def banco(tmp_path, clock):
         engine=engine,
         clock=clock,
         uow=uow,
-        get=GetBaseline(uow),
-        update=UpdateBaselineField(uow, UuidGenerator()),
+        get=GetBaseline(uow, _SemLista()),
+        update=UpdateBaselineField(uow, UuidGenerator(), _SemLista()),
         changes=ListBaselineChanges(uow),
     )
     engine.dispose()

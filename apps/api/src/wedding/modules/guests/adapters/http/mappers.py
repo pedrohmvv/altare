@@ -1,19 +1,25 @@
 from wedding.modules.guests.adapters.http.schemas import (
+    BandCountsOut,
     GuestFieldsIn,
     GuestListOut,
     GuestOut,
+    GuestSettingsOut,
     GuestStatusChangeOut,
+    HeadcountOut,
     HouseholdFieldsIn,
     HouseholdOut,
     HouseholdSummaryOut,
+    WeightsOut,
 )
 from wedding.modules.guests.application.dto import (
     GuestDto,
     GuestListDto,
     GuestStatusChangeDto,
     HouseholdDto,
+    SettingsDto,
 )
 from wedding.modules.guests.application.fields import GuestFields, HouseholdFields
+from wedding.modules.guests.domain.headcount import BandCounts, Headcount
 
 
 def to_household_fields(body: HouseholdFieldsIn) -> HouseholdFields:
@@ -54,6 +60,7 @@ def _guest(dto: GuestDto) -> GuestOut:
             "holder_name": dto.holder_name,
             "band": dto.band,
             "age": dto.age,
+            "suggested_band": dto.suggested_band,
             "probability": dto.probability,
             "status": dto.status,
             "decline_reason": dto.decline_reason,
@@ -97,8 +104,59 @@ def _household(dto: HouseholdDto) -> HouseholdOut:
     )
 
 
+def _band_counts(counts: BandCounts) -> BandCountsOut:
+    return BandCountsOut.model_validate(
+        {
+            "adults": counts.adults,
+            "paying_children": counts.paying_children,
+            "exempt_children": counts.exempt_children,
+            "total": counts.total,
+        }
+    )
+
+
+def _headcount(headcount: Headcount) -> HeadcountOut:
+    return HeadcountOut.model_validate(
+        {
+            "total_nominal": _band_counts(headcount.total_nominal),
+            "confirmed": _band_counts(headcount.confirmed),
+            "not_attending": _band_counts(headcount.not_attending),
+            "certain_or_confirmed": _band_counts(headcount.certain_or_confirmed),
+            "weighted_adults_hundredths": headcount.weighted_adults_hundredths,
+            "weighted_paying_children_hundredths": headcount.weighted_paying_children_hundredths,
+            "weighted_rounded_up": headcount.weighted_rounded_up,
+        }
+    )
+
+
+def _settings(dto: SettingsDto) -> GuestSettingsOut:
+    weights = dto.weights
+    return GuestSettingsOut.model_validate(
+        {
+            "weights": WeightsOut.model_validate(
+                {
+                    "certain_pct": weights.certain_pct,
+                    "probable_pct": weights.probable_pct,
+                    "phase_2_pct": weights.phase_2_pct,
+                }
+            )
+            if weights
+            else None,
+            "exempt_until_age": dto.age_limits.exempt_until,
+            "paying_until_age": dto.age_limits.paying_until,
+            "version": dto.version,
+        }
+    )
+
+
 def to_guest_list_out(dto: GuestListDto) -> GuestListOut:
-    return GuestListOut.model_validate({"households": [_household(h) for h in dto.households]})
+    return GuestListOut.model_validate(
+        {
+            "households": [_household(h) for h in dto.households],
+            "headcount": _headcount(dto.headcount),
+            "settings": _settings(dto.settings),
+        }
+    )
 
 
 def to_status_change_out(dto: GuestStatusChangeDto) -> GuestStatusChangeOut:

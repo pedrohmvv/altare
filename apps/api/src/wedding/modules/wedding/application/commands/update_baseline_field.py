@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from wedding.modules.wedding.application.dto import BaselineDto, to_baseline_dto
-from wedding.modules.wedding.application.ports import WeddingUnitOfWorkFactory
+from wedding.modules.wedding.application.ports import GuestCountReader, WeddingUnitOfWorkFactory
 from wedding.modules.wedding.domain.entities import BaselineChange
 from wedding.modules.wedding.domain.value_objects import (
     BaselineKey,
@@ -23,9 +23,15 @@ class UpdateBaselineFieldCommand:
 
 
 class UpdateBaselineField:
-    def __init__(self, uow_factory: WeddingUnitOfWorkFactory, ids: IdGenerator) -> None:
+    def __init__(
+        self,
+        uow_factory: WeddingUnitOfWorkFactory,
+        ids: IdGenerator,
+        guest_count: GuestCountReader,
+    ) -> None:
         self._uow_factory = uow_factory
         self._ids = ids
+        self._guest_count = guest_count
 
     def execute(self, command: UpdateBaselineFieldCommand, actor: Actor) -> BaselineDto:
         """Troca o estado de um campo e devolve o quadro inteiro. A `version` enviada precisa ser a
@@ -48,4 +54,4 @@ class UpdateBaselineField:
                     )
                 )
                 uow.commit()
-            return to_baseline_dto(uow.baseline.all())
+            return to_baseline_dto(uow.baseline.all(), self._guest_count.total_nominal(actor))

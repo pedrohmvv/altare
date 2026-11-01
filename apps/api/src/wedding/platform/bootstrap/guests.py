@@ -10,7 +10,9 @@ from wedding.modules.guests.application.commands.move_guest import MoveGuest
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuest
 from wedding.modules.guests.application.commands.restore_household import RestoreHousehold
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
+from wedding.modules.guests.application.commands.update_guest_settings import UpdateGuestSettings
 from wedding.modules.guests.application.commands.update_household import UpdateHousehold
+from wedding.modules.guests.application.queries.get_guest_headcount import GetGuestHeadcount
 from wedding.modules.guests.application.queries.get_guest_list import GetGuestList
 from wedding.modules.guests.application.queries.list_guest_status_history import (
     ListGuestStatusHistory,
@@ -50,6 +52,7 @@ class GuestsContainer:
 
         return GuestsUseCases(
             get_guest_list=GetGuestList(uow_factory),
+            get_guest_headcount=GetGuestHeadcount(uow_factory),
             list_guest_status_history=ListGuestStatusHistory(uow_factory),
             create_household=CreateHousehold(uow_factory, ids),
             update_household=UpdateHousehold(uow_factory),
@@ -62,4 +65,5 @@ class GuestsContainer:
             move_guest=MoveGuest(uow_factory),
             delete_guest=DeleteGuest(uow_factory, clock),
             restore_guest=RestoreGuest(uow_factory),
+            update_guest_settings=UpdateGuestSettings(uow_factory),
         )

@@ -16,14 +16,19 @@ from wedding.modules.guests.application.commands.move_guest import MoveGuest
 from wedding.modules.guests.application.commands.restore_guest import RestoreGuest
 from wedding.modules.guests.application.commands.restore_household import RestoreHousehold
 from wedding.modules.guests.application.commands.update_guest import UpdateGuest
+from wedding.modules.guests.application.commands.update_guest_settings import (
+    UpdateGuestSettings,
+)
 from wedding.modules.guests.application.commands.update_household import UpdateHousehold
 from wedding.modules.guests.application.dto import GuestStatusChangeDto
+from wedding.modules.guests.application.queries.get_guest_headcount import GetGuestHeadcount
 from wedding.modules.guests.application.queries.get_guest_list import GetGuestList
 from wedding.modules.guests.application.queries.list_guest_status_history import (
     ListGuestStatusHistory,
 )
 from wedding.modules.guests.application.use_cases import GuestsUseCases
 from wedding.modules.guests.domain.entities import Guest, GuestStatusChange, Household
+from wedding.modules.guests.domain.settings import GuestSettings
 from wedding.shared_kernel.actor import Actor
 from wedding.shared_kernel.clock import Clock
 from wedding.shared_kernel.profile import ProfileKind
@@ -36,11 +41,14 @@ class Store:
     def __init__(self) -> None:
         self.households: dict[UUID, Household] = {}
         self.guests: dict[UUID, Guest] = {}
+        # A semente da migration: uma linha de configurações, vazia.
+        self.settings = GuestSettings(id=UUID(int=7001), version=1)
 
     def snapshot(self) -> dict[object, object]:
         return {
             **{("h", k): copy.deepcopy(v) for k, v in self.households.items()},
             **{("g", k): copy.deepcopy(v) for k, v in self.guests.items()},
+            ("s", 0): copy.deepcopy(self.settings),
         }
 
     def bump_versions(self, before: dict[object, object]) -> None:
@@ -52,6 +60,9 @@ class Store:
                     item.version = 1
                 elif item != original:
                     item.version = original.version + 1  # type: ignore[attr-defined]
+        original_settings = before[("s", 0)]
+        if self.settings != original_settings:
+            self.settings.version = original_settings.version + 1  # type: ignore[attr-defined]
 
 
 class _Guests:
@@ -114,6 +125,9 @@ class _Guests:
 
     def add_guest(self, guest: Guest) -> None:
         self.store.guests[guest.id] = guest
+
+    def get_settings(self) -> GuestSettings:
+        return self.store.settings
 
     def add_status_change(self, change: GuestStatusChange) -> None:
         self.new_changes.append(change)
@@ -196,6 +210,7 @@ class World:
         factory = self.uow_factory
         return GuestsUseCases(
             get_guest_list=GetGuestList(factory),
+            get_guest_headcount=GetGuestHeadcount(factory),
             list_guest_status_history=ListGuestStatusHistory(factory),
             create_household=CreateHousehold(factory, self.ids),
             update_household=UpdateHousehold(factory),
@@ -208,6 +223,7 @@ class World:
             move_guest=MoveGuest(factory),
             delete_guest=DeleteGuest(factory, self.clock),
             restore_guest=RestoreGuest(factory),
+            update_guest_settings=UpdateGuestSettings(factory),
         )
 
 

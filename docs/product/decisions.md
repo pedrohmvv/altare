@@ -1632,3 +1632,28 @@
 - **Verificação:** API com 855 testes e web com 651, `make e2e` com 59 (1 pulado de propósito), Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença.
 - **Pendente:** aprovação do usuário depois do PR, e a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre a lista, o painel e o selo de status.
 
+---
+
+## D-073 — Contadores, pesos e idade: contrato de contagem e Porte derivado (Bloco 1.2, PR 2 de 5)
+- **Data:** 2026-10-28
+- **Fase:** Implementação — Nível 1, Bloco 1.2, PR 2 de 5 (`D-071`)
+- **Decisão:**
+  1. **Contadores derivados** (`F-CNV-06`), por uma função pura sobre os fatos da lista: Total Nominal (todos, menos `Não irá`), Confirmados, Não irão (à parte), a base "só Certeza e Confirmados" e o Estimado Ponderado, cada um **por faixa**. Criança isenta e `Não irá` ficam fora do ponderado; quem está `Confirmado` conta 100%, qualquer que seja a probabilidade. **Aritmética exata:** os pesos são percentuais inteiros e o ponderado é a soma em **centésimos de pessoa** (100 = uma pessoa), sem `float`; o servidor devolve o valor exato e o **arredondado para cima** (`D-071`), e a tela só formata. Sem pesos o ponderado é nulo e a tela diz "defina os pesos".
+  2. **Configurações** (`guest_settings`, migration `0008`): uma linha **semeada vazia**, com os três pesos e os dois limites de idade. O banco repete as regras: os três pesos juntos ou nenhum, de 0 a 100; idades de 0 a 17 e o limite da isenta menor ou igual ao da pagante. `PUT /api/v1/guests/settings` exige a `version` (`409` se divergir). **Mudar pesos e limites nunca toca em nenhuma pessoa** (a máquina de estados confere).
+  3. **Idade só sugere a faixa** (`F-CNV-03`): até N isenta, de N a M pagante, acima de M adulta, **só quando os limites decidem**; faltando o limite que decide, não há sugestão. A API devolve `suggested_band` (nulo quando já é a faixa da pessoa). A tela mostra "Pela idade (4 anos): Criança isenta." com **Aplicar** ou **Manter a faixa**; aplicar "Adulto" tira a idade, que só vale para criança.
+  4. **Contrato para o Bloco 2.1** (`application/public.py`): `GuestHeadcount` (`total_nominal`, `confirmed`, `not_attending`, `certain_or_confirmed` por faixa, e o ponderado em centésimos para adultos e para crianças pagantes) e a consulta `GetGuestHeadcount`, todos inteiros. Um teste congela os campos; mudá-los pede uma `D-xxx`. O `budget` o lê por uma porta que o `bootstrap` liga e guarda apenas a base escolhida, nunca a contagem. O fator da criança e o `arredondar para cima` por linha ficam no `budget`.
+  5. **Porte derivado** (adiado na `D-067`): o `wedding` declara a porta `GuestCountReader`, ligada pelo `bootstrap` ao contrato público do `guests`; a linha do Porte traz `guest_count` (**Total Nominal**, escondido enquanto é zero) e a tela diz "Na lista agora: N pessoas". **Nunca copiada:** um teste entre os módulos confere que valor e versão do Porte não mudam com nada que a lista faz, e que `Não irá` e núcleo excluído saem da contagem. Sem comparar com a faixa nem avisar "fora da faixa".
+  6. **Web.** Os contadores ficam no topo em três blocos mono (`text-num-xl`), com o detalhe por faixa e os Não irão à parte; o diálogo de pesos e idades abre vazio e confere na tela o que a API também confere. Contadores sempre globais: não mudam com filtro nem lente (os filtros chegam no PR 3).
+  7. **Guia.** Os contadores se baseiam no `StatBlock` previsto em `design-system.md` §9 e nas págs. 34 e 38 (números em mono, cartão plano com *hairline*); não há página do guia para eles (desvio registrado em §15).
+- **Ajustes em arquivos aprovados:** `design-system.md` (§15, linhas novas); `convidados-enxoval-e-dia-d.md` e `planejamento-e-caminhos.md` (notas de implementação); `AGENTS.md` §1; `roadmap.md` (Bloco 1.2); `CLAUDE.md` dos módulos `guests` e `wedding`.
+- **Razão:** os números que o casal confere à mão e que o orçamento vai usar nascem de uma só conta, no servidor, e o orçamento nunca guarda uma cópia que envelheça.
+- **O que ficou rejeitado:**
+  - Gravar os contadores ou o ponderado: seria a segunda verdade a sincronizar.
+  - Pesos fixos de fábrica: presumiriam uma regra que só o casal conhece (`D-030`).
+  - Mudar a faixa pela idade: cada fornecedor cobra de um jeito.
+  - Mostrar o ponderado com decimais no cabeçalho do cenário: o orçamento arredonda para cima, e a tela igual evita dois números para a mesma base.
+  - Copiar a contagem para a linha do Porte: ela envelheceria a cada pessoa nova.
+- **Adiado, com gatilho para retomar:** os da `D-071`; o `GuestCountReader` e o `GetGuestHeadcount` passam a ser os pontos de extensão do Dossiê (Bloco 4.2).
+- **Verificação:** API com 931 testes e web com 676, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
+- **Pendente:** aprovação do usuário depois do PR, e a passada manual de `altare-acessibilidade` sobre os contadores e o diálogo de pesos e idades.
+

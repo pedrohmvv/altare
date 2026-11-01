@@ -20,6 +20,10 @@ from wedding.modules.guests.application.commands.restore_household import (
     RestoreHouseholdCommand,
 )
 from wedding.modules.guests.application.commands.update_guest import UpdateGuestCommand
+from wedding.modules.guests.application.commands.update_guest_settings import (
+    UpdateGuestSettingsCommand,
+    WeightsCommand,
+)
 from wedding.modules.guests.application.commands.update_household import (
     UpdateHouseholdCommand,
 )
@@ -33,10 +37,12 @@ from wedding.modules.guests.domain.errors import (
     CompanionNeedsName,
     DuplicateHouseholdName,
     GuestNameRequired,
+    InvalidAgeLimits,
     InvalidGuestValue,
+    InvalidWeights,
     LastGuestInHousehold,
 )
-from wedding.modules.guests.domain.values import GuestStatus, Probability, Side
+from wedding.modules.guests.domain.values import AgeBand, GuestStatus, Probability, Side
 from wedding.shared_kernel.errors import NotFound, VersionConflict
 from wedding.shared_kernel.profile import ProfileKind
 
@@ -47,6 +53,9 @@ def household_of(lista: GuestListDto, nome: str) -> HouseholdDto:
 
 def guest_of(lista: GuestListDto, nome: str) -> GuestDto:
     return next(g for h in lista.households for g in h.guests if g.name == nome)
+
+
+pessoa_de = guest_of
 
 
 def novo_nucleo(world, nome="Família Exemplo", primeira="Convidado Exemplo A", ator=NOIVO, **extra):
@@ -649,3 +658,158 @@ def test_a_autoria_vem_da_sessao(world):
     novo_nucleo(world, ator=NOIVA)
 
     assert [a.profile for a in world.actors] == [ProfileKind.NOIVA]
+
+
+SPEC_WEIGHTS = WeightsCommand(100, 70, 30)  # os do exemplo da spec: nunca valores do casal
+
+
+def definir(
+    world,
+    versao,
+    pesos: WeightsCommand | None = SPEC_WEIGHTS,
+    isenta=None,
+    pagante=None,
+    ator=NOIVO,
+):
+    return world.use_cases().update_guest_settings.execute(
+        UpdateGuestSettingsCommand(versao, pesos, isenta, pagante), ator
+    )
+
+
+class TestContagem:
+    def test_a_lista_vazia_traz_contadores_zerados_e_configuracoes_vazias(self, world):
+        lista = world.use_cases().get_guest_list.execute(NOIVO)
+
+        assert lista.headcount.total_nominal.total == 0
+        assert lista.headcount.weighted_rounded_up is None
+        assert lista.settings.weights is None
+        assert (lista.settings.age_limits.exempt_until, lista.settings.age_limits.paying_until) == (
+            None,
+            None,
+        )
+        assert lista.settings.version == 1
+
+    def test_os_contadores_acompanham_a_lista_na_mesma_resposta(self, world):  # F-CNV-06
+        _, nucleo = novo_nucleo(world)
+        lista, _ = nova_pessoa(world, nucleo, "Convidado Exemplo B")
+
+        assert lista.headcount.total_nominal.adults == 2
+        assert lista.headcount.confirmed.total == 0
+
+        lista = mudar_status(world, nucleo.guests[0], GuestStatus.CONFIRMED)
+        assert lista.headcount.confirmed.adults == 1
+
+        pessoa = pessoa_de(lista, "Convidado Exemplo B")
+        lista = mudar_status(world, pessoa, GuestStatus.DECLINED)
+        assert lista.headcount.total_nominal.adults == 1
+        assert lista.headcount.not_attending.adults == 1
+
+    def test_define_os_pesos_e_o_ponderado_aparece_sem_recarregar(self, world):  # F-CNV-06
+        _, nucleo = novo_nucleo(world)
+        nova_pessoa(world, nucleo, "Convidado Exemplo B", probability=Probability.CERTAIN)
+        lista = world.use_cases().get_guest_list.execute(NOIVO)
+        assert lista.headcount.weighted_rounded_up is None  # "defina os pesos"
+
+        lista = definir(world, lista.settings.version)
+
+        assert lista.settings.weights is not None
+        assert lista.settings.weights.probable_pct == 70
+        assert lista.headcount.weighted_adults_hundredths == 170  # 0,7 + 1,0
+        assert lista.headcount.weighted_rounded_up == 2
+        assert lista.settings.version == 2
+
+    def test_limpar_os_pesos_volta_a_defina_os_pesos(self, world):
+        lista = definir(world, 1)
+
+        lista = definir(world, lista.settings.version, pesos=None)
+
+        assert lista.settings.weights is None
+        assert lista.headcount.weighted_rounded_up is None
+
+    def test_peso_fora_de_0_a_100_e_recusado(self, world):
+        with pytest.raises(InvalidWeights):
+            definir(world, 1, pesos=WeightsCommand(100, 101, 30))
+
+    def test_limites_incoerentes_sao_recusados(self, world):
+        with pytest.raises(InvalidAgeLimits):
+            definir(world, 1, isenta=8, pagante=5)
+
+    def test_versao_velha_das_configuracoes_e_recusada(self, world):
+        definir(world, 1)
+
+        with pytest.raises(VersionConflict):
+            definir(world, 1, pesos=WeightsCommand(90, 60, 20))
+
+    def test_repetir_as_mesmas_configuracoes_nao_sobe_a_versao(self, world):
+        lista = definir(world, 1)
+
+        igual = definir(world, lista.settings.version)
+
+        assert igual.settings.version == lista.settings.version
+
+    def test_mudar_os_limites_nao_altera_nenhuma_pessoa(self, world):  # F-CNV-03, regra 4
+        _, nucleo = novo_nucleo(world)
+        _, crianca = nova_pessoa(
+            world, nucleo, "Convidado Exemplo B", band=AgeBand.PAYING_CHILD, age=4
+        )
+        antes = world.use_cases().get_guest_list.execute(NOIVO)
+
+        depois = definir(world, antes.settings.version, isenta=5, pagante=12)
+
+        pessoa = pessoa_de(depois, "Convidado Exemplo B")
+        assert (pessoa.band, pessoa.age, pessoa.version) == (
+            crianca.band,
+            crianca.age,
+            crianca.version,
+        )
+
+    def test_a_idade_sugere_a_faixa_mas_nunca_a_muda(self, world):  # F-CNV-03
+        _, nucleo = novo_nucleo(world)
+        nova_pessoa(world, nucleo, "Convidado Exemplo B", band=AgeBand.PAYING_CHILD, age=4)
+        sem_limites = world.use_cases().get_guest_list.execute(NOIVO)
+        assert pessoa_de(sem_limites, "Convidado Exemplo B").suggested_band is None
+
+        lista = definir(world, sem_limites.settings.version, isenta=5, pagante=12)
+
+        crianca = pessoa_de(lista, "Convidado Exemplo B")
+        assert crianca.suggested_band is AgeBand.EXEMPT_CHILD
+        assert crianca.band is AgeBand.PAYING_CHILD
+
+    def test_sem_sugestao_quando_a_faixa_ja_e_a_da_idade(self, world):
+        _, nucleo = novo_nucleo(world)
+        nova_pessoa(world, nucleo, "Convidado Exemplo B", band=AgeBand.EXEMPT_CHILD, age=4)
+        lista = world.use_cases().get_guest_list.execute(NOIVO)
+
+        lista = definir(world, lista.settings.version, isenta=5, pagante=12)
+
+        assert pessoa_de(lista, "Convidado Exemplo B").suggested_band is None
+
+    def test_o_contrato_publico_devolve_a_mesma_contagem_da_lista(self, world):
+        _, nucleo = novo_nucleo(world)
+        nova_pessoa(world, nucleo, "Convidado Exemplo B", probability=Probability.CERTAIN)
+        lista = definir(world, 1)
+
+        contagem = world.use_cases().get_guest_headcount.execute(NOIVO)
+
+        assert contagem == lista.headcount
+        assert contagem.weighted_rounded_up == 2
+
+    def test_o_contrato_publico_tem_so_os_campos_combinados(self):  # D-071, item 5
+        import dataclasses
+
+        from wedding.modules.guests.application.public import BandCounts, GuestHeadcount
+
+        assert [f.name for f in dataclasses.fields(GuestHeadcount)] == [
+            "total_nominal",
+            "confirmed",
+            "not_attending",
+            "certain_or_confirmed",
+            "weighted_adults_hundredths",
+            "weighted_paying_children_hundredths",
+        ]
+        assert [f.name for f in dataclasses.fields(BandCounts)] == [
+            "adults",
+            "paying_children",
+            "exempt_children",
+        ]
+        assert "weighted_rounded_up" in dir(GuestHeadcount)

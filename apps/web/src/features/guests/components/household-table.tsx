@@ -85,6 +85,11 @@ function GuestRow({ guest }: { guest: Guest }) {
         {guest.age !== null && (
           <span className="block text-ui-xs text-ink-muted">{copy.sheet.age(guest.age)}</span>
         )}
+        {guest.suggested_band !== null && guest.age !== null && (
+          <span className="block text-ui-xs text-accent-ink">
+            {copy.suggestion.hint(copy.bands[guest.suggested_band])}
+          </span>
+        )}
       </TableCell>
       <TableCell>{copy.probabilities[guest.probability]}</TableCell>
       <TableCell>
