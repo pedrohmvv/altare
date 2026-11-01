@@ -1631,7 +1631,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071` e a conferência visual contra as págs. 34, 38, 39 e 40 (PR 5, `D-076`).
 - **Verificação:** API com 855 testes e web com 651, `make e2e` com 59 (1 pulado de propósito), Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre a lista, o painel e o selo de status, com o usuário.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` sobre as telas desta decisão, feita pelo usuário, sem problemas.
 
 ---
 
@@ -1657,7 +1657,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071`; o `GuestCountReader` e o `GetGuestHeadcount` passam a ser os pontos de extensão do Dossiê (Bloco 4.2).
 - **Verificação:** API com 931 testes e web com 676, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** a passada manual de `altare-acessibilidade` sobre os contadores e o diálogo de pesos e idades, com o usuário.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` sobre as telas desta decisão, feita pelo usuário, sem problemas.
 
 ---
 
@@ -1683,7 +1683,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071`; subir o `Chip` para `components/ui` quando houver um terceiro uso.
 - **Verificação:** API com 965 testes e web com 719, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** a passada manual de `altare-acessibilidade` sobre os filtros (teclado e leitor de tela nos chips e na busca) e o diálogo do convite, com o usuário.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` sobre as telas desta decisão, feita pelo usuário, sem problemas.
 
 ---
 
@@ -1708,7 +1708,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071`; exportar o que o filtro esconderia (hoje só o que está na tela), se o casal pedir.
 - **Verificação:** API com 1031 testes e web com 727, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; `make e2e` com 59 passando e 1 pulado; cada commit é verificado isolado num worktree.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** abrir o `.xlsx` e o `.csv` no Excel pt-BR (sem aviso de arquivo corrompido, acentos certos, `=1+1` como texto); a passada manual de `altare-acessibilidade` sobre o diálogo de exportar, com o usuário.
+- **Conferido (2026-11-01):** o `.xlsx` e o `.csv` abertos no Excel pt-BR pelo usuário, sem problemas; a passada manual de `altare-acessibilidade` sobre o diálogo de exportar também, sem problemas.
 
 ---
 
@@ -1729,4 +1729,4 @@
   - Esconder o aviso de nome vazio com um atraso: o problema é a mensagem empurrar o botão, não a hora em que ela aparece.
 - **Verificação:** API com 1031 testes e web com 729, E2E com 86 passando (2 pulados de propósito: o teto e o conflito entre perfis rodam só no desktop), Ruff, Biome, Pyright, `tsc`, 7 contratos, `make api-types` sem diferença; cada commit é verificado isolado num worktree.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário. Com ela, as `D-072` a `D-075` também estão aprovadas.
-- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%, reduzir movimento) sobre a lista, o painel, os pesos e a exportação, que o usuário não confirmou como feita; abrir o `.xlsx` e o `.csv` no Excel pt-BR; o PR de release e a tag `v0.4.0`.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%, reduzir movimento) sobre a lista, o painel, os pesos e a exportação, e o `.xlsx` e o `.csv` no Excel pt-BR, pelo usuário, sem problemas. O release `v0.4.0` foi publicado na mesma data.
