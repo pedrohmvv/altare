@@ -3270,6 +3270,75 @@
         }
       }
     },
+    "/api/v1/guests/exports": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "Export Guests",
+        "description": "Gera o arquivo no servidor, atrás da sessão. É um `POST` para o que está na tela viajar\nno corpo e nenhum dado pessoal ir para a URL nem para o log de acesso.",
+        "operationId": "export_guests",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "O arquivo da lista, para baixar.",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv; charset=utf-8": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/guests/people/{guest_id}/history": {
       "get": {
         "tags": [
@@ -4119,6 +4188,40 @@
           "version"
         ],
         "title": "EvaluationOut"
+      },
+      "ExportFormat": {
+        "type": "string",
+        "enum": [
+          "xlsx",
+          "csv"
+        ],
+        "title": "ExportFormat"
+      },
+      "ExportIn": {
+        "properties": {
+          "format": {
+            "$ref": "#/components/schemas/ExportFormat",
+            "default": "xlsx"
+          },
+          "guest_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Ids"
+          }
+        },
+        "type": "object",
+        "title": "ExportIn",
+        "description": "O que exportar (F-CNV-08): o formato (Excel por padrão) e os ids das pessoas que estão na\ntela. Ausente, leva todas. Nenhum texto de busca viaja: o filtro é do navegador."
       },
       "FieldError": {
         "properties": {

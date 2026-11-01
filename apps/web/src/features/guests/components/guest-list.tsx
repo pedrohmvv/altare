@@ -11,9 +11,11 @@ import {
   filterHouseholds,
   filtersFromSearch,
   hasActiveFilters,
+  visibleGuestIds,
 } from '../lib/guest-filters'
 import { type Lens, type SessionProfile, visibleSides } from '../lib/sides'
 import type { GuestsSearch } from '../search'
+import { ExportDialog } from './export-dialog'
 import { GuestCounters } from './guest-counters'
 import { GuestToolbar } from './guest-toolbar'
 import { HouseholdCard } from './household-card'
@@ -122,6 +124,7 @@ export function GuestList({ search, onSearchChange, lens = 'casal', profile }: G
         />
         <div className="flex flex-wrap gap-3">
           <NewHouseholdTrigger />
+          <ExportDialog guestIds={visibleGuestIds(shown)} />
         </div>
         {sheetHousehold && (
           <HouseholdSheet

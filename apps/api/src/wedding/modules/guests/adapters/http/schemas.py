@@ -1,4 +1,5 @@
 import datetime as dt
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -77,6 +78,19 @@ class InviteIn(BaseModel):
     channel: InviteChannel
     move_drafts: bool = False
     version: int = _VERSION
+
+
+class ExportFormat(StrEnum):
+    XLSX = "xlsx"
+    CSV = "csv"
+
+
+class ExportIn(BaseModel):
+    """O que exportar (F-CNV-08): o formato (Excel por padrão) e os ids das pessoas que estão na
+    tela. Ausente, leva todas. Nenhum texto de busca viaja: o filtro é do navegador."""
+
+    format: ExportFormat = ExportFormat.XLSX
+    guest_ids: list[UUID] | None = None
 
 
 class WeightsIn(BaseModel):

@@ -689,6 +689,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/guests/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Guests
+         * @description Gera o arquivo no servidor, atrás da sessão. É um `POST` para o que está na tela viajar
+         *     no corpo e nenhum dado pessoal ir para a URL nem para o log de acesso.
+         */
+        post: operations["export_guests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guests/people/{guest_id}/history": {
         parameters: {
             query?: never;
@@ -987,6 +1008,22 @@ export interface components {
             note: string | null;
             /** Version */
             version: number;
+        };
+        /**
+         * ExportFormat
+         * @enum {string}
+         */
+        ExportFormat: "xlsx" | "csv";
+        /**
+         * ExportIn
+         * @description O que exportar (F-CNV-08): o formato (Excel por padrão) e os ids das pessoas que estão na
+         *     tela. Ausente, leva todas. Nenhum texto de busca viaja: o filtro é do navegador.
+         */
+        ExportIn: {
+            /** @default xlsx */
+            format: components["schemas"]["ExportFormat"];
+            /** Guest Ids */
+            guest_ids?: string[] | null;
         };
         /** FieldError */
         FieldError: {
@@ -4178,6 +4215,58 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    export_guests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportIn"];
+            };
+        };
+        responses: {
+            /** @description O arquivo da lista, para baixar. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    "text/csv; charset=utf-8": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
