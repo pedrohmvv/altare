@@ -1,10 +1,9 @@
 ---
 name: altare-bloco
 description: >-
-  Executar um bloco do roadmap com o time de agentes (altare-api-dev, altare-web-dev, altare-reviewer),
-  com plano aprovado e quatro gates do usuário. Só manual: /altare-bloco 1.3. Não use para correção
-  pontual nem para trabalho fora do roadmap.
-disable-model-invocation: true
+  Executar um bloco do roadmap com o time de agentes (altare-api-dev, altare-web-dev, altare-reviewer):
+  plano aprovado, um PR por vez, revisão independente. Use quando o usuário pedir para executar,
+  começar ou tocar um bloco (ex.: "execute o Bloco 1.3"). Não use para correção pontual.
 argument-hint: "[bloco, ex.: 1.3]"
 ---
 
@@ -20,7 +19,7 @@ A sessão principal orquestra e é dona dos gates; os subagents (`.claude/agents
 
 ## 1. Entrada
 
-`$ARGUMENTS` é o número do bloco. Ache o bloco em `roadmap.md` e a feature em `docs/product/features/`. Se o bloco não existir, já estiver concluído ou a feature não estiver aprovada, pare e diga.
+`$ARGUMENTS` é o número do bloco; se vier vazio, use o que o usuário citou no pedido. Ache o bloco em `roadmap.md` e a feature em `docs/product/features/`. Se o bloco não existir, já estiver concluído ou a feature não estiver aprovada, pare e diga.
 
 ## 2. Plano (plan mode)
 
@@ -40,7 +39,7 @@ A sessão principal orquestra e é dona dos gates; os subagents (`.claude/agents
    - `corrija` e `sugestão`: o usuário decide;
    - `bloqueia` sem arquivo:linha e regra violada vira `sugestão`.
 7. **GATE 2:** o usuário vê o diff e os pareceres.
-8. `/altare-commit` (**GATE 3**) e `/altare-pull-request` (**GATE 4**): o usuário as digita, porque ambas bloqueiam a invocação pelo modelo.
+8. Commit (**GATE 3**, `altare-commit`) e PR (**GATE 4**, `altare-pull-request`): invoque a skill quando o usuário pedir, sem exigir que ele a digite. Sem pedido, pare e espere; o merge é só quando ele mandar.
 9. Com o OK do usuário, registre as `D-xxx` e a fase com `altare-docs-vivas`, na sessão principal.
 
 ## 4. Modelo de prompt de delegação

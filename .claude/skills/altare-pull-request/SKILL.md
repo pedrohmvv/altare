@@ -5,7 +5,6 @@ description: >-
   padrão de commit, corpo em pt-BR com o que muda e por quê, D-xxx, como testar, checklist de gates.
   Use quando pedirem para abrir, criar ou subir um PR, fechar a branch ou preparar a descrição de uma
   mudança.
-disable-model-invocation: true
 ---
 
 # Pull request

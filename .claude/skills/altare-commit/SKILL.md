@@ -5,7 +5,6 @@ description: >-
   Conventional Commits com tipo em inglês e descrição em pt-BR (D-039). É o único caminho de commit do
   repositório. Use quando pedirem para commitar, salvar as mudanças ou fechar o trabalho, ou ao
   terminar um ciclo antes do PR.
-disable-model-invocation: true
 ---
 
 # Commits atômicos
