@@ -1753,3 +1753,22 @@
   - *Commit e PR como subagent*: o commit atômico exige o plano aprovado pelo usuário e a skill é o único caminho (`D-039`).
 - **Verificação:** hooks testados por pipe (23 casos), `make lint typecheck test` verde (API com 1031 testes e web com 729, 7 contratos), `claude plugin validate` sem avisos (evidência fraca: não lista conteúdo) e `pnpm cursor:rules:check` em dia. Os três agentes apareceram na lista de agentes da sessão depois de criados. **Pendente:** o primeiro uso real (`/altare-bloco 1.3`), que exercita os hooks de agente, que só rodam com a pasta confiada.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
+
+---
+
+## D-078 — Time de agentes: o pedido do usuário é a autorização (revisa a D-077)
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1 (infraestrutura de trabalho, entre os Blocos 1.2 e 1.3)
+- **Pedido do usuário:** "Eu não quero ter que ficar autorizando comandos do claude mesmo no modo Auto. Nem quero ter que ficar escrevendo as skills para pedir algo. Se eu quiser pedir para commitar, eu peço, e você usa a skill automaticamente."
+- **Decisão:**
+  1. **O pedido é o gate.** `altare-commit`, `altare-pull-request` e `altare-bloco` voltam a poder ser invocadas pelo modelo (sai o `disable-model-invocation`): "commita", "abre o PR" e "execute o Bloco 1.3" bastam. Sem pedido, a sessão para; o plano de commits continua sendo mostrado e o merge só ocorre quando o usuário mandar (`altare-commit`, `altare-pull-request`).
+  2. **Sai o `permissions.ask`** de `git commit`, `git push`, `gh pr create` e `gh pr merge` do `.claude/settings.json`. A liberação desses comandos (`permissions.allow`), com `deny` para `git push` forçado, é configuração do próprio usuário (`/permissions` ou `settings.json`): o modo Auto barra o agente de editar as próprias permissões.
+  3. **Fica da `D-077`:** os três subagents, os hooks `readonly-git.sh` e `gates.sh` (barreiras que protegem o código, não pedem nada ao usuário) e a regra de que subagents nunca commitam nem registram decisões. O `skills-map` do `AGENTS.md` volta a listar `altare-commit` e `altare-pull-request` e passa a listar `altare-bloco`.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e §5; `.claude/settings.json`; frontmatter de `altare-commit`, `altare-pull-request` e `altare-bloco` (a descrição desta troca o "só manual" pelo gatilho em linguagem natural); `D-077` (o item 3 e o item 4 deixam de valer na parte de bloqueio).
+- **Razão:** o bloqueio mecânico do commit e do PR cobrava do usuário digitar comandos e confirmar prompts a cada passo, sem proteger nada que o pedido explícito dele já não proteja. O que de fato evita dano (reviewer só de leitura, gates verdes) continua mecânico.
+- **O que ficou rejeitado:**
+  - Manter o `disable-model-invocation` só em `altare-commit` e `altare-pull-request`: continua exigindo o usuário digitar a skill.
+  - Manter o `permissions.ask` só para o merge: o merge já depende de ordem explícita na skill, e o prompt volta a interromper o fluxo no modo Auto.
+  - O agente gravar o `permissions.allow` no repositório: o classificador do modo Auto o barrou como autoalteração de permissões, e a decisão de liberar comandos é do usuário.
+- **Verificação:** `pnpm cursor:rules:check` em dia; `settings.json` válido, com o `SessionStart` preservado. **Pendente:** o usuário liberar os comandos nas próprias permissões e conferir, em sessão nova, que "commita" dispara a skill sem prompt.
+- **Aprovado (2026-11-01):** esta decisão, pelo usuário. As permissões `allow` e `deny` de commit, push, PR e merge foram adicionadas por ele em `~/.claude/settings.json`.
