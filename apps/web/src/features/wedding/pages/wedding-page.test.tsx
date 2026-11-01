@@ -22,6 +22,7 @@ function emptyBaseline(): Baseline {
       note: null,
       version: 1,
       value: { minimum: null, maximum: null },
+      guest_count: 0,
     },
     ceiling: { status: 'Em definição', note: null, version: 1, value: { cents: null } },
     ceremony: {
@@ -50,6 +51,42 @@ function renderPage(
 
 const row = (name: RegExp | string) => screen.findByRole('button', { name })
 const dialog = () => screen.findByRole('dialog')
+
+describe('Definições Base: o Porte e a contagem da lista (F-PLN-01, D-073)', () => {
+  const withGuests = (count: number) => {
+    const baseline = emptyBaseline()
+    return { ...baseline, size: { ...baseline.size, guest_count: count } }
+  }
+
+  it('mostra, ao lado do Porte, quantas pessoas a lista tem agora', async () => {
+    renderPage({ [GET]: jsonResponse(200, withGuests(142)) })
+
+    const porte = await row(/Porte/)
+
+    expect(within(porte).getByText('Na lista agora: 142 pessoas')).toBeVisible()
+    // O valor do Porte continua sendo o que o casal definiu: a contagem é só ao lado.
+    expect(within(porte).getByText('Ainda sem valor')).toBeVisible()
+  })
+
+  it('com uma pessoa, usa o singular', async () => {
+    renderPage({ [GET]: jsonResponse(200, withGuests(1)) })
+
+    expect(within(await row(/Porte/)).getByText('Na lista agora: 1 pessoa')).toBeVisible()
+  })
+
+  it('sem ninguém na lista, não diz nada', async () => {
+    renderPage({ [GET]: jsonResponse(200, withGuests(0)) })
+
+    expect(within(await row(/Porte/)).queryByText(/Na lista agora/)).not.toBeInTheDocument()
+  })
+
+  it('só o Porte mostra a contagem', async () => {
+    renderPage({ [GET]: jsonResponse(200, withGuests(142)) })
+    await row(/Porte/)
+
+    expect(screen.getAllByText(/Na lista agora/)).toHaveLength(1)
+  })
+})
 
 describe('Definições Base: o painel (F-PLN-01)', () => {
   it('traz o título da área como o único h1 e o painel com as seis definições', async () => {

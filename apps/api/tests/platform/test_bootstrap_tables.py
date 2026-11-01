@@ -15,6 +15,10 @@ def test_carregar_as_tabelas_registra_as_de_cada_modulo_no_metadata():
         "scope_evaluations",
         "scope_status_changes",
         "scope_references",
+        "guest_households",
+        "guests",
+        "guest_status_changes",
+        "guest_settings",
     } <= set(metadata.tables)
 
 

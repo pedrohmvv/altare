@@ -204,3 +204,54 @@ def test_operation_ids_estaveis(api):
         "update_baseline_ceremony",
         "list_baseline_changes",
     }
+
+
+def test_o_porte_traz_a_contagem_da_lista_de_convidados_sem_copia_la(api):  # F-PLN-01, D-073
+    assert api.noivo.get(BASE).json()["size"]["guest_count"] == 0
+    definido = _put(api.noivo, "size", {"minimum": 80, "maximum": 120}).json()["size"]
+    assert definido["value"] == {"minimum": 80, "maximum": 120}
+
+    api.noiva.post(
+        "/api/v1/guests/households",
+        json={
+            "household": {"name": "Família Exemplo", "side": "Comum"},
+            "first_guest": {"name": "Convidado Exemplo A"},
+        },
+    )
+    depois = api.noivo.get(BASE).json()["size"]
+
+    assert depois["guest_count"] == 1
+    # Nada que a lista faz mexe no Porte gravado: valor e versão seguem os mesmos.
+    assert (depois["value"], depois["version"]) == (definido["value"], definido["version"])
+
+
+def test_a_contagem_do_porte_ignora_quem_nao_ira_e_o_nucleo_excluido(api):
+    lista = api.noiva.post(
+        "/api/v1/guests/households",
+        json={
+            "household": {"name": "Família Exemplo", "side": "Comum"},
+            "first_guest": {"name": "Convidado Exemplo A"},
+        },
+    ).json()
+    familia = lista["households"][0]
+    api.noiva.post(
+        f"/api/v1/guests/households/{familia['id']}/guests", json={"name": "Convidado Exemplo B"}
+    )
+    segunda = api.noiva.get("/api/v1/guests").json()["households"][0]["guests"][1]
+    api.noiva.put(
+        f"/api/v1/guests/people/{segunda['id']}/status",
+        json={"status": "Não irá", "reason": None, "version": segunda["version"]},
+    )
+    assert api.noivo.get(BASE).json()["size"]["guest_count"] == 1
+
+    api.noiva.delete(
+        f"/api/v1/guests/households/{familia['id']}", params={"version": familia["version"]}
+    )
+
+    assert api.noivo.get(BASE).json()["size"]["guest_count"] == 0
+
+
+def test_o_contrato_declara_a_contagem_do_porte_como_obrigatoria(api):
+    esquema = api.app.openapi()["components"]["schemas"]["SizeFieldOut"]
+
+    assert "guest_count" in esquema["required"]

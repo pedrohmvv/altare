@@ -13,6 +13,7 @@ from wedding.modules.wedding.domain.value_objects import (
     DateKind,
     DateValue,
     DefinitionStatus,
+    SizeValue,
     TextValue,
 )
 from wedding.shared_kernel.errors import VersionConflict
@@ -148,3 +149,33 @@ def test_voltar_a_em_definicao_e_permitido_e_registrado(world):  # F-PLN-01, reg
 def test_o_ator_da_sessao_vai_para_a_transacao(world):
     _definir_cidade(world, ator=NOIVA)
     assert world.actors == [NOIVA]
+
+
+def test_o_porte_mostra_a_contagem_da_lista_e_ela_nunca_e_copiada(world):  # F-PLN-01, D-067
+    assert world.use_cases().get_baseline.execute(NOIVO).guest_count == 0
+    world.guest_count = 142  # a lista cresceu: o Total Nominal é lido na hora
+
+    baseline = world.use_cases().get_baseline.execute(NOIVO)
+
+    assert baseline.guest_count == 142
+    # O Porte que o casal definiu continua intacto: a contagem é derivada, nunca gravada nele.
+    assert baseline.size.value is None
+    assert baseline.size.version == 1
+
+
+def test_quem_define_o_porte_tambem_recebe_a_contagem_da_lista(world):
+    world.guest_count = 80
+
+    baseline = world.use_cases().update_baseline_field.execute(
+        UpdateBaselineFieldCommand(
+            key=BaselineKey.SIZE,
+            value=SizeValue(60, 100),
+            status=DefinitionStatus.DEFINED,
+            note=None,
+            version=1,
+        ),
+        NOIVO,
+    )
+
+    assert baseline.guest_count == 80
+    assert baseline.size.value == SizeValue(60, 100)

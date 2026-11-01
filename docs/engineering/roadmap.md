@@ -63,6 +63,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
   - *(Revisado em `D-029`; especificação em `docs/product/features/planejamento-e-caminhos.md`)* Definições Base com **tipo de cerimônia**; no Mapa de Escopo, prioridade individual em 3 níveis, **estimativa inicial**, **nota** e **referências** (links e imagens) por categoria.
 
 ### Bloco 1.2 — Lista Nominal de Convidados (Por Núcleo Familiar)
+- **Andamento (`D-071`):** 5 PRs. **PR 1, núcleos e convidados (`F-CNV-01`, `02` e `04`): feito** (`D-072`). **PR 2, contadores e pesos (`F-CNV-03` e `06`): feito** (`D-073`); **PR 3, convite, busca e filtros (`F-CNV-05` e `07`): feito** (`D-074`); **PR 4, exportação (`F-CNV-08`): feito** (`D-075`); **PR 5, E2E e fechamento: feito** (`D-076`). **O Bloco 1.2 está concluído**; o release `v0.4.0` é do usuário.
 - **O que é construído:**
   - Cadastro de convidados agrupados por **Núcleo/Família**, lado (`Noivo`, `Noiva`, `Comum`), faixa (`Adulto`, `Criança pagante`, `Criança isenta`), probabilidade (`Certeza/Essencial`, `Provável`, `Fase 2`) e status (`Rascunho`, `Convidado`, `Confirmado`, `Não irá`).
   - Motor de **Contagem em Tempo Real** (*Total Nominal*, *Estimado Ponderado* e *Confirmados*) pronto para alimentar os cálculos do orçamento.

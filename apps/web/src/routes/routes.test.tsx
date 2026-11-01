@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi } from '@/test/fake-api'
+import { LIST, listOf } from '@/test/guest-fixtures'
 import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
 
 const AREAS = [
@@ -24,19 +25,31 @@ function planningApi() {
       date: { ...EMPTY_FIELD, value: { kind: 'nenhuma' } },
       city: { ...EMPTY_FIELD, value: null },
       format: { ...EMPTY_FIELD, value: null },
-      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null } },
+      size: { ...EMPTY_FIELD, value: { minimum: null, maximum: null }, guest_count: 0 },
       ceiling: { ...EMPTY_FIELD, value: { cents: null } },
       ceremony: { ...EMPTY_FIELD, value: { kinds: [], detail: null } },
     }),
   })
 }
 
+// Convidados já tem conteúdo de verdade: lê a lista, então a API falsa responde a ela.
+function guestsApi() {
+  return mockApi({
+    'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+    'GET /api/v1/guests': jsonResponse(200, listOf([])),
+  })
+}
+
+const WITH_CONTENT = ['/planejamento', '/convidados']
+
 // As áreas que ainda são esqueleto: um estado vazio acolhedor e nenhuma ação.
-const SKELETONS = AREAS.filter(([path]) => path !== '/planejamento')
+const SKELETONS = AREAS.filter(([path]) => !WITH_CONTENT.includes(path))
 
 describe('rotas das áreas', () => {
   it.each(AREAS)('%s mostra o título editorial da área como o único h1', async (path, title) => {
-    await renderRoute(path, path === '/planejamento' ? { api: planningApi() } : {})
+    const api =
+      path === '/planejamento' ? planningApi() : path === '/convidados' ? guestsApi() : undefined
+    await renderRoute(path, api ? { api } : {})
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
@@ -100,6 +113,32 @@ describe('lente na URL', () => {
     const router = await renderRoute('/cronograma?lente=banana')
 
     expect(router.state.matches.at(-1)?.search.lente).toBeUndefined()
+  })
+
+  it('os filtros de Convidados moram na URL, o voltar os desfaz e a busca nunca vai para ela (F-CNV-07)', async () => {
+    const api = mockApi({
+      'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+      'GET /api/v1/guests': jsonResponse(200, LIST),
+    })
+    const router = await renderRoute('/convidados?lente=minha', { api })
+    const chip = await screen.findByRole('button', { name: 'Confirmado' }, { timeout: 4000 })
+
+    await userEvent.click(chip)
+    expect(router.state.location.search).toMatchObject({ status: 'confirmado', lente: 'minha' })
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar por nome' }), 'silva')
+    expect(Object.keys(router.state.location.search)).toEqual(
+      expect.not.arrayContaining(['busca', 'q', 'query']),
+    )
+    expect(JSON.stringify(router.state.location.search)).not.toContain('silva')
+
+    router.history.back()
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('status'))
+    expect(await screen.findByRole('button', { name: 'Confirmado' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('os filtros do Mapa de Escopo moram na URL e o botão voltar os desfaz (F-PLN-08)', async () => {

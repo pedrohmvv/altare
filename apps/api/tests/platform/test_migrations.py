@@ -155,3 +155,73 @@ def test_a_migracao_das_referencias_cria_e_remove_a_tabela(tmp_path):
     command.downgrade(config, "0005")
     assert "scope_references" not in _estado(url)[0]
     assert {"scope_categories", "file_assets"} <= _estado(url)[0]
+
+
+def test_a_migracao_dos_convidados_cria_e_remove_as_tabelas(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    tabelas = {"guest_households", "guests", "guest_status_changes"}
+    command.upgrade(config, "head")
+    assert tabelas <= _estado(url)[0]
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        # Diferente do escopo, a lista nasce vazia: nenhum convidado é semeado (AGENTS.md §2).
+        contagens = [conn.execute(text(f"SELECT COUNT(*) FROM {t}")).scalar() for t in tabelas]
+    engine.dispose()
+    assert contagens == [0, 0, 0]
+    command.downgrade(config, "0006")
+    assert tabelas.isdisjoint(_estado(url)[0])
+    assert {"scope_references", "scope_categories"} <= _estado(url)[0]
+
+
+def test_a_migracao_das_configuracoes_semeia_uma_linha_vazia_e_a_remove(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        linhas = conn.execute(
+            text(
+                "SELECT version, weight_certain_pct, weight_probable_pct, weight_phase_2_pct, "
+                "exempt_until_age, paying_until_age FROM guest_settings"
+            )
+        ).all()
+    engine.dispose()
+    # Pesos e limites são decisões do casal: a semente é uma linha só, toda vazia (D-030).
+    assert [tuple(linha) for linha in linhas] == [(1, None, None, None, None, None)]
+    command.downgrade(config, "0007")
+    assert "guest_settings" not in _estado(url)[0]
+    assert {"guests", "guest_households"} <= _estado(url)[0]
+
+
+def test_a_migracao_do_convite_acrescenta_as_colunas_sem_perder_nada_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "0008")
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO guest_households (id, created_at, updated_at, version, name, "
+                "name_key, side, members_revision) VALUES ('00000000000000000000000000000001', "
+                "'2026-10-28', '2026-10-28', 1, 'Família Exemplo', 'família exemplo', 'Comum', 0)"
+            )
+        )
+
+    command.upgrade(config, "0009")
+
+    with engine.connect() as conn:
+        linha = conn.execute(
+            text("SELECT name, invite_sent_on, invite_channel FROM guest_households")
+        ).one()
+        indices = {i["name"] for i in inspect(conn).get_indexes("guest_households")}
+    assert tuple(linha) == ("Família Exemplo", None, None)
+    # O lote recria a tabela: o índice parcial do nome não pode se perder.
+    assert "uq_guest_households_name_key_live" in indices
+    command.downgrade(config, "0008")
+    with engine.connect() as conn:
+        colunas = {c["name"] for c in inspect(conn).get_columns("guest_households")}
+        nome = conn.execute(text("SELECT name FROM guest_households")).scalar()
+    engine.dispose()
+    assert {"invite_sent_on", "invite_channel"}.isdisjoint(colunas)
+    assert nome == "Família Exemplo"

@@ -13,6 +13,7 @@ import {
 import { AppShell } from '@/app/shell/app-shell'
 import { RouteAnnouncer } from '@/app/shell/route-announcer'
 import { AssistantPage } from '@/features/assistant'
+import { validateGuestsSearch } from '@/features/guests/search'
 import { LOGIN_PATH, LoginPage, meQueryOptions, safeDestination } from '@/features/identity'
 import { validatePlanningSearch } from '@/features/wedding/search'
 import { queryClient } from '@/lib/query-client'
@@ -133,7 +134,9 @@ const routeTree = rootRoute.addChildren([
     }),
     createRoute({
       ...area('/convidados', 'Convidados, Enxoval & Dia D'),
-      component: lazyRouteComponent(() => import('@/features/guests'), 'GuestsPage'),
+      // O painel do núcleo mora na URL (design-system.md §10); o validador é um módulo puro e pequeno.
+      validateSearch: validateGuestsSearch,
+      component: lazyRouteComponent(() => import('@/features/guests'), 'GuestsRoute'),
     }),
     createRoute({
       ...area('/assistente', 'Assistente'),

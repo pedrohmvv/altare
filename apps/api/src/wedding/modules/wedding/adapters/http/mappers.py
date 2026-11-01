@@ -122,6 +122,7 @@ def to_baseline_out(dto: BaselineDto) -> BaselineOut:
             note=dto.size.note,
             version=dto.size.version,
             value=_size_schema(dto.size.value),
+            guest_count=dto.guest_count,
         ),
         ceiling=CeilingFieldOut(
             status=dto.ceiling.status,
