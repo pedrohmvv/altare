@@ -15,6 +15,7 @@ import { RouteAnnouncer } from '@/app/shell/route-announcer'
 import { AssistantPage } from '@/features/assistant'
 import { validateGuestsSearch } from '@/features/guests/search'
 import { LOGIN_PATH, LoginPage, meQueryOptions, safeDestination } from '@/features/identity'
+import { validateScheduleSearch } from '@/features/schedule/search'
 import { validatePlanningSearch } from '@/features/wedding/search'
 import { queryClient } from '@/lib/query-client'
 import { NotFoundPage } from './not-found'
@@ -118,7 +119,9 @@ const routeTree = rootRoute.addChildren([
     }),
     createRoute({
       ...area('/cronograma', 'Cronograma & Dependências'),
-      component: lazyRouteComponent(() => import('@/features/schedule'), 'SchedulePage'),
+      // O marco aberto mora na URL (design-system.md §10); o validador é um módulo puro e pequeno.
+      validateSearch: validateScheduleSearch,
+      component: lazyRouteComponent(() => import('@/features/schedule'), 'ScheduleRoute'),
     }),
     createRoute({
       ...area('/possibilidades', 'Possibilidades & Decisões'),
