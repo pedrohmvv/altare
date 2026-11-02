@@ -5,7 +5,7 @@
 **Propósito:** é dono das Definições Base do casamento e do Mapa de Escopo (grupos, categorias, status, prioridades e notas por perfil e estimativas; e as referências de inspiração por frente, link ou imagem). Não é dono da lista de convidados (`guests`), do orçamento (`budget`) nem do cronograma (`schedule`): esses módulos leem daqui, nunca copiam.
 
 ## Superfície pública
-- `application/public.py`: ainda não existe; nasce quando outro módulo precisar ler uma definição.
+- `application/public.py`: `GetScopeStandings` (cada categoria viva com nome, status e visibilidade) e `GetWeddingDate` (status, forma exata ou janela e o dia exato); o `schedule` as lê por portas que o `bootstrap` liga (`D-031`, `D-067`). Mudar os campos pede `D-xxx`.
 - `domain/events.py`: nenhum evento (o *dispatcher* está adiado, `D-060`).
 
 Nada além disso pode ser importado por outro módulo (`architecture.md` §4; contrato 5 de §9).

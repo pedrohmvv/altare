@@ -25,6 +25,8 @@ from wedding.modules.wedding.application.commands.update_scope_category import U
 from wedding.modules.wedding.application.ports import StoredFile
 from wedding.modules.wedding.application.queries.get_baseline import GetBaseline
 from wedding.modules.wedding.application.queries.get_scope_map import GetScopeMap
+from wedding.modules.wedding.application.queries.get_scope_standings import GetScopeStandings
+from wedding.modules.wedding.application.queries.get_wedding_date import GetWeddingDate
 from wedding.modules.wedding.application.queries.list_baseline_changes import ListBaselineChanges
 from wedding.modules.wedding.application.queries.list_references import ListReferences
 from wedding.modules.wedding.application.queries.list_scope_category_history import (
@@ -135,6 +137,7 @@ class WeddingContainer:
 
         return ScopeUseCases(
             get_scope_map=GetScopeMap(uow_factory),
+            get_scope_standings=GetScopeStandings(uow_factory),
             list_scope_category_history=ListScopeCategoryHistory(uow_factory),
             create_scope_group=CreateScopeGroup(uow_factory, ids),
             rename_scope_group=RenameScopeGroup(uow_factory),
@@ -159,6 +162,7 @@ class WeddingContainer:
 
         return WeddingUseCases(
             get_baseline=GetBaseline(uow_factory, guest_count),
+            get_wedding_date=GetWeddingDate(uow_factory),
             update_baseline_field=UpdateBaselineField(uow_factory, UuidGenerator(), guest_count),
             list_baseline_changes=ListBaselineChanges(uow_factory),
         )

@@ -76,3 +76,14 @@ class ReferenceDto:
     added_at: datetime
     """Só o autor remove a sua (F-PLN-06, regra 2)."""
     can_remove: bool
+
+
+@dataclass(frozen=True)
+class CategoryStandingDto:
+    """O que outro módulo precisa saber de uma categoria: qual é, em que status está e se aparece
+    nas telas (não oculta, de grupo não oculto e não excluída). Sem avaliações nem estimativas."""
+
+    id: UUID
+    name: str
+    status: ScopeStatus
+    visible: bool
