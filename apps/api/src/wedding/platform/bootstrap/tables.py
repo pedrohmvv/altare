@@ -8,6 +8,7 @@ _TABLE_MODULES = (
     "wedding.modules.wedding.infrastructure.scope_tables",
     "wedding.modules.wedding.infrastructure.reference_tables",
     "wedding.modules.guests.infrastructure.tables",
+    "wedding.modules.schedule.infrastructure.tables",
 )
 
 

@@ -174,6 +174,20 @@ MESSAGES: dict[str, Message] = {
         "Convite não aceito",
         "Informem a data e o canal do envio. A data é a de hoje ou de um dia que já passou.",
     ),
+    "invalid_schedule_value": Message(
+        "Valor não aceito",
+        (
+            "Confira a nota e o prazo: a nota vai até 500 caracteres "
+            "e o prazo é uma data entre os anos 2000 e 2100."
+        ),
+    ),
+    "milestone_blocked": Message(
+        "Marco bloqueado",
+        (
+            "Este marco ainda aguarda outros passos. Confirme que quer ignorar o bloqueio "
+            "para marcá-lo como Em andamento ou Concluído."
+        ),
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",

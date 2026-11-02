@@ -3405,6 +3405,203 @@
           }
         }
       }
+    },
+    "/api/v1/schedule": {
+      "get": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Read Schedule",
+        "operationId": "read_schedule",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Milestone",
+        "operationId": "update_milestone",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/state": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Change Milestone State",
+        "operationId": "change_milestone_state",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneStateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3564,6 +3761,44 @@
         ],
         "title": "BaselineOut"
       },
+      "BlockerKind": {
+        "type": "string",
+        "enum": [
+          "category",
+          "milestone"
+        ],
+        "title": "BlockerKind"
+      },
+      "BlockerOut": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BlockerKind"
+          },
+          "milestone_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Milestone Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "milestone_id",
+          "label"
+        ],
+        "title": "BlockerOut"
+      },
       "Body_upload_file": {
         "properties": {
           "file": {
@@ -3607,6 +3842,32 @@
           "name"
         ],
         "title": "CategoryCreateIn"
+      },
+      "CategoryLinkOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CategoryLinkOut"
       },
       "CategoryOut": {
         "properties": {
@@ -4116,6 +4377,30 @@
           "Definido"
         ],
         "title": "DefinitionStatus"
+      },
+      "DependencyOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "resolved": {
+            "type": "boolean",
+            "title": "Resolved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "resolved"
+        ],
+        "title": "DependencyOut"
       },
       "EvaluationIn": {
         "properties": {
@@ -5570,6 +5855,240 @@
         ],
         "title": "LoginIn"
       },
+      "ManualState": {
+        "type": "string",
+        "enum": [
+          "Em andamento",
+          "Concluído"
+        ],
+        "title": "ManualState",
+        "description": "O que o casal marca à mão (F-CRN-03). Sem marca, o estado é derivado."
+      },
+      "MilestoneOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "state": {
+            "$ref": "#/components/schemas/MilestoneState"
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          },
+          "overdue": {
+            "type": "boolean",
+            "title": "Overdue"
+          },
+          "blocked_by": {
+            "items": {
+              "$ref": "#/components/schemas/BlockerOut"
+            },
+            "type": "array",
+            "title": "Blocked By"
+          },
+          "depends_on": {
+            "items": {
+              "$ref": "#/components/schemas/DependencyOut"
+            },
+            "type": "array",
+            "title": "Depends On"
+          },
+          "unlocks": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneRefOut"
+            },
+            "type": "array",
+            "title": "Unlocks"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningOut"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoryLinkOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "position",
+          "responsible",
+          "note",
+          "target_date",
+          "state",
+          "optional",
+          "archived",
+          "overdue",
+          "blocked_by",
+          "depends_on",
+          "unlocks",
+          "warnings",
+          "category",
+          "version"
+        ],
+        "title": "MilestoneOut"
+      },
+      "MilestoneRefOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "MilestoneRefOut"
+      },
+      "MilestoneState": {
+        "type": "string",
+        "enum": [
+          "Bloqueado",
+          "Destravado",
+          "Em andamento",
+          "Concluído"
+        ],
+        "title": "MilestoneState",
+        "description": "O estado que a tela mostra: o manual quando há, senão o derivado (F-CRN-03)."
+      },
+      "MilestoneStateIn": {
+        "properties": {
+          "state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualState"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Em andamento ou Concluído; nulo reabre e volta ao estado derivado."
+          },
+          "ignore_block": {
+            "type": "boolean",
+            "title": "Ignore Block",
+            "description": "A confirmação de marcar Em andamento ou Concluído (inclusive saindo de Concluído) um marco que aguarda algo: a categoria ainda em discussão no Mapa de Escopo ou uma dependência não resolvida. Sem ela, esse pedido responde 422 (milestone_blocked).",
+            "default": false
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "version"
+        ],
+        "title": "MilestoneStateIn"
+      },
+      "MilestoneUpdateIn": {
+        "properties": {
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "responsible",
+          "version"
+        ],
+        "title": "MilestoneUpdateIn"
+      },
       "MonthYearSchema": {
         "properties": {
           "year": {
@@ -5616,6 +6135,60 @@
           "casal"
         ],
         "title": "Origin"
+      },
+      "PhaseOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/PhaseProgressOut"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneOut"
+            },
+            "type": "array",
+            "title": "Milestones"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "position",
+          "progress",
+          "milestones"
+        ],
+        "title": "PhaseOut"
+      },
+      "PhaseProgressOut": {
+        "properties": {
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "done",
+          "total"
+        ],
+        "title": "PhaseProgressOut"
       },
       "Priority": {
         "type": "string",
@@ -5816,6 +6389,27 @@
           "can_remove"
         ],
         "title": "ReferenceOut"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/PhaseOut"
+            },
+            "type": "array",
+            "title": "Phases"
+          },
+          "has_exact_date": {
+            "type": "boolean",
+            "title": "Has Exact Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phases",
+          "has_exact_date"
+        ],
+        "title": "ScheduleOut"
       },
       "ScopeMapOut": {
         "properties": {
@@ -6256,6 +6850,36 @@
           "version"
         ],
         "title": "VisibilityIn"
+      },
+      "WarningKind": {
+        "type": "string",
+        "enum": [
+          "depends_on_unresolved"
+        ],
+        "title": "WarningKind"
+      },
+      "WarningOut": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WarningKind"
+          },
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Milestone Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "milestone_id",
+          "title"
+        ],
+        "title": "WarningOut"
       },
       "WeightsIn": {
         "properties": {

@@ -1,0 +1,169 @@
+from dataclasses import dataclass
+from uuid import UUID
+
+from wedding.modules.schedule.application.dates import today_in_brazil
+from wedding.modules.schedule.application.dto import (
+    CATEGORY_UNCLASSIFIED_LABEL,
+    BlockerDto,
+    CategoryLinkDto,
+    DependencyDto,
+    MilestoneDto,
+    MilestoneRefDto,
+    PhaseDto,
+    ScheduleDto,
+    WarningDto,
+    WarningKind,
+)
+from wedding.modules.schedule.application.ports import (
+    CategoryInfo,
+    CategoryReader,
+    ScheduleRepository,
+    WeddingDateReader,
+)
+from wedding.modules.schedule.domain.derivation import (
+    Blocker,
+    Derived,
+    MilestoneFacts,
+    derive,
+    phase_progress,
+)
+from wedding.modules.schedule.domain.entities import Milestone, Phase
+from wedding.modules.schedule.domain.values import BlockerKind, Standing
+from wedding.shared_kernel.actor import Actor
+from wedding.shared_kernel.clock import Clock
+from wedding.shared_kernel.errors import NotFound
+
+
+@dataclass(frozen=True)
+class _Loaded:
+    phases: list[Phase]
+    milestones: list[Milestone]
+    categories: dict[UUID, CategoryInfo]
+    facts: list[MilestoneFacts]
+
+
+class ScheduleReader:
+    """Monta o cronograma inteiro, com tudo o que é derivado calculado aqui e nunca gravado
+    (`architecture.md` §5): bloqueios, opcional, arquivado, atraso, avisos e progresso por fase."""
+
+    def __init__(
+        self, categories: CategoryReader, wedding_date: WeddingDateReader, clock: Clock
+    ) -> None:
+        self._categories = categories
+        self._wedding_date = wedding_date
+        self._clock = clock
+
+    def _load(self, schedule: ScheduleRepository, actor: Actor) -> _Loaded:
+        categories = self._categories.categories(actor)
+        depends_on: dict[UUID, list[UUID]] = {}
+        for link in schedule.dependencies():
+            depends_on.setdefault(link.milestone_id, []).append(link.depends_on_id)
+        phases = sorted(schedule.list_phases(), key=lambda phase: (phase.position, phase.title))
+        phase_order = {phase.id: index for index, phase in enumerate(phases)}
+        # A ordem do cronograma inteiro (fase, posição, título): quem lê "libera" a recebe também.
+        ordered = sorted(
+            schedule.list_milestones(),
+            key=lambda item: (phase_order[item.phase_id], item.position, item.title),
+        )
+        facts = [
+            MilestoneFacts(
+                id=item.id,
+                manual_state=item.manual_state,
+                standing=_standing(item, categories),
+                target_date=item.target_date,
+                depends_on=tuple(depends_on.get(item.id, ())),
+            )
+            for item in ordered
+        ]
+        return _Loaded(phases, ordered, categories, facts)
+
+    def facts(self, schedule: ScheduleRepository, actor: Actor) -> list[MilestoneFacts]:
+        """Os fatos de cada marco, na ordem do cronograma, como a derivação os recebe."""
+        return self._load(schedule, actor).facts
+
+    def read(self, schedule: ScheduleRepository, actor: Actor) -> ScheduleDto:
+        loaded = self._load(schedule, actor)
+        derived = derive(loaded.facts, today_in_brazil(self._clock))
+        titles = {item.id: item.title for item in loaded.milestones}
+
+        phase_dtos = []
+        for phase in loaded.phases:
+            members = [item for item in loaded.milestones if item.phase_id == phase.id]
+            phase_dtos.append(
+                PhaseDto(
+                    id=phase.id,
+                    title=phase.title,
+                    position=phase.position,
+                    progress=phase_progress(derived[item.id] for item in members),
+                    milestones=tuple(
+                        _milestone_dto(item, derived[item.id], titles, loaded.categories)
+                        for item in members
+                    ),
+                )
+            )
+        return ScheduleDto(
+            phases=tuple(phase_dtos),
+            has_exact_date=self._wedding_date.wedding_date(actor).is_exact_and_defined,
+        )
+
+
+def _standing(milestone: Milestone, categories: dict[UUID, CategoryInfo]) -> Standing | None:
+    if milestone.category_id is None:
+        return None
+    info = categories.get(milestone.category_id)
+    # A categoria que a leitura não traz foi excluída, e a excluída conta como `Fica de fora`.
+    return info.standing if info else Standing.OUT
+
+
+def _category_link(
+    milestone: Milestone, categories: dict[UUID, CategoryInfo]
+) -> CategoryLinkDto | None:
+    if milestone.category_id is None:
+        return None
+    info = categories.get(milestone.category_id)
+    return CategoryLinkDto(milestone.category_id, info.name if info else None)
+
+
+def _blocker_dto(blocker: Blocker, titles: dict[UUID, str]) -> BlockerDto:
+    if blocker.kind is BlockerKind.CATEGORY_UNCLASSIFIED or blocker.milestone_id is None:
+        return BlockerDto(blocker.kind, None, CATEGORY_UNCLASSIFIED_LABEL)
+    return BlockerDto(blocker.kind, blocker.milestone_id, titles[blocker.milestone_id])
+
+
+def _milestone_dto(
+    milestone: Milestone,
+    derived: Derived,
+    titles: dict[UUID, str],
+    categories: dict[UUID, CategoryInfo],
+) -> MilestoneDto:
+    return MilestoneDto(
+        id=milestone.id,
+        title=milestone.title,
+        position=milestone.position,
+        responsible=milestone.responsible,
+        note=milestone.note,
+        target_date=milestone.target_date,
+        state=derived.state,
+        optional=derived.optional,
+        archived=derived.archived,
+        overdue=derived.overdue,
+        blocked_by=tuple(_blocker_dto(blocker, titles) for blocker in derived.blockers),
+        depends_on=tuple(
+            DependencyDto(dep.milestone_id, titles[dep.milestone_id], dep.resolved)
+            for dep in derived.dependencies
+        ),
+        unlocks=tuple(MilestoneRefDto(other, titles[other]) for other in derived.unlocks),
+        warnings=tuple(
+            WarningDto(WarningKind.DEPENDS_ON_UNRESOLVED, other, titles[other])
+            for other in derived.unresolved
+        ),
+        category=_category_link(milestone, categories),
+        version=milestone.version,
+    )
+
+
+def require_milestone(schedule: ScheduleRepository, milestone_id: UUID) -> Milestone:
+    milestone = schedule.get_milestone(milestone_id)
+    if milestone is None:
+        raise NotFound()
+    return milestone
