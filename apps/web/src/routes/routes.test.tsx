@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi } from '@/test/fake-api'
 import { LIST, listOf } from '@/test/guest-fixtures'
 import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
+import { ID, SCHEDULE } from '@/test/schedule-fixtures'
 
 const AREAS = [
   ['/', 'O momento de vocês'],
@@ -40,15 +41,27 @@ function guestsApi() {
   })
 }
 
-const WITH_CONTENT = ['/planejamento', '/convidados']
+// Cronograma também: lê o cronograma por fase.
+function scheduleApi() {
+  return mockApi({
+    'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+    'GET /api/v1/schedule': jsonResponse(200, SCHEDULE),
+  })
+}
+
+const WITH_CONTENT = ['/planejamento', '/cronograma', '/convidados']
 
 // As áreas que ainda são esqueleto: um estado vazio acolhedor e nenhuma ação.
 const SKELETONS = AREAS.filter(([path]) => !WITH_CONTENT.includes(path))
 
 describe('rotas das áreas', () => {
   it.each(AREAS)('%s mostra o título editorial da área como o único h1', async (path, title) => {
-    const api =
-      path === '/planejamento' ? planningApi() : path === '/convidados' ? guestsApi() : undefined
+    const apis: Record<string, () => ReturnType<typeof mockApi>> = {
+      '/planejamento': planningApi,
+      '/cronograma': scheduleApi,
+      '/convidados': guestsApi,
+    }
+    const api = apis[path]?.()
     await renderRoute(path, api ? { api } : {})
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument()
@@ -139,6 +152,47 @@ describe('lente na URL', () => {
       'aria-pressed',
       'false',
     )
+  })
+
+  it('o marco aberto mora na URL, o voltar o fecha e a lente continua (F-CRN-09)', async () => {
+    const router = await renderRoute('/cronograma?lente=minha', { api: scheduleApi() })
+    const gatilho = await screen.findByRole('button', { name: 'Marco Exemplo Destravado' })
+
+    await userEvent.click(gatilho)
+    expect(await screen.findByRole('dialog', { name: 'Marco Exemplo Destravado' })).toBeVisible()
+    expect(router.state.location.search).toMatchObject({ marco: ID.destravado, lente: 'minha' })
+
+    router.history.back()
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('marco'))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('recarregar com ?marco= reabre o painel (F-CRN-09)', async () => {
+    const router = await renderRoute(`/cronograma?marco=${ID.bloqueado}`, { api: scheduleApi() })
+    expect(await screen.findByRole('dialog', { name: 'Marco Exemplo Bloqueado' })).toBeVisible()
+    expect(router.state.matches.at(-1)?.search).toMatchObject({ marco: ID.bloqueado })
+  })
+
+  it('trocar o marco na URL com o painel aberto não reaproveita o formulário do anterior', async () => {
+    const router = await renderRoute(`/cronograma?marco=${ID.destravado}`, { api: scheduleApi() })
+    const primeiro = await screen.findByRole('dialog', { name: 'Marco Exemplo Destravado' })
+    const nota = within(primeiro).getByLabelText('Nota')
+    expect(nota).toHaveValue('Nota de exemplo.')
+    await userEvent.clear(nota)
+    await userEvent.type(nota, 'Rascunho do primeiro marco')
+
+    await router.navigate({ to: '/cronograma', search: { marco: ID.bloqueado } as never })
+
+    const segundo = await screen.findByRole('dialog', { name: 'Marco Exemplo Bloqueado' })
+    expect(within(segundo).getByLabelText('Nota')).toHaveValue('')
+    expect(within(segundo).queryByDisplayValue('Rascunho do primeiro marco')).toBeNull()
+  })
+
+  it('um marco inválido na URL é descartado, sem quebrar a página', async () => {
+    await renderRoute('/cronograma?marco=banana', { api: scheduleApi() })
+    await screen.findByRole('heading', { name: 'Fase Exemplo Um' })
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('os filtros do Mapa de Escopo moram na URL e o botão voltar os desfaz (F-PLN-08)', async () => {

@@ -1789,3 +1789,95 @@
   - Mover o GATE 2 para depois do commit: o usuário perderia a chance de ver o diff antes de o histórico existir (`altare-commit`).
   - Manter o `AGENTS.md` reformatado e só adicionar a D-078: carregaria os espaços perdidos em código inline.
 - **Verificação:** `readonly-git.sh` testado com os dois comandos novos; `AGENTS.md` conferido contra reformatação. **Pendente:** o primeiro dev e o primeiro reviewer de verdade, na sessão nova do Bloco 1.3.
+
+---
+
+## D-080 — Bloco 1.3: plano em 7 PRs, por fatias verticais
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1, Bloco 1.3 (plano)
+- **Pedido do usuário:** executar o Bloco 1.3 (Cronograma com Dependências Explícitas) com o time de agentes (`D-077` a `D-079`), a partir do `roadmap.md` e de `features/cronograma.md` (`F-CRN`, aprovada em `D-031`); o plano primeiro, sem código antes da aprovação; depois, "execute o plano".
+- **Escolhido pelo usuário (2026-11-01), nas ambiguidades da `F-CRN`** (as propostas reversíveis do plano, aprovadas com ele):
+  1. **Lente `Minha visão`:** filtra no navegador, como em Convidados (`D-074`, item 4), mostrando os itens com responsável "eu ou `Ambos`"; um filtro explícito de responsável prevalece sobre a lente; bloqueios e progresso continuam calculados sobre todos os itens; lembrar a lente por usuário continua adiado (`D-059`, `D-061`).
+  2. **C05 "Definir a data":** a conclusão continua **manual**; a regra 6 da `F-CRN-03` só lista conclusões automáticas por decisão.
+  3. **Modo Com Data:** só com a data em `Definido` **e** na forma exata; uma janela `Definida` continua em Modo Sem Data (`F-PLN-01`: "só a data exata muda o cronograma").
+  4. **Grupo oculto e categoria do casal excluída:** contam como `Fica de fora` (o marco é arquivado), pela mesma lógica do `is_visible` do Mapa; uma categoria criada depois pelo casal não ganha marco automático.
+  5. **Restaurar um marco:** excluir desativa as dependências nos dois sentidos com o mesmo carimbo e restaurar as reativa; a que hoje fecharia um ciclo, ou cuja outra ponta foi excluída, não volta, e a tela diz quais ficaram de fora.
+  6. **Anexos:** tabela genérica `attachments` (`owner_type`, `owner_id`), com PDF e imagem; as `scope_references` ficam como estão, só com imagem.
+  7. **Progresso por fase:** os opcionais (`Talvez`) contam; só os arquivados saem.
+  8. **Fases:** não há excluir fase (a feature só prevê renomear, reordenar e criar).
+- **Decisão:**
+  1. **Sete PRs para a `develop`, nesta ordem, cada um com os gates verdes e usável:**
+     - **PR 1, `feat/cronograma-marcos`:** o módulo `schedule`, a semente do catálogo, os estados derivados, a ligação com o Mapa de Escopo, o estado manual e a tela "Por fase" com o detalhe do marco (`F-CRN-02`, `03` e `04`; parte da `01` e da `09`; `D-081`).
+     - **PR 2, `feat/cronograma-edicao`:** criar, renomear, mover de fase e excluir marco (com os dependentes listados e a restauração), dependências sem ciclo e fases editáveis (`F-CRN-01`; `F-CRN-03`, regra 2).
+     - **PR 3, `feat/cronograma-datas`:** Modo Sem Data e Modo Com Data, janelas calculadas, prazo manual com "voltar à sugestão", contagem regressiva e a prévia ao mudar a data (`F-CRN-05`); conclui a pendência da `D-067` ("Definido recalcula o cronograma").
+     - **PR 4, `feat/cronograma-avulsas-e-filtros`:** tarefas avulsas, checklist, filtros na URL, a lente e "Meus próximos passos" (`F-CRN-06`, `07` e `09`); o `Chip` sobe para `components/ui`, a terceira feature que o usa (`D-074`, item 7).
+     - **PR 5, `feat/cronograma-anexos`:** a tabela `attachments`, arquivo (PDF ou imagem) e link (`F-CRN-08`).
+     - **PR 6, `feat/cronograma-calendario`:** o calendário mensal pelo prazo-alvo (`F-CRN-10`).
+     - **PR 7, `test/e2e-cronograma`:** E2E do bloco nos dois perfis, conferência visual e de acessibilidade e o fechamento (modelo das `D-070` e `D-076`); depois o PR `develop → main` e, com o merge do usuário, a tag `v0.5.0` (`D-059`: `MINOR` por bloco).
+  2. **Um módulo só, `schedule`** (`architecture.md` §4 e §13), sem `wedding_id` (`D-002`), com `CLAUDE.md` desde o primeiro commit (`D-039`). Lê o Mapa de Escopo e a data do casamento por portas que o `bootstrap` liga ao `wedding`, que ganha o `application/public.py` no PR 1.
+  3. **Derivado na leitura, nunca gravado** (`architecture.md` §5): `Bloqueado`, `Destravado`, `Atrasado`, `Opcional`, arquivado, "Libera", avisos e progresso por fase. Gravam-se os fatos: a marca manual, o responsável, o prazo, a nota e as dependências.
+  4. **Semente por migration, com ids fixos** (como as `0004` e `0005`): as 5 fases e os 29 marcos de `F-CRN-02`. A categoria liga pelo **id fixo** da categoria do catálogo, nunca pelo nome ("Música" do catálogo de marcos é "Música (DJ, banda)" no Mapa). As janelas sugeridas ficam guardadas desde o PR 1, mas só o PR 3 as calcula e mostra.
+  5. **Visitas a fornecedores** (`F-CTT-06`) ficam fora do calendário até o Bloco 3.1, quando o módulo `vendors` existir.
+  6. **Como o bloco roda:** o time de agentes, um PR por vez; cada correção pedida na revisão começa por um teste que falha; revisão independente com `corretude` sempre, mais `design-a11y` nos PRs com tela e `seguranca-lgpd` onde houver dado de terceiros, upload ou exportação.
+- **Razão:** o cronograma é o primeiro lugar em que o estado de um item depende do estado de outros e do Mapa de Escopo; fatiar por camada não entregaria nada usável, e cada PR vertical já responde "o que podemos fazer agora".
+- **O que ficou rejeitado:**
+  - Fatiar por camada (API inteira e depois a tela): nada ficaria usável até o fim.
+  - Gravar o estado `Bloqueado`: seria a segunda verdade a sincronizar com o Mapa (`architecture.md` §5).
+  - Ligar a categoria pelo nome: renomear a categoria quebraria o marco (`F-CRN-02`, regra 1).
+  - Um evento para propagar a mudança do Mapa: o *dispatcher* só nasce com o primeiro evento de domínio (`D-060`) e a derivação na leitura não precisa dele.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Conclusão automática por decisão (C04 e os "Fechar …") | Blocos 2.2, 3.2 e 3.3 (`F-CRN-03`, regra 6) |
+| Visitas agendadas no calendário | Bloco 3.1 (`F-CTT-06`) |
+| Evento de mudança do Mapa e o *dispatcher* | O primeiro evento de domínio (`D-060`) |
+| Excluir fase | O primeiro pedido |
+| Lembrar a lente por usuário | Uma segunda tela que filtre pela lente e o pedido de lembrar |
+| Sincronização com calendários, lembretes e notificações | v1.1+ (`D-013`) |
+- **Aprovado (2026-11-01):** o plano, pelo usuário ("Execute o plano"), com as oito respostas acima.
+- **Pendente:** a aprovação das decisões de cada PR (`D-082` em diante), uma a uma; a `D-081` está aprovada.
+
+---
+
+## D-081 — Marcos, bloqueios e estados: módulo `schedule`, migration `0010`, rotas e a tela "Por fase" (Bloco 1.3, PR 1 de 7)
+- **Data:** 2026-11-02
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 1 de 7 (`D-080`)
+- **Pedido do usuário:** executar o PR 1 do plano, e depois aplicar os ajustes da revisão ("os 4 corrija de corretude, os 6 de a11y e as 3 sugestões", mais o foco ao cancelar, a descrição do contrato, o `derive` reaproveitando `_waiting` e um teste do `key`), com um teste que falha antes de cada correção.
+- **Escolhido pelo usuário (2026-11-02):** manter o rótulo "Fase N", o `?marco=` na URL mesmo quando o marco sumiu, "Reabrir" também em `Em andamento`, `ignore_block` em inglês, alterar um marco arquivado permitido e nenhuma rota de histórico por ora.
+- **Decisão:**
+  1. **Modelo.** Quatro tabelas em `schedule`: `schedule_phases`, `milestones` (marca manual, responsável, prazo-alvo, nota, categoria por id, deslocamentos da janela), `milestone_dependencies` e `milestone_changes` (histórico de estado com o antes, o depois, o perfil e se o bloqueio foi ignorado). A migration `0010` semeia as 5 fases, os 29 marcos e as 31 dependências de `F-CRN-02`, com ids `uuid5` fixos no mesmo espaço da `0005` (prefixos `fase:`, `marco:` e `dependencia:`), responsável `Ambos` e nenhum prazo. A categoria liga pelo id fixo do catálogo do Mapa (C11, a "Música (DJ, banda)"), com chave estrangeira física `RESTRICT` para `scope_categories`, como `scope_references.file_id` já cruza módulos no banco; o código só cruza por `public.py`.
+  2. **Contrato entre módulos.** Nasce `wedding/application/public.py` com `GetScopeStandings` (status e visibilidade das categorias por id) e `GetWeddingDate` (status, forma e data exata). O `schedule` as lê pelas portas `CategoryReader` e `WeddingDateReader`, ligadas em `platform/bootstrap/schedule.py`, que dobra "oculta, grupo oculto ou excluída" em `Fica de fora`; o `schedule` não importa o `wedding`. Mudar os campos do `public.py` exige uma `D-xxx`.
+  3. **Derivado na leitura** (`domain/derivation.py`, funções puras, Hypothesis): a dependência "A depende de B" está resolvida com B `Concluído`, arquivado ou opcional (não transitiva); a categoria `Em discussão` bloqueia com "Aguardando classificar a categoria no Mapa de Escopo"; `Atrasado` é prazo anterior a hoje (o dia em Brasília, pelo `Clock`), não concluído e **não arquivado**; o progresso por fase conta os opcionais e tira os arquivados; "Libera" **não lista arquivados**. O `Em andamento` guarda a marca, mas a lista do que falta continua; o `Concluído` tem, em vez dela, o aviso `depends_on_unresolved` ("Concluído antes de: …") para todo predecessor não resolvido, **reaberto ou nunca concluído**.
+  4. **Estado manual.** `PUT /schedule/milestones/{id}/state` com `state` nulo reabrindo. Marcar `Em andamento` ou `Concluído` num marco que aguarda algo exige `ignore_block` (a confirmação é da tela); sem ele, `422 milestone_blocked`. **O que ele aguarda se calcula sem a marca manual atual** (`waiting_on`), então vale também ao sair de `Concluído`; um teste de propriedade exige `waiting_on == blockers` da derivação. O histórico grava só mudança real e `ignored_block` só quando havia o que aguardar; perfil e autoria vêm da sessão, nunca do corpo.
+  5. **Rotas** (`/api/v1/schedule`): `GET` (`read_schedule`), `PUT /milestones/{id}` (responsável, nota até 500 caracteres, prazo entre 2000 e 2100, limites propostos e ajustáveis) e `PUT /milestones/{id}/state`. Toda escrita devolve o cronograma inteiro, as saídas não têm valor padrão e a `version` é por marco (`409 version_conflict`); alterar um marco arquivado é permitido.
+  6. **Web.** `/cronograma` vira a tela "Por fase": uma tabela com `tbody` por fase no computador e um cartão por marco no celular; o que o marco aguarda é texto abaixo do título; o detalhe abre no `Sheet` pela URL (`?marco=`, validado à mão, valor inválido descartado), com estado, responsável, prazo, nota, "Depende de" e "Libera". Nada é otimista (o servidor recalcula o estado dos dependentes). "Ignorar o bloqueio" e "reabrir" pedem confirmação com a lista do que falta ou do que pode voltar a ficar bloqueado; o feedback é uma região de status dentro do painel. Foco: ao painel ao abrir, ao título "Estado" depois de mudar o estado e ao botão de origem se a confirmação é cancelada ou falha (o diálogo não tem `DialogTrigger`, então a tela leva o foco); com o painel aberto pela URL, ao fechar vai ao botão do marco ou ao `h1`. Trocar o `?marco=` com o painel aberto não reaproveita o formulário do marco anterior.
+  7. **Desvios do guia** (não há página do Cronograma; bases: págs. 34, 38, 39 e 40; linhas novas no `design-system.md` §15): `Em andamento` em `Badge` `outline` com `circle-dot`, `Concluído` em sálvia com `circle-check` e `Atrasado` em argila com `circle-alert` (o guia não desenha os três); o motivo do bloqueio em **texto**, não em `Popover`, o que **revisa o `DependencyStatus` do §9** (o `Tooltip` nunca é a única fonte); o `Destravado` com contorno `consensus-ink` no cartão e título em negrito na tabela, destaque proposto além do selo; "Fase N" no `PhaseHeader` é a posição de exibição, não um campo, e no celular o progresso usa o `Progress` com barra e o rótulo em sans (o guia pede mono e não desenha a barra); responsável em texto simples, sem `ProfileChip`; o aviso "Concluído antes de: …" em argila com `circle-alert`, com ícone e texto.
+  8. **Decisões de revisão.** O aviso do `Concluído` se chama "predecessor não resolvido" e não "reaberto", porque o estado é derivado e não guarda se houve reabertura; a confirmação de ignorar o bloqueio vale para qualquer marca de partida; `SchedulePage` não recebe `profile` nem `lens` (voltam no PR 4, que é quando a lente filtra).
+- **Ajustes em arquivos aprovados:** `cronograma.md` (regras 4 e 5 da `F-CRN-03`, um critério de aceite e a linha de status); `design-system.md` (§9, `DependencyStatus`; §15, quatro linhas novas); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` dos módulos `schedule` (novo) e `wedding` (o `public.py`).
+- **Razão:** o cronograma só é útil se o "o que podemos fazer agora" estiver sempre certo, e ele depende do Mapa de Escopo, que o casal muda a qualquer hora; derivar na leitura evita uma segunda verdade, e calcular o que o marco aguarda sem a marca manual impede que a porta do futuro assistente pule a confirmação que a tela exige.
+- **O que ficou rejeitado:**
+  - Guardar se um marco foi reaberto para distinguir os avisos: mais um fato a sincronizar sem ganho para o casal; o texto neutro basta.
+  - Confirmar só no front: o caso de uso é a superfície que o agente do Nível 5 vai usar (`D-008`), então a regra vive na API.
+  - `Popover` com "Aguardando: …" (como o §9 dizia): esconde a informação de quem usa teclado ou toque.
+  - Atualização otimista ao marcar um estado: o servidor recalcula o estado de quem depende, e recalcular no navegador criaria a segunda verdade.
+  - Ligar a categoria sem chave estrangeira no banco, só por convenção: a integridade é do banco, e o precedente do `scope_references` já cruza módulos assim.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Rota de leitura do histórico de estado (`milestone_changes`) | O primeiro pedido de ver quem mudou o quê |
+| Conferir a versão antes de tratar o retry do mesmo estado como no-op | Um retry de rede ou o assistente repetir o pedido (`D-042`) |
+| Estreitar o tipo do `bootstrap` para só os casos de uso públicos do `wedding` | A próxima mudança em `platform/bootstrap/schedule.py` |
+| Leitura dupla dos fatos em cada mudança de estado | A leitura das categorias ficar cara |
+| Fase excluída logicamente quebraria a leitura (`schedule_map.py`) | PR 2 (`F-CRN-01`, fases editáveis) |
+| `today_in_brazil` copiado do `guests` (2ª ocorrência) | A terceira, quando sobe para o `shared_kernel` |
+| Cópia do `form-alert` (3ª ocorrência do padrão) | PR 4, junto com a promoção do `Chip` |
+| Alvo de toque de 44 px na linha da tabela, hover do cartão `Destravado`, `circle-check` nas mensagens de sucesso, "Sem prazo" em sans, posição do selo `Opcional`, `aria-labelledby` da seção "Estado" | A passada de acessibilidade e a conferência visual do PR 7 |
+| Contraste de `attention-ink` e `consensus-ink` sobre `surface` na tabela de `identity.md` §3.4 | A passada de acessibilidade do PR 7 |
+| A pílula flutuante do Assistente cobre uma linha do celular na rolagem (efeito da casca) | A conferência visual do PR 7 |
+- **Verificação:** API com 1195 testes e web com 790, Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade) em 1440 e 390 px. O `make e2e` e a conferência em 768 e 320 px ficam para o PR 7. Os testes do domínio incluem uma máquina de estados Hypothesis (invariantes: o `Concluído` não muda sozinho, arquivado e opcional nunca bloqueiam, todo `Bloqueado` lista um motivo, "Libera" não tem arquivado).
+- **Time de agentes (a pendência da `D-079`, primeira execução real):** o reviewer leu o diff e os arquivos novos (`git diff develop` e `git status --untracked-files=all`) nas duas rodadas. Os dois reviewers estouraram o limite de 30 turnos na primeira rodada, sem parecer, e entregaram quando retomados; o `readonly-git.sh` barrou `git -C`, comandos encadeados e `rg` com `|` no padrão. O hook Stop de gates e a Skill tool dentro de subagent não puderam ser observados (os agentes encerram por *hand-back*), então os gates foram rodados pela sessão principal.
+- **Em aberto (proposta, sem decidir):** subir o `maxTurns` do `altare-reviewer` e pôr no prompt "sem `git -C`, sem `&&`, `rg -e`"; confirmar o escopo do `gates.sh` por agente.
+- **Aprovado (2026-11-02):** esta decisão e o PR 1, pelo usuário ("Prossiga para o commit, push e PR").
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR, que é do usuário.

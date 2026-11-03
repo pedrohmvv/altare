@@ -28,6 +28,8 @@ from wedding.modules.wedding.application.dto import BaselineChangeDto, to_snapsh
 from wedding.modules.wedding.application.ports import StoredFile
 from wedding.modules.wedding.application.queries.get_baseline import GetBaseline
 from wedding.modules.wedding.application.queries.get_scope_map import GetScopeMap
+from wedding.modules.wedding.application.queries.get_scope_standings import GetScopeStandings
+from wedding.modules.wedding.application.queries.get_wedding_date import GetWeddingDate
 from wedding.modules.wedding.application.queries.list_baseline_changes import ListBaselineChanges
 from wedding.modules.wedding.application.queries.list_references import ListReferences
 from wedding.modules.wedding.application.queries.list_scope_category_history import (
@@ -326,6 +328,7 @@ class World:
     def use_cases(self) -> WeddingUseCases:
         return WeddingUseCases(
             get_baseline=GetBaseline(self.uow_factory, _GuestCount(self)),
+            get_wedding_date=GetWeddingDate(self.uow_factory),
             update_baseline_field=UpdateBaselineField(
                 self.uow_factory, self.ids, _GuestCount(self)
             ),
@@ -335,6 +338,7 @@ class World:
     def scope_use_cases(self) -> ScopeUseCases:
         return ScopeUseCases(
             get_scope_map=GetScopeMap(self.uow_factory),
+            get_scope_standings=GetScopeStandings(self.uow_factory),
             list_scope_category_history=ListScopeCategoryHistory(self.uow_factory),
             create_scope_group=CreateScopeGroup(self.uow_factory, self.ids),
             rename_scope_group=RenameScopeGroup(self.uow_factory),

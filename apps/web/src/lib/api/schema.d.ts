@@ -727,6 +727,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Schedule */
+        get: operations["read_schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Milestone */
+        put: operations["update_milestone"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change Milestone State */
+        put: operations["change_milestone_state"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -793,6 +844,19 @@ export interface components {
             ceiling: components["schemas"]["CeilingFieldOut"];
             ceremony: components["schemas"]["CeremonyFieldOut"];
         };
+        /**
+         * BlockerKind
+         * @enum {string}
+         */
+        BlockerKind: "category" | "milestone";
+        /** BlockerOut */
+        BlockerOut: {
+            kind: components["schemas"]["BlockerKind"];
+            /** Milestone Id */
+            milestone_id: string | null;
+            /** Label */
+            label: string;
+        };
         /** Body_upload_file */
         Body_upload_file: {
             /** File */
@@ -809,6 +873,16 @@ export interface components {
             name: string;
             /** Estimate Cents */
             estimate_cents?: number | null;
+        };
+        /** CategoryLinkOut */
+        CategoryLinkOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string | null;
         };
         /** CategoryOut */
         CategoryOut: {
@@ -990,6 +1064,18 @@ export interface components {
          * @enum {string}
          */
         DefinitionStatus: "Em definição" | "Definido";
+        /** DependencyOut */
+        DependencyOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Resolved */
+            resolved: boolean;
+        };
         /** EvaluationIn */
         EvaluationIn: {
             priority?: components["schemas"]["Priority"] | null;
@@ -1427,6 +1513,92 @@ export interface components {
             /** Password */
             password: string;
         };
+        /**
+         * ManualState
+         * @description O que o casal marca à mão (F-CRN-03). Sem marca, o estado é derivado.
+         * @enum {string}
+         */
+        ManualState: "Em andamento" | "Concluído";
+        /** MilestoneOut */
+        MilestoneOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Position */
+            position: number;
+            responsible: components["schemas"]["ProfileKind"];
+            /** Note */
+            note: string | null;
+            /** Target Date */
+            target_date: string | null;
+            state: components["schemas"]["MilestoneState"];
+            /** Optional */
+            optional: boolean;
+            /** Archived */
+            archived: boolean;
+            /** Overdue */
+            overdue: boolean;
+            /** Blocked By */
+            blocked_by: components["schemas"]["BlockerOut"][];
+            /** Depends On */
+            depends_on: components["schemas"]["DependencyOut"][];
+            /** Unlocks */
+            unlocks: components["schemas"]["MilestoneRefOut"][];
+            /** Warnings */
+            warnings: components["schemas"]["WarningOut"][];
+            category: components["schemas"]["CategoryLinkOut"] | null;
+            /** Version */
+            version: number;
+        };
+        /** MilestoneRefOut */
+        MilestoneRefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * MilestoneState
+         * @description O estado que a tela mostra: o manual quando há, senão o derivado (F-CRN-03).
+         * @enum {string}
+         */
+        MilestoneState: "Bloqueado" | "Destravado" | "Em andamento" | "Concluído";
+        /** MilestoneStateIn */
+        MilestoneStateIn: {
+            /** @description Em andamento ou Concluído; nulo reabre e volta ao estado derivado. */
+            state: components["schemas"]["ManualState"] | null;
+            /**
+             * Ignore Block
+             * @description A confirmação de marcar Em andamento ou Concluído (inclusive saindo de Concluído) um marco que aguarda algo: a categoria ainda em discussão no Mapa de Escopo ou uma dependência não resolvida. Sem ela, esse pedido responde 422 (milestone_blocked).
+             * @default false
+             */
+            ignore_block: boolean;
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** MilestoneUpdateIn */
+        MilestoneUpdateIn: {
+            responsible: components["schemas"]["ProfileKind"];
+            /** Note */
+            note?: string | null;
+            /** Target Date */
+            target_date?: string | null;
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
         /** MonthYearSchema */
         MonthYearSchema: {
             /** Year */
@@ -1452,6 +1624,28 @@ export interface components {
          * @enum {string}
          */
         Origin: "catalogo" | "casal";
+        /** PhaseOut */
+        PhaseOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Position */
+            position: number;
+            progress: components["schemas"]["PhaseProgressOut"];
+            /** Milestones */
+            milestones: components["schemas"]["MilestoneOut"][];
+        };
+        /** PhaseProgressOut */
+        PhaseProgressOut: {
+            /** Done */
+            done: number;
+            /** Total */
+            total: number;
+        };
         /**
          * Priority
          * @enum {string}
@@ -1530,6 +1724,13 @@ export interface components {
             at: string;
             /** Can Remove */
             can_remove: boolean;
+        };
+        /** ScheduleOut */
+        ScheduleOut: {
+            /** Phases */
+            phases: components["schemas"]["PhaseOut"][];
+            /** Has Exact Date */
+            has_exact_date: boolean;
         };
         /** ScopeMapOut */
         ScopeMapOut: {
@@ -1675,6 +1876,22 @@ export interface components {
              * @description A versão que a tela viu; divergir dá 409.
              */
             version: number;
+        };
+        /**
+         * WarningKind
+         * @enum {string}
+         */
+        WarningKind: "depends_on_unresolved";
+        /** WarningOut */
+        WarningOut: {
+            kind: components["schemas"]["WarningKind"];
+            /**
+             * Milestone Id
+             * Format: uuid
+             */
+            milestone_id: string;
+            /** Title */
+            title: string;
         };
         /** WeightsIn */
         WeightsIn: {
@@ -4330,6 +4547,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_milestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    change_milestone_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };

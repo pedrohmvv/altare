@@ -1,6 +1,6 @@
 # Features: Cronograma & Dependências (`features/cronograma.md`)
 
-> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**.
+> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`.
 >
 > **Fontes:** `docs/product/scope.md` §2, `docs/design/experience.md` (objeto 4), `docs/product/jobs.md` (J4, J5), `features/planejamento-e-caminhos.md` (F-PLN-01, F-PLN-07), `D-026`, `D-031`.
 >
@@ -122,15 +122,15 @@
 1. Uma dependência "A depende de B" está **resolvida** quando B está `Concluído`, **arquivado** (categoria `Fica de fora`) ou **opcional** (categoria `Talvez`).
 2. O sistema **impede ciclos** ao criar uma dependência, com mensagem acionável.
 3. Um marco `Bloqueado` mostra **"Aguardando: …"** com os nomes do que falta. No celular, a lista abre em folha inferior.
-4. Marcar `Em andamento` ou `Concluído` em um marco `Bloqueado` é **permitido com confirmação** ("ignorar o bloqueio"); a escolha fica registrada. A vida real é paralela.
-5. **Reabrir** um marco `Concluído` bloqueia de novo os dependentes que ainda não estão concluídos e **avisa** os que já estão concluídos ("depende de um marco reaberto"), sem alterá-los.
+4. Marcar `Em andamento` ou `Concluído` em um marco que **aguarda algo** (uma dependência não resolvida ou a categoria `Em discussão`) é **permitido com confirmação** ("ignorar o bloqueio"), qualquer que seja a marca de partida (inclusive voltar de `Concluído` para `Em andamento`); a escolha fica registrada. A vida real é paralela (`D-081`).
+5. **Reabrir** um marco `Concluído` bloqueia de novo os dependentes que ainda não estão concluídos e **avisa** os que já estão concluídos ("Concluído antes de: …"), sem alterá-los. O aviso vale para todo marco `Concluído` com predecessor não resolvido, tenha o predecessor sido reaberto ou nunca concluído (o marco foi concluído ignorando o bloqueio): o estado é derivado e o sistema não guarda a diferença. Marcos arquivados (`Fica de fora`) não aparecem em "Libera" (`D-081`).
 6. **Conclusão por decisão:** quando existir o Registro de Decisão macro (Bloco 2.2, `D-033`), o marco "Escolher o caminho macro" (C04) fica `Concluído` automaticamente; quando existir o Registro de Decisão da categoria (Bloco 3.2) **ou um contrato direto na categoria** (Bloco 3.3, `D-036`), o marco "Fechar …" correspondente também. **Até lá, a conclusão é manual.**
 7. Estados e bloqueios são calculados **no backend**, derivados na leitura (`architecture.md` §3).
 
 **Critérios de aceite**
 - Concluir C06 muda C07 a C11, C14, C15, C21 e C24 de `Bloqueado` para `Destravado` (se as categorias não estiverem `Em discussão`) sem digitação. C20 só destrava se C02 também estiver concluído.
 - Criar uma dependência que fecha um ciclo é recusada, mostrando o caminho do ciclo.
-- Marcar `Concluído` um marco `Bloqueado` exige confirmação e registra "ignorou o bloqueio".
+- Marcar `Concluído` (ou `Em andamento`) um marco que aguarda algo exige confirmação e registra "ignorou o bloqueio".
 - Um marco com prazo ontem e estado `Destravado` aparece `Atrasado`; ao concluir, o sinalizador some.
 
 ---
