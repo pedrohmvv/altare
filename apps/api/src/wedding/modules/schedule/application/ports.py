@@ -5,6 +5,7 @@ from types import TracebackType
 from typing import Protocol, Self
 from uuid import UUID
 
+from wedding.modules.schedule.domain.attachments import AttachedFile, Attachment
 from wedding.modules.schedule.domain.entities import (
     ChecklistItem,
     Dependency,
@@ -82,6 +83,18 @@ class ScheduleRepository(Protocol):
 
     def add_checklist_item(self, item: ChecklistItem) -> None: ...
 
+    def list_attachments(self) -> list[Attachment]:
+        """Os anexos vivos de todos os donos, numa só consulta e na ordem em que foram anexados.
+        Quem os agrupa descarta os de dono excluído: excluir o dono não apaga os anexos (restaurar
+        o dono os traz de volta)."""
+        ...
+
+    def get_attachment(self, attachment_id: UUID) -> Attachment | None:
+        """O anexo vivo, qualquer que seja o dono; conferir se o dono está vivo é do leitor."""
+        ...
+
+    def add_attachment(self, attachment: Attachment) -> None: ...
+
 
 class ScheduleUnitOfWork(Protocol):
     @property
@@ -140,3 +153,11 @@ class WeddingDateReader(Protocol):
     """Porta para as Definições Base: a data do casamento, lida na hora e nunca copiada."""
 
     def wedding_date(self, actor: Actor) -> WeddingDate: ...
+
+
+class AttachmentFiles(Protocol):
+    """Porta para o módulo `files`: o `schedule` não importa o outro módulo; o `bootstrap` liga os
+    dois pelo `GetFileInfo` (`D-069`). Devolve o nome, o tipo e o tamanho de um arquivo enviado, ou
+    `None` se ele não existe. Lido uma vez, ao anexar, e copiado para o anexo."""
+
+    def find(self, file_id: UUID, actor: Actor) -> AttachedFile | None: ...

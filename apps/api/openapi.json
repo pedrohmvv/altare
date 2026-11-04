@@ -4634,10 +4634,10 @@
                 "tasks"
               ],
               "type": "string",
-              "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
               "title": "Owner Kind"
             },
-            "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`)."
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
           },
           {
             "name": "owner_id",
@@ -4722,10 +4722,10 @@
                 "tasks"
               ],
               "type": "string",
-              "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
               "title": "Owner Kind"
             },
-            "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`)."
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
           },
           {
             "name": "owner_id",
@@ -4957,6 +4957,265 @@
           }
         }
       }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/links": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Add Link Attachment",
+        "operationId": "add_link_attachment",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentLinkIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/files": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Add File Attachment",
+        "operationId": "add_file_attachment",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentFileIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/attachments/{attachment_id}": {
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Remove Attachment",
+        "operationId": "remove_attachment",
+        "parameters": [
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attachment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5002,6 +5261,228 @@
           "falta"
         ],
         "title": "AlignmentState"
+      },
+      "AttachmentFileIn": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Opcional, até 120 caracteres."
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "Opcional, até 500 caracteres."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "title": "AttachmentFileIn",
+        "description": "Um arquivo já enviado por `POST /files` (PDF ou imagem; o envio valida o tipo, o tamanho e a\nassinatura). Sem campo de autoria, como o link."
+      },
+      "AttachmentFileOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "O id do arquivo, para baixar por `GET /files/{id}`."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "O nome do arquivo ao anexar (cópia)."
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type",
+            "description": "O tipo do arquivo ao anexar (cópia): PDF ou imagem."
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes",
+            "description": "O tamanho em bytes ao anexar (cópia)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "content_type",
+          "size_bytes"
+        ],
+        "title": "AttachmentFileOut"
+      },
+      "AttachmentKind": {
+        "type": "string",
+        "enum": [
+          "link",
+          "file"
+        ],
+        "title": "AttachmentKind"
+      },
+      "AttachmentLinkIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Um endereço http ou https completo; até 2000 caracteres."
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Opcional, até 120 caracteres."
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "Opcional, até 500 caracteres."
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "AttachmentLinkIn",
+        "description": "Um link. Sem campo de autoria: quem anexou é o perfil da sessão, e um `by` ou `profile` que\nvenha no corpo é ignorado."
+      },
+      "AttachmentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AttachmentKind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "O endereço do link; nulo se o anexo é um arquivo."
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain",
+            "description": "O domínio visível do link, derivado do endereço (sem `www.`); nunca lido da página."
+          },
+          "file": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentFileOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "O arquivo; nulo se o anexo é um link."
+          },
+          "by": {
+            "type": "string",
+            "enum": [
+              "Noivo",
+              "Noiva"
+            ],
+            "title": "By",
+            "description": "Quem anexou: o perfil da sessão, nunca do corpo."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At",
+            "description": "O instante em que foi anexado."
+          },
+          "can_remove": {
+            "type": "boolean",
+            "title": "Can Remove",
+            "description": "Derivado do perfil de quem lê: só o autor remove."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "comment",
+          "url",
+          "domain",
+          "file",
+          "by",
+          "at",
+          "can_remove"
+        ],
+        "title": "AttachmentOut"
       },
       "BandCountsOut": {
         "properties": {
@@ -7771,6 +8252,14 @@
             "$ref": "#/components/schemas/ChecklistProgressOut",
             "description": "O \"N de M\" do checklist."
           },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentOut"
+            },
+            "type": "array",
+            "title": "Attachments",
+            "description": "Os anexos vivos, na ordem em que foram anexados; não mudam o estado nem a `version`."
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -7800,6 +8289,7 @@
           "days_left",
           "checklist",
           "checklist_progress",
+          "attachments",
           "version"
         ],
         "title": "MilestoneOut"
@@ -8816,6 +9306,13 @@
           "checklist_progress": {
             "$ref": "#/components/schemas/ChecklistProgressOut"
           },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentOut"
+            },
+            "type": "array",
+            "title": "Attachments"
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -8833,6 +9330,7 @@
           "days_left",
           "checklist",
           "checklist_progress",
+          "attachments",
           "version"
         ],
         "title": "TaskOut"

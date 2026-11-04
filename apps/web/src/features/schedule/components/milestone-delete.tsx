@@ -1,7 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { type ScheduleMilestone, scheduleKeys } from '../api/schedule'
 import { useDeleteMilestone } from '../api/use-milestone-mutations'
 import { copy } from '../copy'
@@ -37,7 +42,7 @@ export function DeleteMilestone({
   const [open, setOpen] = useState(false)
   const [alert, setAlert] = useState<AlertState | null>(null)
   const [reloading, setReloading] = useState(false)
-  // Sem `DialogTrigger` o Radix não devolve o foco: ao cancelar ele volta ao botão que abriu.
+  // Sem `AlertDialogTrigger` o Radix não devolve o foco: ao cancelar ele volta ao botão que abriu.
   const origin = useRef<HTMLButtonElement>(null)
 
   function close() {
@@ -76,10 +81,11 @@ export function DeleteMilestone({
       >
         {labels.button}
       </Button>
-      <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
-        <DialogContent
+      <AlertDialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
+        <AlertDialogContent
           title={labels.title(milestone.title)}
           description={labels.description}
+          pending={remove.isPending}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
             origin.current?.focus()
@@ -101,16 +107,18 @@ export function DeleteMilestone({
             </div>
           )}
           <FormAlert alert={alert} onReload={() => void reload()} reloading={reloading} />
-          <DialogFooter>
-            <Button variant="ghost" onClick={close}>
-              {labels.cancel}
-            </Button>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="ghost" disabled={remove.isPending}>
+                {labels.cancel}
+              </Button>
+            </AlertDialogCancel>
             <Button variant="soft-destructive" onClick={submit} loading={remove.isPending}>
               {labels.confirm}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

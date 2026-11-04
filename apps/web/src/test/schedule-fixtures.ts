@@ -1,4 +1,5 @@
 import type {
+  Attachment,
   ChecklistItem,
   Schedule,
   ScheduleMilestone,
@@ -35,6 +36,13 @@ export const ID = {
   itemDois: '00000000-0000-4000-8000-0000000000d2',
   itemTres: '00000000-0000-4000-8000-0000000000d3',
   itemNovo: '00000000-0000-4000-8000-0000000000d4',
+  anexoPdf: '00000000-0000-4000-8000-0000000000f4',
+  anexoImagem: '00000000-0000-4000-8000-0000000000f5',
+  anexoLink: '00000000-0000-4000-8000-0000000000f6',
+  anexoNovo: '00000000-0000-4000-8000-0000000000f7',
+  arquivoPdf: '00000000-0000-4000-8000-0000000000f8',
+  arquivoImagem: '00000000-0000-4000-8000-0000000000f9',
+  arquivoNovo: '00000000-0000-4000-8000-0000000000fa',
 } as const
 
 /**
@@ -64,6 +72,7 @@ export function milestone(over: Partial<ScheduleMilestone> & { id: string; title
     category: null,
     checklist: [],
     checklist_progress: { done: 0, total: 0 },
+    attachments: [],
     version: 1,
     ...over,
   } satisfies ScheduleMilestone
@@ -72,6 +81,59 @@ export function milestone(over: Partial<ScheduleMilestone> & { id: string; title
 /** Um item de checklist, sem texto do casamento: os exemplos são rotulados como fictícios. */
 export function checklistItem(over: Partial<ChecklistItem> & { id: string; text: string }) {
   return { done: false, position: 0, version: 1, ...over } satisfies ChecklistItem
+}
+
+/**
+ * Um anexo de link de exemplo (`https://exemplo.test`), do Noivo, que o perfil da sessão pode remover.
+ * Quem testa um arquivo passa `kind: 'file'` e o `file` (veja `pdfAttachment` e `imageAttachment`).
+ */
+export function attachment(over: Partial<Attachment> & { id: string }) {
+  return {
+    kind: 'link',
+    title: null,
+    comment: null,
+    url: 'https://exemplo.test/pagina',
+    domain: 'exemplo.test',
+    file: null,
+    by: 'Noivo',
+    at: '2026-10-27T15:30:00Z',
+    can_remove: true,
+    ...over,
+  } satisfies Attachment
+}
+
+/** Um PDF de exemplo anexado: o nome e o tamanho são cópias de quando foi anexado. */
+export function pdfAttachment(over: Partial<Attachment> & { id: string } = { id: ID.anexoPdf }) {
+  return attachment({
+    kind: 'file',
+    url: null,
+    domain: null,
+    file: {
+      id: ID.arquivoPdf,
+      name: 'contrato-exemplo.pdf',
+      content_type: 'application/pdf',
+      size_bytes: 1_468_006,
+    },
+    ...over,
+  })
+}
+
+/** Uma imagem de exemplo anexada. */
+export function imageAttachment(
+  over: Partial<Attachment> & { id: string } = { id: ID.anexoImagem },
+) {
+  return attachment({
+    kind: 'file',
+    url: null,
+    domain: null,
+    file: {
+      id: ID.arquivoImagem,
+      name: 'planta-exemplo.png',
+      content_type: 'image/png',
+      size_bytes: 204_800,
+    },
+    ...over,
+  })
 }
 
 /**
@@ -92,6 +154,7 @@ export function task(over: Partial<ScheduleTask> & { id: string; title: string }
       done: checklist.filter((item) => item.done).length,
       total: checklist.length,
     },
+    attachments: [],
     version: 1,
     ...over,
   } satisfies ScheduleTask
@@ -417,6 +480,36 @@ export function scheduleWithChecklist(
       ),
     })),
   }
+}
+
+/**
+ * O cronograma com os anexos de um dono (marco ou avulsa) trocados, como a API o devolveria. Os ids
+ * dos marcos e das avulsas não se confundem.
+ */
+export function scheduleWithAttachments(
+  ownerId: string,
+  attachments: Attachment[],
+  base: Schedule = SCHEDULE,
+): Schedule {
+  const change = { attachments }
+  return {
+    ...base,
+    tasks: base.tasks.map((item) => (item.id === ownerId ? { ...item, ...change } : item)),
+    phases: base.phases.map((phase) => ({
+      ...phase,
+      milestones: phase.milestones.map((item) =>
+        item.id === ownerId ? { ...item, ...change } : item,
+      ),
+    })),
+  }
+}
+
+/** Os anexos vivos de um dono, no cronograma dado. */
+export function attachmentsOf(schedule: Schedule, ownerId: string): Attachment[] {
+  const owner =
+    schedule.tasks.find((item) => item.id === ownerId) ??
+    schedule.phases.flatMap((phase) => phase.milestones).find((item) => item.id === ownerId)
+  return owner?.attachments ?? []
 }
 
 /** Os itens vivos de um dono, no cronograma dado. */

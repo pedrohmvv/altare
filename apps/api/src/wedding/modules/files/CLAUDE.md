@@ -2,10 +2,10 @@
 
 > Regras gerais: leia `AGENTS.md` (raiz) e os docs abaixo. Este arquivo só traz o que é específico do módulo.
 
-**Propósito:** é dono do arquivo enviado (`FileAsset`) e das regras de upload e download. Não é dono do vínculo do arquivo a contatos, propostas, contratos e parcelas (`ATTACHMENT`): ele nasce no bloco que anexa.
+**Propósito:** é dono do arquivo enviado (`FileAsset`) e das regras de upload e download. Não é dono do vínculo do arquivo a marcos, avulsas, contatos, propostas, contratos e parcelas (`ATTACHMENT`): ele nasce no bloco que anexa (o primeiro uso é o cronograma, `F-CRN-08`, `D-085`).
 
 ## Superfície pública
-- `application/public.py`: `FileAssetDto`, o que outro módulo guarda para apontar para um arquivo. O `GetFileInfo` (dados sem o conteúdo) é ligado a quem precisa pelo `bootstrap`, que é o único que conhece os dois módulos; o `wedding` o usa para conferir que uma referência é imagem (`D-069`).
+- `application/public.py`: `FileAssetDto`, o que outro módulo guarda para apontar para um arquivo. O `GetFileInfo` (dados sem o conteúdo) é ligado a quem precisa pelo `bootstrap`, que é o único que conhece os dois módulos; o `wedding` o usa para conferir que uma referência é imagem (`D-069`) e o `schedule` o usa ao anexar um arquivo a um marco ou a uma avulsa (`F-CRN-08`, `D-085`): lê nome, tipo e tamanho uma vez e o anexo guarda a cópia (o arquivo é imutável). O vínculo mora em `schedule/attachments`, e o `files` não muda por isso (nem a validação do envio, nem o limite de 20 MB).
 - `domain/events.py`: nenhum evento.
 
 Nada além disso pode ser importado por outro módulo (`architecture.md` §4; contrato 5 de §9).
@@ -24,7 +24,7 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 
 ## Docs
 - Features: `F-PLN-06`, `F-CTT-07`, `F-CRN-08`, `F-PRP-04` e `F-CTR-02` (quem anexa); este módulo só guarda o arquivo.
-- Decisões: `D-059`, `D-063`.
+- Decisões: `D-059`, `D-063`, `D-069` (primeira porta sobre o `GetFileInfo`) e `D-085` (anexos do cronograma).
 - Arquitetura e domínio: `docs/engineering/architecture.md` §12 (`ATTACHMENT`); `docs/engineering/stack.md` §3 (`FileStorage` e validação de upload).
 
 ## Como testar

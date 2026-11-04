@@ -35,7 +35,8 @@ class TaskState(StrEnum):
 
 
 class OwnerKind(StrEnum):
-    """Quem pode ter checklist (F-CRN-07, regra 1); o valor é o segmento da rota."""
+    """Quem pode ter checklist e anexos (F-CRN-07, regra 1; F-CRN-08): um marco ou uma avulsa. O
+    valor é o segmento da rota e também o `owner_type` gravado nos anexos."""
 
     MILESTONE = "milestones"
     TASK = "tasks"

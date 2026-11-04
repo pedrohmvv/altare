@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from wedding.modules.schedule.domain.attachments import Attachment
 from wedding.modules.schedule.domain.entities import (
     ChecklistItem,
     Dependency,
@@ -14,6 +15,7 @@ from wedding.modules.schedule.domain.entities import (
 )
 from wedding.modules.schedule.domain.values import OwnerKind
 from wedding.modules.schedule.infrastructure.tables import (
+    attachments,
     checklist_items,
     milestone_dependencies,
     milestones,
@@ -145,3 +147,20 @@ class SqlScheduleRepository:
 
     def add_checklist_item(self, item: ChecklistItem) -> None:
         self._session.add(item)
+
+    def list_attachments(self) -> list[Attachment]:
+        query = (
+            select(Attachment)
+            .where(attachments.c.deleted_at.is_(None))
+            .order_by(attachments.c.created_at, attachments.c.id)
+        )
+        return list(self._session.execute(query).scalars())
+
+    def get_attachment(self, attachment_id: UUID) -> Attachment | None:
+        query = select(Attachment).where(
+            attachments.c.id == attachment_id, attachments.c.deleted_at.is_(None)
+        )
+        return self._session.execute(query).scalar_one_or_none()
+
+    def add_attachment(self, attachment: Attachment) -> None:
+        self._session.add(attachment)

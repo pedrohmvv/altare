@@ -23,7 +23,7 @@ async function askToDelete(name: string, user: ReturnType<typeof renderSchedule>
   const painel = await openMilestone(user, name)
   const gatilho = within(painel).getByRole('button', { name: 'Excluir marco' })
   await user.click(gatilho)
-  const confirmacao = await screen.findByRole('dialog', { name: `Excluir “${name}”?` })
+  const confirmacao = await screen.findByRole('alertdialog', { name: `Excluir “${name}”?` })
   return { painel, gatilho, confirmacao }
 }
 
@@ -59,7 +59,7 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
     )
     const painel = await screen.findByRole('dialog', { name: 'Marco Exemplo Opcional' })
     await user.click(within(painel).getByRole('button', { name: 'Excluir marco' }))
-    const confirmacao = await screen.findByRole('dialog', {
+    const confirmacao = await screen.findByRole('alertdialog', {
       name: 'Excluir “Marco Exemplo Opcional”?',
     })
 
@@ -92,7 +92,7 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
     )
     const painel = await screen.findByRole('dialog', { name: 'Marco Exemplo Opcional' })
     await user.click(within(painel).getByRole('button', { name: 'Excluir marco' }))
-    const confirmacao = await screen.findByRole('dialog', {
+    const confirmacao = await screen.findByRole('alertdialog', {
       name: 'Excluir “Marco Exemplo Opcional”?',
     })
     await user.click(within(confirmacao).getByRole('button', { name: 'Excluir marco' }))
@@ -130,7 +130,7 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
     )
     const painel = await screen.findByRole('dialog', { name: 'Marco Exemplo Opcional' })
     await user.click(within(painel).getByRole('button', { name: 'Excluir marco' }))
-    const confirmacao = await screen.findByRole('dialog', {
+    const confirmacao = await screen.findByRole('alertdialog', {
       name: 'Excluir “Marco Exemplo Opcional”?',
     })
     await user.click(within(confirmacao).getByRole('button', { name: 'Excluir marco' }))
@@ -156,7 +156,7 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
     )
     const painel = await screen.findByRole('dialog', { name: 'Marco Exemplo Opcional' })
     await user.click(within(painel).getByRole('button', { name: 'Excluir marco' }))
-    const confirmacao = await screen.findByRole('dialog', {
+    const confirmacao = await screen.findByRole('alertdialog', {
       name: 'Excluir “Marco Exemplo Opcional”?',
     })
     await user.click(within(confirmacao).getByRole('button', { name: 'Excluir marco' }))
@@ -184,7 +184,7 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
     )
     const painel = await screen.findByRole('dialog', { name: 'Marco Exemplo Opcional' })
     await user.click(within(painel).getByRole('button', { name: 'Excluir marco' }))
-    const confirmacao = await screen.findByRole('dialog', {
+    const confirmacao = await screen.findByRole('alertdialog', {
       name: 'Excluir “Marco Exemplo Opcional”?',
     })
     await user.click(within(confirmacao).getByRole('button', { name: 'Excluir marco' }))
@@ -218,7 +218,7 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
 
     await waitFor(() =>
       expect(
-        screen.queryByRole('dialog', { name: 'Excluir “Marco Exemplo Opcional”?' }),
+        screen.queryByRole('alertdialog', { name: 'Excluir “Marco Exemplo Opcional”?' }),
       ).not.toBeInTheDocument(),
     )
     expect(screen.getByRole('dialog', { name: 'Marco Exemplo Opcional' })).toBeVisible()
@@ -251,5 +251,28 @@ describe('excluir marco (F-CRN-01, regra 3)', () => {
 
     expect(await activeAlert(confirmacao)).toHaveTextContent(/Não conseguimos excluir/)
     expect(within(confirmacao).getByRole('button', { name: 'Excluir marco' })).toBeEnabled()
+  })
+
+  it('Esc com a exclusão pendente não fecha e o erro aparece dentro da confirmação', async () => {
+    let release: () => void = () => {}
+    const { user } = renderSchedule({
+      [DELETE_MILESTONE(ID.opcional)]: () =>
+        new Promise<Response>((resolve) => {
+          release = () => resolve(problemResponse(409, 'version_conflict'))
+        }),
+    })
+    const { confirmacao } = await askToDelete('Marco Exemplo Opcional', user)
+    await user.click(within(confirmacao).getByRole('button', { name: 'Excluir marco' }))
+    await waitFor(() =>
+      expect(within(confirmacao).getByRole('button', { name: 'Cancelar' })).toBeDisabled(),
+    )
+
+    await user.keyboard('{Escape}')
+
+    expect(
+      screen.getByRole('alertdialog', { name: 'Excluir “Marco Exemplo Opcional”?' }),
+    ).toBeVisible()
+    release()
+    expect(await activeAlert(confirmacao)).toHaveTextContent(/alterado em outra tela/)
   })
 })

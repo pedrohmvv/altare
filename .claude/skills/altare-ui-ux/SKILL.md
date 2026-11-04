@@ -40,7 +40,7 @@ Fluxo, composição e estados de uma tela se conferem contra as páginas do guia
 | Desabilitado | Acompanha a dica do motivo | Botão cinza sem explicação |
 
 - **Validar ao sair do campo e ao enviar**; erro junto do campo, em argila, com ícone e texto acionável. Obrigatoriedade escrita ("obrigatório"), sem asterisco.
-- **Confirmação destrutiva só quando a ação não for desfazível.** O diálogo explica a consequência e que o registro **fica recuperável** (exclusão lógica, `D-022`). Ação segura usa *toast* com "Desfazer", sem diálogo.
+- **Confirmação destrutiva só quando a ação não for desfazível.** O diálogo explica a consequência e que o registro **fica recuperável** (exclusão lógica, `D-022`). Ação segura usa *toast* com "Desfazer", sem diálogo. O diálogo de confirmação destrutiva é o `AlertDialog` (`D-085`); quando a tela não oferece restaurar (remover um anexo do cronograma), ele diz que o registro "fica guardado", sem prometer recuperação.
 
 ## Estrutura de uma mensagem (as palavras são de `altare-conteudo-copy`)
 Toda mensagem de erro, aviso ou estado vazio responde, nesta ordem e só no que couber:

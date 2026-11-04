@@ -14,6 +14,7 @@ export type ScheduleTask = Schemas['TaskOut']
 export type TaskState = Schemas['TaskState']
 export type ChecklistItem = Schemas['ChecklistItemOut']
 export type ChecklistProgress = Schemas['ChecklistProgressOut']
+export type Attachment = Schemas['AttachmentOut']
 export type CategoryOption = Schemas['CategoryOptionOut']
 export type LeftOut = Schemas['LeftOutOut']
 export type MilestoneWindow = Schemas['MilestoneWindowOut']
@@ -60,7 +61,7 @@ export function findTask(schedule: Schedule | undefined, id: string): ScheduleTa
   return schedule?.tasks.find((item) => item.id === id)
 }
 
-/** De quem é um checklist: o marco ou a avulsa; é o trecho do caminho da API. */
+/** De quem é um checklist ou um anexo: o marco ou a avulsa; é o trecho do caminho da API. */
 export type ChecklistOwner = { kind: 'milestones' | 'tasks'; id: string }
 
 /**

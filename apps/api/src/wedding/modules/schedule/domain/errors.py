@@ -75,3 +75,11 @@ class ChecklistOpenItems(DomainRuleViolated):
     não leva a contagem: a tela a monta com o progresso que a leitura já traz."""
 
     default_code = "checklist_open_items"
+
+
+class InvalidAttachmentUrl(DomainRuleViolated):
+    default_code = "invalid_attachment_url"
+
+
+class AttachmentFileNotAllowed(DomainRuleViolated):
+    default_code = "attachment_file_not_allowed"

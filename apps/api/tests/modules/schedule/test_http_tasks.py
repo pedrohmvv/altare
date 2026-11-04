@@ -206,6 +206,7 @@ def test_o_contrato_declara_todos_os_campos_de_saida_novos_como_obrigatorios(api
         "days_left",
         "checklist",
         "checklist_progress",
+        "attachments",
         "version",
     }
     assert set(esquemas["ChecklistItemOut"]["properties"]) == {

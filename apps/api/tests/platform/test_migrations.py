@@ -769,10 +769,8 @@ def _item_sql(url: str, marco: str | None, tarefa: str | None, texto="Item Exemp
     engine.dispose()
 
 
-def test_a_0013_e_a_cabeca_e_sucede_a_0012():
-    script = ScriptDirectory.from_config(_config())
-    assert script.get_current_head() == "0013"
-    assert script.get_revision("0013").down_revision == "0012"
+def test_a_0013_sucede_a_0012():
+    assert ScriptDirectory.from_config(_config()).get_revision("0013").down_revision == "0012"
 
 
 def test_a_0013_cria_as_duas_tabelas_e_a_semente_continua_29_31_5(tmp_path):
@@ -955,3 +953,254 @@ def test_o_feito_do_item_tem_default_falso_que_o_postgresql_entende(tmp_path):
     command.upgrade(_config(url), "head")
     _item_sql(url, "C06", None)
     assert _ler(url, "SELECT done FROM checklist_items") == [(0,)]
+
+
+# --- 0014: anexos de marcos e avulsas (F-CRN-08) ------------------------------------------------
+
+CHECKS_DOS_ANEXOS = {
+    "ck_attachments_attachment_owner_type",
+    "ck_attachments_attachment_kind",
+    "ck_attachments_profile_kind",
+    "ck_attachments_profile_is_login",
+    "ck_attachments_kind_matches_content",
+}
+ARQUIVO = _id("arquivo:a1")
+
+
+def _arquivo_sql(url: str) -> None:
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO file_assets (id, created_at, updated_at, version, original_name,"
+                " content_type, size_bytes, sha256) VALUES (:id, '2026-11-04', '2026-11-04', 1,"
+                " 'contrato-exemplo.pdf', 'application/pdf', 2048, 'abc')"
+            ),
+            {"id": ARQUIVO},
+        )
+    engine.dispose()
+
+
+def _anexo_sql(banco: str, **campos: Any) -> None:
+    """Um anexo de link válido, com os campos trocados por `campos` (`None` apaga o campo)."""
+    padrao: dict[str, Any] = {
+        "id": uuid.uuid4().hex,
+        "owner_type": "milestones",
+        "owner_id": _id("marco:C06"),
+        "kind": "link",
+        "profile": "Noiva",
+        "url": "https://exemplo.com/mesa",
+        "file_id": None,
+        "file_name": None,
+        "content_type": None,
+        "size_bytes": None,
+    }
+    valores = {**padrao, **campos}
+    engine = create_engine(banco)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO attachments (id, created_at, updated_at, version, owner_type,"
+                " owner_id, kind, profile, url, file_id, file_name, content_type, size_bytes)"
+                " VALUES (:id, '2026-11-04', '2026-11-04', 1, :owner_type, :owner_id, :kind,"
+                " :profile, :url, :file_id, :file_name, :content_type, :size_bytes)"
+            ),
+            valores,
+        )
+    engine.dispose()
+
+
+def _anexo_de_arquivo_sql(banco: str, **campos: Any) -> None:
+    _anexo_sql(
+        banco,
+        **{
+            "kind": "file",
+            "url": None,
+            "file_id": ARQUIVO,
+            "file_name": "contrato-exemplo.pdf",
+            "content_type": "application/pdf",
+            "size_bytes": 2048,
+            **campos,
+        },
+    )
+
+
+def test_a_0014_e_a_cabeca_e_sucede_a_0013():
+    script = ScriptDirectory.from_config(_config())
+    assert script.get_current_head() == "0014"
+    assert script.get_revision("0014").down_revision == "0013"
+
+
+def test_a_0014_cria_a_tabela_vazia_e_a_semente_continua_29_31_5(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    assert "attachments" in _estado(url)[0]
+    assert _ler(url, "SELECT COUNT(*) FROM attachments") == [(0,)]
+    assert _ler(url, "SELECT COUNT(*) FROM milestones") == [(29,)]
+    assert _ler(url, "SELECT COUNT(*) FROM milestone_dependencies") == [(31,)]
+    assert _ler(url, "SELECT COUNT(*) FROM schedule_phases") == [(5,)]
+
+
+def test_a_0014_desce_e_sobe_sem_perder_os_dados_dos_marcos_nem_das_avulsas(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "0013")
+    _tarefa_sql(url)
+    _item_sql(url, "C06", None)
+    antes = {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()}
+    tarefas = _ler(url, "SELECT id, title FROM schedule_tasks")
+    itens = _ler(url, "SELECT id, text FROM checklist_items")
+
+    command.upgrade(config, "head")
+    assert "attachments" in _estado(url)[0]
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+
+    command.downgrade(config, "0013")
+    assert "attachments" not in _estado(url)[0]
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+    assert _ler(url, "SELECT id, title FROM schedule_tasks") == tarefas
+    assert _ler(url, "SELECT id, text FROM checklist_items") == itens
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+    command.upgrade(config, "head")
+    assert "attachments" in _estado(url)[0]
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+
+def test_a_0014_desce_mesmo_com_anexos_gravados_e_libera_o_arquivo(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    _arquivo_sql(url)
+    _anexo_sql(url)
+    _anexo_de_arquivo_sql(url, owner_type="tasks", owner_id=_id("tarefa:t1"))
+    command.downgrade(config, "0013")
+    assert "attachments" not in _estado(url)[0]
+    assert _ler(url, "SELECT COUNT(*) FROM file_assets") == [(1,)]
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+
+def test_a_0014_nomeia_os_checks_pela_convencao(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    assert _nomes_dos_checks(url, "attachments") >= CHECKS_DOS_ANEXOS
+
+
+def test_a_forma_do_anexo_aceita_link_e_arquivo_validos(tmp_path):  # F-CRN-08
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    _arquivo_sql(url)
+    _anexo_sql(url)
+    _anexo_de_arquivo_sql(url, owner_type="tasks", owner_id=_id("tarefa:t1"), profile="Noivo")
+    assert _ler(url, "SELECT kind FROM attachments ORDER BY kind") == [("file",), ("link",)]
+
+
+@pytest.mark.parametrize(
+    ("arquivo", "campos"),
+    [
+        (False, {"url": None}),
+        (False, {"file_id": "x"}),
+        (False, {"file_name": "contrato-exemplo.pdf"}),
+        (False, {"content_type": "application/pdf"}),
+        (False, {"size_bytes": 10}),
+        (True, {"url": "https://exemplo.com"}),
+        (True, {"file_id": None}),
+        (True, {"file_name": None}),
+        (True, {"content_type": None}),
+        (True, {"size_bytes": None}),
+    ],
+    ids=[
+        "link sem url",
+        "link com file_id",
+        "link com nome",
+        "link com tipo",
+        "link com tamanho",
+        "arquivo com url",
+        "arquivo sem file_id",
+        "arquivo sem nome",
+        "arquivo sem tipo",
+        "arquivo sem tamanho",
+    ],
+)
+def test_o_check_de_forma_recusa_link_com_dado_de_arquivo_e_arquivo_com_dado_incompleto(
+    tmp_path, arquivo, campos
+):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    _arquivo_sql(url)
+    if campos.get("file_id") == "x":
+        campos = {**campos, "file_id": ARQUIVO}
+    gravar = _anexo_de_arquivo_sql if arquivo else _anexo_sql
+    with pytest.raises(IntegrityError, match="ck_attachments_kind_matches_content"):
+        gravar(url, **campos)
+    assert _ler(url, "SELECT COUNT(*) FROM attachments") == [(0,)]
+
+
+@pytest.mark.parametrize(
+    ("campos", "erro"),
+    [
+        ({"owner_type": "phases"}, "attachment_owner_type"),
+        ({"kind": "imagem"}, "attachment_kind"),
+        ({"profile": "Ninguém"}, "profile_kind"),
+        ({"profile": "Ambos"}, "profile_is_login"),
+    ],
+    ids=["dono", "tipo", "perfil", "ambos"],
+)
+def test_os_checks_do_anexo_recusam_valor_invalido(tmp_path, campos, erro):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    with pytest.raises(IntegrityError, match=erro):
+        _anexo_sql(url, **campos)
+
+
+def test_o_arquivo_do_anexo_tem_chave_estrangeira_restrict_e_o_dono_nao_tem(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    chaves = inspect(engine).get_foreign_keys("attachments")
+    engine.dispose()
+    assert [(fk["referred_table"], fk["constrained_columns"]) for fk in chaves] == [
+        ("file_assets", ["file_id"])
+    ]
+    assert chaves[0].get("options", {}).get("ondelete") == "RESTRICT"
+    _arquivo_sql(url)
+    _anexo_de_arquivo_sql(url)
+    # Sem chave no dono: a tabela é genérica (marco ou avulsa) e o caso de uso confere o dono.
+    _anexo_sql(url, owner_id=_id("dono:que-nao-existe"))
+    engine = create_db_engine(url)
+    with pytest.raises(IntegrityError, match="FOREIGN KEY"), engine.begin() as conn:
+        conn.execute(text("DELETE FROM file_assets WHERE id = :id"), {"id": ARQUIVO})
+    engine.dispose()
+
+
+def test_o_indice_dos_anexos_e_parcial_por_dono_vivo_e_nao_e_unico(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    indices = inspect(engine).get_indexes("attachments")
+    engine.dispose()
+    assert [(i["name"], tuple(i["column_names"]), i["unique"]) for i in indices] == [
+        ("ix_attachments_owner_live", ("owner_type", "owner_id", "created_at"), 0)
+    ]
+    (sql,) = _ler(
+        url,
+        "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'ix_attachments_owner_live'",
+    )[0]
+    assert "WHERE deleted_at IS NULL" in sql
+    _anexo_sql(url)
+    _anexo_sql(url)  # o mesmo link duas vezes vale: sem unicidade
+
+
+def test_toda_coluna_e_a_tabela_dos_anexos_tem_comentario(tmp_path):
+    from wedding.modules.schedule.infrastructure.tables import attachments
+
+    assert attachments.comment
+    assert [c.name for c in attachments.columns if not c.comment] == []
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    comentarios = {c["name"]: c.get("comment") for c in inspect(engine).get_columns("attachments")}
+    engine.dispose()
+    # O SQLite não guarda comentário; o `compare_metadata` limpo prova que a migration e o modelo
+    # concordam nos nomes e tipos, e este teste prova o que o modelo promete.
+    assert set(comentarios) == {c.name for c in attachments.columns}

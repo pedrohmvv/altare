@@ -1036,6 +1036,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Link Attachment */
+        post: operations["add_link_attachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add File Attachment */
+        post: operations["add_file_attachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Attachment */
+        delete: operations["remove_attachment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1056,6 +1107,121 @@ export interface components {
          * @enum {string}
          */
         AlignmentState: "alinhados" | "divergem" | "falta";
+        /**
+         * AttachmentFileIn
+         * @description Um arquivo já enviado por `POST /files` (PDF ou imagem; o envio valida o tipo, o tamanho e a
+         *     assinatura). Sem campo de autoria, como o link.
+         */
+        AttachmentFileIn: {
+            /**
+             * File Id
+             * Format: uuid
+             */
+            file_id: string;
+            /**
+             * Title
+             * @description Opcional, até 120 caracteres.
+             */
+            title?: string | null;
+            /**
+             * Comment
+             * @description Opcional, até 500 caracteres.
+             */
+            comment?: string | null;
+        };
+        /** AttachmentFileOut */
+        AttachmentFileOut: {
+            /**
+             * Id
+             * Format: uuid
+             * @description O id do arquivo, para baixar por `GET /files/{id}`.
+             */
+            id: string;
+            /**
+             * Name
+             * @description O nome do arquivo ao anexar (cópia).
+             */
+            name: string;
+            /**
+             * Content Type
+             * @description O tipo do arquivo ao anexar (cópia): PDF ou imagem.
+             */
+            content_type: string;
+            /**
+             * Size Bytes
+             * @description O tamanho em bytes ao anexar (cópia).
+             */
+            size_bytes: number;
+        };
+        /**
+         * AttachmentKind
+         * @enum {string}
+         */
+        AttachmentKind: "link" | "file";
+        /**
+         * AttachmentLinkIn
+         * @description Um link. Sem campo de autoria: quem anexou é o perfil da sessão, e um `by` ou `profile` que
+         *     venha no corpo é ignorado.
+         */
+        AttachmentLinkIn: {
+            /**
+             * Url
+             * @description Um endereço http ou https completo; até 2000 caracteres.
+             */
+            url: string;
+            /**
+             * Title
+             * @description Opcional, até 120 caracteres.
+             */
+            title?: string | null;
+            /**
+             * Comment
+             * @description Opcional, até 500 caracteres.
+             */
+            comment?: string | null;
+        };
+        /** AttachmentOut */
+        AttachmentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["AttachmentKind"];
+            /** Title */
+            title: string | null;
+            /** Comment */
+            comment: string | null;
+            /**
+             * Url
+             * @description O endereço do link; nulo se o anexo é um arquivo.
+             */
+            url: string | null;
+            /**
+             * Domain
+             * @description O domínio visível do link, derivado do endereço (sem `www.`); nunca lido da página.
+             */
+            domain: string | null;
+            /** @description O arquivo; nulo se o anexo é um link. */
+            file: components["schemas"]["AttachmentFileOut"] | null;
+            /**
+             * By
+             * @description Quem anexou: o perfil da sessão, nunca do corpo.
+             * @enum {string}
+             */
+            by: "Noivo" | "Noiva";
+            /**
+             * At
+             * Format: date-time
+             * @description O instante em que foi anexado.
+             */
+            at: string;
+            /**
+             * Can Remove
+             * @description Derivado do perfil de quem lê: só o autor remove.
+             */
+            can_remove: boolean;
+        };
         /** BandCountsOut */
         BandCountsOut: {
             /** Adults */
@@ -2026,6 +2192,11 @@ export interface components {
             checklist: components["schemas"]["ChecklistItemOut"][];
             /** @description O "N de M" do checklist. */
             checklist_progress: components["schemas"]["ChecklistProgressOut"];
+            /**
+             * Attachments
+             * @description Os anexos vivos, na ordem em que foram anexados; não mudam o estado nem a `version`.
+             */
+            attachments: components["schemas"]["AttachmentOut"][];
             /** Version */
             version: number;
         };
@@ -2443,6 +2614,8 @@ export interface components {
             /** Checklist */
             checklist: components["schemas"]["ChecklistItemOut"][];
             checklist_progress: components["schemas"]["ChecklistProgressOut"];
+            /** Attachments */
+            attachments: components["schemas"]["AttachmentOut"][];
             /** Version */
             version: number;
         };
@@ -6163,7 +6336,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
                 owner_kind: "milestones" | "tasks";
                 owner_id: string;
             };
@@ -6218,7 +6391,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
                 owner_kind: "milestones" | "tasks";
                 owner_id: string;
             };
@@ -6387,6 +6560,183 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    add_link_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentLinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    add_file_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentFileIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    remove_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

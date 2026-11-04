@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import type {
+  Attachment,
   ChecklistItem,
   Schedule,
   ScheduleMilestone,
@@ -7,7 +8,14 @@ import type {
 } from '@/features/schedule/api/schedule'
 import { jsonResponse } from './fake-api'
 import type { renderSchedule } from './render-schedule'
-import { checklistOf, SCHEDULE, scheduleWith, scheduleWithChecklist } from './schedule-fixtures'
+import {
+  attachmentsOf,
+  checklistOf,
+  SCHEDULE,
+  scheduleWith,
+  scheduleWithAttachments,
+  scheduleWithChecklist,
+} from './schedule-fixtures'
 
 type Renderer = ReturnType<typeof renderSchedule>
 
@@ -52,6 +60,31 @@ export function memory(initial: Schedule = SCHEDULE) {
         )
         return jsonResponse(200, state.schedule)
       },
+    /** A escrita dos anexos de um dono: recebe os de agora e devolve os de depois. */
+    writeAttachments: (ownerId: string, change: (items: Attachment[]) => Attachment[]) => () => {
+      state.schedule = scheduleWithAttachments(
+        ownerId,
+        change(attachmentsOf(state.schedule, ownerId)),
+        state.schedule,
+      )
+      return jsonResponse(201, state.schedule)
+    },
+    /** O DELETE de um anexo: o servidor o acha pelo id, sem o dono na rota. */
+    removeAttachment: (attachmentId: string) => () => {
+      const owners = [
+        ...state.schedule.tasks,
+        ...state.schedule.phases.flatMap((phase) => phase.milestones),
+      ]
+      const owner = owners.find((item) => item.attachments.some((a) => a.id === attachmentId))
+      if (owner) {
+        state.schedule = scheduleWithAttachments(
+          owner.id,
+          owner.attachments.filter((a) => a.id !== attachmentId),
+          state.schedule,
+        )
+      }
+      return jsonResponse(200, state.schedule)
+    },
     write: (id: string, change: (item: ScheduleMilestone) => Partial<ScheduleMilestone>) => () => {
       state.schedule = scheduleWith(
         id,

@@ -2,6 +2,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from wedding.modules.schedule.application.commands.add_checklist_item import AddChecklistItem
+from wedding.modules.schedule.application.commands.add_file_attachment import AddFileAttachment
+from wedding.modules.schedule.application.commands.add_link_attachment import AddLinkAttachment
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
@@ -11,6 +13,7 @@ from wedding.modules.schedule.application.commands.create_phase import CreatePha
 from wedding.modules.schedule.application.commands.create_task import CreateTask
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
 from wedding.modules.schedule.application.commands.delete_task import DeleteTask
+from wedding.modules.schedule.application.commands.remove_attachment import RemoveAttachment
 from wedding.modules.schedule.application.commands.remove_checklist_item import (
     RemoveChecklistItem,
 )
@@ -57,6 +60,9 @@ class ScheduleUseCases:
     update_checklist_item: UpdateChecklistItem
     remove_checklist_item: RemoveChecklistItem
     reorder_checklist: ReorderChecklist
+    add_link_attachment: AddLinkAttachment
+    add_file_attachment: AddFileAttachment
+    remove_attachment: RemoveAttachment
 
 
 ScheduleProvider = Callable[[], ScheduleUseCases]
