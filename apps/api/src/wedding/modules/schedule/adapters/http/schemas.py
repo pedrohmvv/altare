@@ -3,8 +3,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from wedding.modules.schedule.application.dto import LeftOutDirection, WarningKind
+from wedding.modules.schedule.application.dto import DateMode, LeftOutDirection, WarningKind
 from wedding.modules.schedule.domain.values import BlockerKind, ManualState, MilestoneState
+from wedding.modules.schedule.domain.windows import WindowUnit
 from wedding.shared_kernel.profile import ProfileKind
 
 _VERSION = Field(ge=1, description="A versão do marco que a tela viu; divergir dá 409.")
@@ -34,6 +35,17 @@ class MilestoneUpdateIn(BaseModel):
     category_id: UUID | None = Field(description="Nulo desliga a ligação com o Mapa de Escopo.")
     note: str | None = Field(description="Nulo ou em branco apaga a nota.")
     target_date: dt.date | None = Field(description="Nulo apaga o prazo-alvo manual.")
+    version: int = _VERSION
+
+
+class MilestoneWindowIn(BaseModel):
+    """A janela inteira, na unidade dada: do início ao fim, quantas unidades antes da data do
+    casamento. Vale em qualquer modo e para o marco que ainda não tinha janela; o início não vem
+    depois do fim, `0` e `0` é o dia do casamento e o teto é 120 meses ou 520 semanas."""
+
+    start_before: int
+    end_before: int
+    unit: WindowUnit
     version: int = _VERSION
 
 
@@ -103,13 +115,25 @@ class CategoryLinkOut(BaseModel):
     name: str | None
 
 
+class MilestoneWindowOut(BaseModel):
+    start_before: int
+    end_before: int
+    unit: WindowUnit
+    is_suggestion: bool = Field(description="Há janela e ninguém a editou: a sugestão genérica.")
+
+
 class MilestoneOut(BaseModel):
     id: UUID
     title: str
     position: int
     responsible: ProfileKind
     note: str | None
-    target_date: dt.date | None
+    target_date: dt.date | None = Field(
+        description=(
+            "Só o prazo-alvo digitado à mão; nulo se não há. Nunca é o fim da janela calculada: "
+            "esse vem em `effective_target`."
+        )
+    )
     state: MilestoneState
     optional: bool
     archived: bool
@@ -119,6 +143,24 @@ class MilestoneOut(BaseModel):
     unlocks: list[MilestoneRefOut]
     warnings: list[WarningOut]
     category: CategoryLinkOut | None
+    window: MilestoneWindowOut | None = Field(
+        description="Os deslocamentos da janela, sempre que há janela; nulo se o marco não tem."
+    )
+    window_start: dt.date | None = Field(
+        description="Início calculado da janela; só no Modo Com Data e com janela."
+    )
+    window_end: dt.date | None = Field(
+        description="Fim calculado da janela; só no Modo Com Data e com janela."
+    )
+    effective_target: dt.date | None = Field(
+        description="O prazo que vale: o manual (`target_date`) ou, sem ele, o fim da janela."
+    )
+    days_left: int | None = Field(
+        description=(
+            "Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o "
+            "marco está concluído, arquivado ou sem prazo efetivo."
+        )
+    )
     version: int
 
 
@@ -161,3 +203,34 @@ class RestoreOut(BaseModel):
 class CreatedMilestoneOut(BaseModel):
     schedule: ScheduleOut
     milestone_id: UUID
+
+
+class DateRangeOut(BaseModel):
+    start: dt.date
+    end: dt.date
+
+
+class DateChangeOut(BaseModel):
+    id: UUID
+    title: str
+    window_before: DateRangeOut | None
+    window_after: DateRangeOut | None
+    target_before: dt.date | None
+    target_after: dt.date | None
+
+
+class DatePreviewOut(BaseModel):
+    mode_before: DateMode
+    mode_after: DateMode
+    changes: list[DateChangeOut] = Field(
+        description=(
+            "Marcos ativos e não concluídos, com janela e sem prazo manual, cujas datas "
+            "calculadas mudam."
+        )
+    )
+    manual_kept: int = Field(
+        description="Marcos ativos e não concluídos com janela e prazo manual: o prazo não muda."
+    )
+    newly_overdue: int = Field(
+        description="Marcos que passariam a Atrasado com a data hipotética e não estavam."
+    )

@@ -75,6 +75,16 @@ def test_codes_sem_campo_continuam_sem_parametros():
         ("milestone_title_required", ["Escrevam o título do marco"], ["Escreva "]),
         ("phase_title_required", ["Escrevam o título da fase"], ["Escreva "]),
         ("invalid_schedule_value", ["Confiram"], ["Confira "]),
+        (
+            "invalid_preview_date",
+            ["A data do casamento precisa estar entre os anos 2000 e 2100."],
+            [],
+        ),
+        (
+            "invalid_window",
+            ["Confiram", "120 meses", "520 semanas", "início", "fim"],
+            ["Confira ", "Use "],
+        ),
     ],
 )
 def test_as_mensagens_da_edicao_do_cronograma_falam_com_o_casal_em_voces(code, esperado, proibido):
@@ -83,3 +93,12 @@ def test_as_mensagens_da_edicao_do_cronograma_falam_com_o_casal_em_voces(code, e
         assert trecho in detail, (code, trecho)
     for trecho in proibido:
         assert trecho not in detail, (code, trecho)
+
+
+def test_todo_erro_do_cronograma_tem_mensagem_propria():
+    codes = {
+        e.default_code
+        for e in _erros()
+        if e.__module__ == "wedding.modules.schedule.domain.errors" and e.default_code
+    }
+    assert codes <= MESSAGES.keys(), codes - MESSAGES.keys()

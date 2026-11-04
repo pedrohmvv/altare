@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from uuid import UUID
 
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -18,22 +19,26 @@ from wedding.modules.schedule.domain.values import (
     MilestoneState,
     Standing,
 )
+from wedding.modules.schedule.domain.windows import Window, WindowUnit
 
 HOJE = date(2026, 10, 27)
+DATA_DO_CASAMENTO = date(2027, 6, 12)  # a data fictícia de aceite de F-CRN-05
+FECHAR_O_ESPACO = Window(14, 10, WindowUnit.MONTHS)
 
 
-def marco(numero, *, depende=(), manual=None, standing=None, prazo=None):
+def marco(numero, *, depende=(), manual=None, standing=None, prazo=None, janela=None):
     return MilestoneFacts(
         id=UUID(int=numero),
         manual_state=manual,
         standing=standing,
         target_date=prazo,
         depends_on=tuple(UUID(int=n) for n in depende),
+        window=janela,
     )
 
 
-def derivar(*marcos, hoje=HOJE):
-    return derive(marcos, hoje)
+def derivar(*marcos, hoje=HOJE, data=None):
+    return derive(marcos, hoje, data)
 
 
 def id_(numero):
@@ -294,3 +299,108 @@ def test_os_bloqueios_da_derivacao_sao_o_que_aguarda_todo_marco_nao_concluido(ma
     for item in marcos:
         if item.manual_state is not ManualState.DONE:
             assert waiting_on(marcos, item.id) == derivados[item.id].blockers
+
+
+# --- Modo Com Data e Sem Data (F-CRN-05) -------------------------------------------------------
+
+
+def test_com_data_a_janela_e_o_prazo_efetivo_vem_da_data_do_casamento():  # F-CRN-05
+    derivado = derivar(marco(1, janela=FECHAR_O_ESPACO), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert derivado.window_start == date(2026, 4, 12)
+    assert derivado.window_end == date(2026, 8, 12)
+    assert derivado.effective_target == date(2026, 8, 12)
+
+
+def test_prazo_manual_prevalece_sobre_o_fim_da_janela_e_a_janela_continua_calculada():  # F-CRN-05
+    derivado = derivar(
+        marco(1, janela=FECHAR_O_ESPACO, prazo=date(2026, 7, 30)), data=DATA_DO_CASAMENTO
+    )[id_(1)]
+    assert derivado.effective_target == date(2026, 7, 30)
+    assert (derivado.window_start, derivado.window_end) == (date(2026, 4, 12), date(2026, 8, 12))
+
+
+def test_limpar_o_prazo_manual_devolve_o_fim_da_janela():  # F-CRN-05
+    com_manual = marco(1, janela=FECHAR_O_ESPACO, prazo=date(2026, 7, 30))
+    sem_manual = marco(1, janela=FECHAR_O_ESPACO)
+    assert derivar(com_manual, data=DATA_DO_CASAMENTO)[id_(1)].effective_target == date(2026, 7, 30)
+    assert derivar(sem_manual, data=DATA_DO_CASAMENTO)[id_(1)].effective_target == date(2026, 8, 12)
+
+
+def test_sem_data_nada_e_calculado_mas_o_prazo_manual_segue_valendo():  # F-CRN-05
+    hoje = date(2026, 7, 1)
+    derivado = derivar(marco(1, janela=FECHAR_O_ESPACO, prazo=date(2026, 7, 30)), hoje=hoje)[id_(1)]
+    assert (derivado.window_start, derivado.window_end) == (None, None)
+    assert derivado.effective_target == date(2026, 7, 30)
+    assert derivado.days_left == 29
+
+
+def test_sem_data_e_sem_prazo_manual_nao_ha_prazo_efetivo_nem_contagem():
+    derivado = derivar(marco(1, janela=FECHAR_O_ESPACO))[id_(1)]
+    assert (derivado.effective_target, derivado.days_left, derivado.overdue) == (None, None, False)
+
+
+def test_marco_sem_janela_com_data_nao_calcula_nada_e_so_tem_o_prazo_manual():
+    sem_prazo = derivar(marco(1), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert (sem_prazo.window_start, sem_prazo.window_end) == (None, None)
+    assert (sem_prazo.effective_target, sem_prazo.days_left) == (None, None)
+    com_prazo = derivar(marco(1, prazo=date(2026, 12, 1)), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert com_prazo.effective_target == date(2026, 12, 1)
+
+
+def test_dias_restantes_contam_do_dia_de_hoje_ao_prazo_efetivo():
+    prazo = date(2026, 8, 12)
+    marcos = marco(1, janela=FECHAR_O_ESPACO)
+    assert derivar(marcos, hoje=date(2026, 8, 1), data=DATA_DO_CASAMENTO)[id_(1)].days_left == 11
+    assert derivar(marcos, hoje=prazo, data=DATA_DO_CASAMENTO)[id_(1)].days_left == 0
+    assert derivar(marcos, hoje=date(2026, 8, 13), data=DATA_DO_CASAMENTO)[id_(1)].days_left == -1
+
+
+def test_fim_da_janela_vencido_e_nao_concluido_esta_atrasado_sem_prazo_manual():  # F-CRN-03
+    marcos = marco(1, janela=FECHAR_O_ESPACO)
+    atrasado = derivar(marcos, hoje=date(2026, 8, 13), data=DATA_DO_CASAMENTO)[id_(1)]
+    no_dia = derivar(marcos, hoje=date(2026, 8, 12), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert (atrasado.overdue, no_dia.overdue) == (True, False)
+
+
+def test_sem_data_a_janela_vencida_nao_atrasa_porque_nada_foi_calculado():
+    assert derivar(marco(1, janela=FECHAR_O_ESPACO), hoje=date(2030, 1, 1))[id_(1)].overdue is False
+
+
+def test_o_prazo_manual_futuro_prevalece_e_afasta_o_atraso_da_janela_vencida():
+    marcos = marco(1, janela=FECHAR_O_ESPACO, prazo=date(2026, 12, 1))
+    derivado = derivar(marcos, hoje=date(2026, 10, 27), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert derivado.overdue is False
+    assert derivado.days_left == 35
+
+
+def test_o_prazo_manual_vencido_atrasa_mesmo_com_o_fim_da_janela_no_futuro():
+    marcos = marco(1, janela=FECHAR_O_ESPACO, prazo=date(2026, 6, 1))
+    derivado = derivar(marcos, hoje=date(2026, 7, 1), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert derivado.overdue is True
+    assert derivado.days_left == -30
+
+
+@pytest.mark.parametrize("manual", [None, date(2026, 8, 1)])
+def test_concluido_nao_tem_contagem_nem_atraso_mas_guarda_as_datas_calculadas(manual):
+    marcos = marco(1, janela=FECHAR_O_ESPACO, prazo=manual, manual=ManualState.DONE)
+    derivado = derivar(marcos, hoje=date(2027, 1, 1), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert (derivado.days_left, derivado.overdue) == (None, False)
+    assert derivado.window_end == date(2026, 8, 12)
+    assert derivado.effective_target == (manual or date(2026, 8, 12))
+
+
+def test_arquivado_nao_tem_contagem_nem_atraso():  # F-CRN-04
+    marcos = marco(1, janela=FECHAR_O_ESPACO, standing=Standing.OUT)
+    derivado = derivar(marcos, hoje=date(2027, 1, 1), data=DATA_DO_CASAMENTO)[id_(1)]
+    assert (derivado.days_left, derivado.overdue) == (None, False)
+
+
+def test_data_do_casamento_fora_do_calendario_nao_calcula_a_janela_e_nao_quebra():
+    marcos = marco(1, janela=FECHAR_O_ESPACO, prazo=date(2026, 7, 30))
+    derivado = derivar(marcos, data=date(1, 1, 1))[id_(1)]
+    assert (derivado.window_start, derivado.window_end) == (None, None)
+    assert derivado.effective_target == date(2026, 7, 30)
+    assert (
+        derivar(marco(2, janela=FECHAR_O_ESPACO), data=date(1, 1, 1))[id_(2)].effective_target
+        is None
+    )

@@ -3,10 +3,14 @@ from wedding.modules.schedule.adapters.http.schemas import (
     CategoryLinkOut,
     CategoryOptionOut,
     CreatedMilestoneOut,
+    DateChangeOut,
+    DatePreviewOut,
+    DateRangeOut,
     DependencyOut,
     LeftOutOut,
     MilestoneOut,
     MilestoneRefOut,
+    MilestoneWindowOut,
     PhaseOut,
     PhaseProgressOut,
     RestoreOut,
@@ -15,6 +19,8 @@ from wedding.modules.schedule.adapters.http.schemas import (
 )
 from wedding.modules.schedule.application.dto import (
     CreatedMilestoneDto,
+    DatePreviewDto,
+    DateRangeDto,
     MilestoneDto,
     PhaseDto,
     RestoreDto,
@@ -51,6 +57,20 @@ def _to_milestone_out(milestone: MilestoneDto) -> MilestoneOut:
             if milestone.category
             else None
         ),
+        window=(
+            MilestoneWindowOut(
+                start_before=milestone.window.start_before,
+                end_before=milestone.window.end_before,
+                unit=milestone.window.unit,
+                is_suggestion=milestone.window.is_suggestion,
+            )
+            if milestone.window
+            else None
+        ),
+        window_start=milestone.window_start,
+        window_end=milestone.window_end,
+        effective_target=milestone.effective_target,
+        days_left=milestone.days_left,
         version=milestone.version,
     )
 
@@ -90,4 +110,28 @@ def to_restore_out(restored: RestoreDto) -> RestoreOut:
 def to_created_milestone_out(created: CreatedMilestoneDto) -> CreatedMilestoneOut:
     return CreatedMilestoneOut(
         schedule=to_schedule_out(created.schedule), milestone_id=created.milestone_id
+    )
+
+
+def _to_range_out(window: DateRangeDto | None) -> DateRangeOut | None:
+    return DateRangeOut(start=window.start, end=window.end) if window else None
+
+
+def to_date_preview_out(preview: DatePreviewDto) -> DatePreviewOut:
+    return DatePreviewOut(
+        mode_before=preview.mode_before,
+        mode_after=preview.mode_after,
+        changes=[
+            DateChangeOut(
+                id=change.id,
+                title=change.title,
+                window_before=_to_range_out(change.window_before),
+                window_after=_to_range_out(change.window_after),
+                target_before=change.target_before,
+                target_after=change.target_after,
+            )
+            for change in preview.changes
+        ],
+        manual_kept=preview.manual_kept,
+        newly_overdue=preview.newly_overdue,
     )

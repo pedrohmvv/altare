@@ -138,6 +138,7 @@ def test_o_contrato_declara_todos_os_campos_de_saida_como_obrigatorios(api):
         "CategoryOptionOut",
         "RestoreOut",
         "LeftOutOut",
+        "MilestoneWindowOut",
     )
     for nome in saidas:
         esquema = esquemas[nome]
@@ -425,7 +426,7 @@ def test_o_progresso_da_fase_conta_os_concluidos_sem_os_arquivados(api):
     assert fases["Fornecedores Essenciais"] == {"done": 0, "total": 6}
 
 
-def test_com_data_exata_definida_o_cronograma_diz_que_ha_data(api):
+def test_com_data_exata_definida_o_cronograma_diz_que_ha_data_e_calcula_as_janelas(api):
     definir = api.noivo.put(
         "/api/v1/wedding/baseline/date",
         json={
@@ -438,8 +439,12 @@ def test_com_data_exata_definida_o_cronograma_diz_que_ha_data(api):
     assert definir.status_code == 200
     corpo = cronograma(api.noivo)
     assert corpo["has_exact_date"] is True
-    # Nada é calculado a partir da data neste PR: nenhum prazo nasce dela.
+    # F-CRN-05: nenhum prazo MANUAL nasce da data; o que nasce é o prazo efetivo (fim da janela).
     assert {m["target_date"] for f in corpo["phases"] for m in f["milestones"]} == {None}
+    c06 = marco(corpo, "C06")
+    assert (c06["window_start"], c06["window_end"]) == ("2026-04-12", "2026-08-12")
+    assert c06["effective_target"] == "2026-08-12"
+    assert marco(corpo, "C01")["effective_target"] is None  # sem janela e sem prazo manual
 
 
 def test_data_em_janela_ou_ainda_em_definicao_nao_liga_o_modo_com_data(api):

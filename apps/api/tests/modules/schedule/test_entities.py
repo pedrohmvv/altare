@@ -4,8 +4,9 @@ from uuid import UUID
 import pytest
 
 from wedding.modules.schedule.domain.entities import Milestone
-from wedding.modules.schedule.domain.errors import InvalidScheduleValue
+from wedding.modules.schedule.domain.errors import InvalidMilestoneWindow, InvalidScheduleValue
 from wedding.modules.schedule.domain.values import MAX_NOTE, ManualState
+from wedding.modules.schedule.domain.windows import Window, WindowUnit
 from wedding.shared_kernel.errors import DomainRuleViolated
 from wedding.shared_kernel.profile import ProfileKind
 
@@ -178,3 +179,65 @@ def test_codigos_estaveis_dos_demais_erros_da_edicao():
     assert InvalidPhaseOrder().code == "invalid_phase_order"
     assert MilestoneTitleRequired().code == "milestone_title_required"
     assert PhaseTitleRequired().code == "phase_title_required"
+
+
+# --- Janela do marco (F-CRN-05, regra 5) -------------------------------------------------------
+
+
+def com_janela_sugerida():
+    marco = novo()
+    marco.window_start_before, marco.window_end_before, marco.window_unit = 14, 10, "meses"
+    return marco
+
+
+def test_marco_nasce_sem_janela_e_sem_ter_sido_editado():
+    marco = novo()
+    assert (marco.window_start_before, marco.window_end_before, marco.window_unit) == (
+        None,
+        None,
+        None,
+    )
+    assert marco.window_edited is False
+    assert marco.window is None
+
+
+def test_a_janela_do_marco_vem_dos_tres_deslocamentos():
+    assert com_janela_sugerida().window == Window(14, 10, WindowUnit.MONTHS)
+
+
+def test_editar_a_janela_troca_os_tres_valores_e_marca_como_editada():  # F-CRN-05, regra 5
+    marco = com_janela_sugerida()
+    assert marco.set_window(12, 8, WindowUnit.WEEKS) is True
+    assert (marco.window_start_before, marco.window_end_before, marco.window_unit) == (
+        12,
+        8,
+        "semanas",
+    )
+    assert marco.window_edited is True
+
+
+def test_confirmar_a_mesma_janela_pela_primeira_vez_ja_deixa_de_ser_sugestao():
+    marco = com_janela_sugerida()
+    assert marco.set_window(14, 10, WindowUnit.MONTHS) is True
+    assert marco.window_edited is True
+
+
+def test_repetir_a_janela_ja_editada_nao_e_mudanca():
+    marco = com_janela_sugerida()
+    marco.set_window(12, 8, WindowUnit.MONTHS)
+    assert marco.set_window(12, 8, WindowUnit.MONTHS) is False
+
+
+def test_dar_janela_a_marco_sem_janela_e_mudanca():
+    marco = novo()
+    assert marco.set_window(3, 1, WindowUnit.MONTHS) is True
+    assert marco.window == Window(3, 1, WindowUnit.MONTHS)
+    assert marco.window_edited is True
+
+
+@pytest.mark.parametrize(("inicio", "fim"), [(1, 2), (3, -1), (121, 0)])
+def test_janela_invalida_e_recusada_e_nao_muda_o_marco(inicio, fim):
+    marco = com_janela_sugerida()
+    with pytest.raises(InvalidMilestoneWindow):
+        marco.set_window(inicio, fim, WindowUnit.MONTHS)
+    assert (marco.window, marco.window_edited) == (Window(14, 10, WindowUnit.MONTHS), False)

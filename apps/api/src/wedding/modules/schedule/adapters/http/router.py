@@ -1,3 +1,4 @@
+import datetime as dt
 from typing import Annotated
 from uuid import UUID
 
@@ -5,15 +6,18 @@ from fastapi import APIRouter, Depends, Query
 
 from wedding.modules.schedule.adapters.http.mappers import (
     to_created_milestone_out,
+    to_date_preview_out,
     to_restore_out,
     to_schedule_out,
 )
 from wedding.modules.schedule.adapters.http.schemas import (
     CreatedMilestoneOut,
+    DatePreviewOut,
     MilestoneCreateIn,
     MilestoneDependenciesIn,
     MilestoneStateIn,
     MilestoneUpdateIn,
+    MilestoneWindowIn,
     PhaseCreateIn,
     PhaseOrderIn,
     PhaseRenameIn,
@@ -35,6 +39,12 @@ from wedding.modules.schedule.application.commands.set_milestone_dependencies im
     SetMilestoneDependenciesCommand,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestoneCommand
+from wedding.modules.schedule.application.commands.update_milestone_window import (
+    UpdateMilestoneWindowCommand,
+)
+from wedding.modules.schedule.application.queries.preview_date_change import (
+    PreviewDateChangeCommand,
+)
 from wedding.modules.schedule.application.use_cases import ScheduleProvider
 from wedding.platform.http.problem import problem_responses
 from wedding.platform.http.session import current_actor
@@ -59,6 +69,28 @@ def build_router(provide: ScheduleProvider) -> APIRouter:
     )
     def read_schedule(actor: CurrentActor) -> ScheduleOut:
         return to_schedule_out(provide().read_schedule.execute(actor))
+
+    @router.get(
+        "/date-preview",
+        operation_id="preview_date_change",
+        response_model=DatePreviewOut,
+        # Só leitura: não grava nada. O 422 é o ano fora de 2000 a 2100.
+        responses=problem_responses(401, 422),
+    )
+    def preview_date_change(
+        actor: CurrentActor,
+        exact: Annotated[
+            dt.date | None,
+            Query(
+                description=(
+                    "A data exata que o casamento passaria a ter, já `Definida`; sem ela, o "
+                    "cenário é o Modo Sem Data. O ano vai de 2000 a 2100."
+                )
+            ),
+        ] = None,
+    ) -> DatePreviewOut:
+        command = PreviewDateChangeCommand(exact)
+        return to_date_preview_out(provide().preview_date_change.execute(command, actor))
 
     @router.post(
         "/milestones",
@@ -93,6 +125,20 @@ def build_router(provide: ScheduleProvider) -> APIRouter:
             body.version,
         )
         return to_schedule_out(provide().update_milestone.execute(command, actor))
+
+    @router.put(
+        "/milestones/{milestone_id}/window",
+        operation_id="update_milestone_window",
+        response_model=ScheduleOut,
+        responses=_WRITE_ERRORS,
+    )
+    def update_milestone_window(
+        milestone_id: UUID, body: MilestoneWindowIn, actor: CurrentActor
+    ) -> ScheduleOut:
+        command = UpdateMilestoneWindowCommand(
+            milestone_id, body.start_before, body.end_before, body.unit, body.version
+        )
+        return to_schedule_out(provide().update_milestone_window.execute(command, actor))
 
     @router.delete(
         "/milestones/{milestone_id}",
