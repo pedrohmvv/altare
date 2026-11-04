@@ -1,6 +1,6 @@
 # Features: Cronograma & Dependências (`features/cronograma.md`)
 
-> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`.
+> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`, e o PR 2, a edição de marcos, dependências e fases (`F-CRN-01` completa; `F-CRN-03`, regra 2), em `D-082`.
 >
 > **Fontes:** `docs/product/scope.md` §2, `docs/design/experience.md` (objeto 4), `docs/product/jobs.md` (J4, J5), `features/planejamento-e-caminhos.md` (F-PLN-01, F-PLN-07), `D-026`, `D-031`.
 >
@@ -34,7 +34,7 @@
 | **Título** | Texto, obrigatório | — |
 | **Fase** | Uma das fases | Pode mudar de fase |
 | **Responsável** | `Noivo` · `Noiva` · `Ambos` | Obrigatório. Padrão `Ambos` |
-| **Categoria de escopo** | Uma categoria, opcional | Liga o marco ao Mapa de Escopo (F-CRN-04) |
+| **Categoria de escopo** | Uma categoria, opcional | Liga o marco ao Mapa de Escopo (F-CRN-04). O casal escolhe entre as categorias visíveis; a já ligada que ficou oculta continua escolhida (`D-082`) |
 | **Prazo-alvo** | Data, opcional | Ver F-CRN-05 |
 | **Janela** | Início e fim, em "antes da data", com unidade `meses` ou `semanas` | Só com Modo Com Data (F-CRN-05) |
 | **Estado** | Ver F-CRN-03 | — |
@@ -46,7 +46,7 @@
 **Regras**
 1. O casal pode **criar, renomear, mover de fase e excluir** marcos, e alterar dependências (`D-031`). A exclusão é lógica e recuperável (`architecture.md` §10).
 2. Qualquer dos dois edita. A autoria fica no histórico básico.
-3. Excluir um marco que tem dependentes pede confirmação **listando os dependentes**. As dependências do excluído são removidas; os dependentes mantêm as demais.
+3. Excluir um marco que tem dependentes pede confirmação **listando os dependentes**. As dependências do excluído são removidas; os dependentes mantêm as demais. Restaurar traz de volta as que saíram junto com ele, exceto a que hoje fecharia um ciclo e a que tem a outra ponta excluída; a tela diz quais ficaram de fora (`D-082`).
 4. O catálogo inicial (F-CRN-02) é uma **semente**: depois de criado, os marcos são dados do casal.
 
 **Critérios de aceite**
