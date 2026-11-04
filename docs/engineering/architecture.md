@@ -280,7 +280,7 @@ erDiagram
   TROUSSEAU_ITEM }o--o| GUEST : "presenteado por"
 ```
 
-`ATTACHMENT` é a associação polimórfica (`owner_type`, `owner_id`) de arquivos a propostas, contatos, contratos e parcelas. Ela nasce no bloco que anexa; o `FileAsset` já existe, com um registro por envio (`D-063`).
+`ATTACHMENT` é a associação polimórfica (`owner_type`, `owner_id`) de arquivos a propostas, contatos, contratos e parcelas. Ela nasce no bloco que anexa; o `FileAsset` já existe, com um registro por envio (`D-063`). Nasceu no Bloco 1.3, PR 5 (`D-085`): a tabela `attachments` é do módulo `schedule`, com `owner_type` (`milestones` ou `tasks`) e `owner_id` sem chave estrangeira no dono, `file_id` com chave estrangeira `RESTRICT` e a cópia de nome, tipo e tamanho do arquivo no instante de anexar (exceção a "derivado, nunca copiado", segura porque o `FileAsset` é imutável); os blocos que anexam a contatos, propostas e contratos a reutilizam ou a replicam, e promovem o `parse_link` para o `shared_kernel` no terceiro uso.
 
 ### Máquinas de estado (a validar nos respectivos blocos)
 
