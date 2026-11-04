@@ -23,11 +23,15 @@ export function memory(initial: Schedule = SCHEDULE) {
       return jsonResponse(201, { schedule: next, milestone_id: milestoneId })
     },
     write: (id: string, change: (item: ScheduleMilestone) => Partial<ScheduleMilestone>) => () => {
-      state.schedule = scheduleWith(id, {
-        ...change(
-          state.schedule.phases.flatMap((p) => p.milestones).find((m) => m.id === id) as never,
-        ),
-      })
+      state.schedule = scheduleWith(
+        id,
+        {
+          ...change(
+            state.schedule.phases.flatMap((p) => p.milestones).find((m) => m.id === id) as never,
+          ),
+        },
+        state.schedule,
+      )
       return jsonResponse(200, state.schedule)
     },
   }

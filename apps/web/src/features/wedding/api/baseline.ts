@@ -21,6 +21,8 @@ export const BASELINE_KEYS: readonly BaselineKey[] = [
 export const weddingKeys = {
   baseline: ['wedding', 'baseline'] as const,
   changes: ['wedding', 'baseline', 'changes'] as const,
+  /** Uma prévia por data hipotética; `undefined` é o cenário Sem Data. */
+  datePreview: (exact: string | undefined) => ['wedding', 'date-preview', exact ?? null] as const,
 }
 
 export const baselineQueryOptions = queryOptions({

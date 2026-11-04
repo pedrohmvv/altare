@@ -13,6 +13,7 @@ export const GET_SCHEDULE = 'GET /api/v1/schedule'
 export const PUT_MILESTONE = (id: string) => `PUT /api/v1/schedule/milestones/${id}`
 export const PUT_STATE = (id: string) => `PUT /api/v1/schedule/milestones/${id}/state`
 export const PUT_DEPENDENCIES = (id: string) => `PUT /api/v1/schedule/milestones/${id}/dependencies`
+export const PUT_WINDOW = (id: string) => `PUT /api/v1/schedule/milestones/${id}/window`
 export const DELETE_MILESTONE = (id: string) => `DELETE /api/v1/schedule/milestones/${id}`
 export const RESTORE_MILESTONE = (id: string) => `POST /api/v1/schedule/milestones/${id}/restore`
 export const POST_MILESTONE = 'POST /api/v1/schedule/milestones'

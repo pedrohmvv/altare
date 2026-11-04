@@ -263,3 +263,13 @@ describe('lente na URL', () => {
     )
   })
 })
+
+describe('o aviso "Sem data definida" no cronograma (F-CRN-05)', () => {
+  it('o link vai às Definições Base pelo roteador e a lente continua', async () => {
+    await renderRoute('/cronograma?lente=minha', { api: scheduleApi() })
+
+    const link = await screen.findByRole('link', { name: 'Definir a data em Definições Base' })
+
+    expect(link).toHaveAttribute('href', '/planejamento?lente=minha')
+  })
+})

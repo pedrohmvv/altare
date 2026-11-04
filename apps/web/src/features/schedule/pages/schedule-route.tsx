@@ -1,4 +1,4 @@
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { type ScheduleSearch, validateScheduleSearch } from '../search'
 import { SchedulePage } from './schedule-page'
 
@@ -17,5 +17,17 @@ export function ScheduleRoute() {
     })
   }
 
-  return <SchedulePage search={search} onSearchChange={onSearchChange} />
+  // O link às Definições Base passa pelo roteador e leva só a lente, como os links da casca.
+  const planningLink = (label: string) => (
+    <Link
+      to="/planejamento"
+      search={((previous: { lente?: 'minha' }) => ({ lente: previous.lente })) as never}
+    >
+      {label}
+    </Link>
+  )
+
+  return (
+    <SchedulePage search={search} onSearchChange={onSearchChange} planningLink={planningLink} />
+  )
 }

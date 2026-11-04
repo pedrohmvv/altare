@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { formatDay, formatInstant, formatMonthYear, MONTHS } from './date'
+import { formatDay, formatInstant, formatMonthYear, formatTableDay, MONTHS } from './date'
 
 describe('datas em pt-BR', () => {
   it('escreve o dia como na lista do guia: 26 out 2026', () => {
     expect(formatDay('2026-10-26')).toBe('26 out 2026')
     expect(formatDay('2027-05-01')).toBe('1 mai 2027')
+  })
+
+  it('escreve o dia como na tabela do guia: 26/10/2026', () => {
+    expect(formatTableDay('2026-10-26')).toBe('26/10/2026')
+    expect(formatTableDay('2027-05-01')).toBe('01/05/2027')
   })
 
   it('escreve mês e ano abreviados', () => {

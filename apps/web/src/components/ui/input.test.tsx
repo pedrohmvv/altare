@@ -14,6 +14,19 @@ describe('Input', () => {
     expect(onChange).toHaveBeenCalled()
   })
 
+  it('soma ao que o campo já descreve a descrição que o chamador liga a ele', () => {
+    render(
+      <>
+        <Input label="Início" hint="Dica do campo." aria-describedby="dica-externa" />
+        <p id="dica-externa">Dica de fora.</p>
+      </>,
+    )
+
+    expect(screen.getByLabelText('Início')).toHaveAccessibleDescription(
+      'Dica do campo. Dica de fora.',
+    )
+  })
+
   it('mostra o prefixo e o sufixo fora do valor e os lê como descrição', async () => {
     render(<Input label="Preço base" prefix="R$" suffix="por pessoa" />)
 

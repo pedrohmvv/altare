@@ -12,6 +12,8 @@ export type ManualState = Schemas['ManualState']
 export type Responsible = Schemas['ProfileKind']
 export type CategoryOption = Schemas['CategoryOptionOut']
 export type LeftOut = Schemas['LeftOutOut']
+export type MilestoneWindow = Schemas['MilestoneWindowOut']
+export type WindowUnit = Schemas['WindowUnit']
 
 /** As três escolhas de responsável, na ordem em que o casal as lê. */
 export const RESPONSIBLES: readonly Responsible[] = ['Noivo', 'Noiva', 'Ambos']
