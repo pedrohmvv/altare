@@ -42,3 +42,29 @@ export function checklistAlertFromError(error: unknown): AlertState {
   }
   return alertFromError(error, { conflict: texts.conflict, network: texts.network })
 }
+
+/** Os códigos da API que dizem que o problema está no arquivo escolhido, não no resto do formulário. */
+const FILE_CODES = new Set([
+  'unsupported_file_type',
+  'file_too_large',
+  'empty_file',
+  'attachment_file_not_allowed',
+])
+
+/**
+ * Onde um erro de anexo aparece: `url` e `file` ficam junto do campo (a API diz o motivo em `detail`);
+ * o resto (título ou comentário longos, falha de rede) vai ao aviso da seção.
+ */
+export function attachmentFieldOf(error: unknown): 'url' | 'file' | null {
+  if (!(error instanceof ApiError)) return null
+  if (error.code === 'invalid_attachment_url') return 'url'
+  return FILE_CODES.has(error.code) ? 'file' : null
+}
+
+/** Um erro de anexo sem campo próprio: a frase da API (`detail`), ou o aviso de rede. */
+export function attachmentAlertFromError(
+  error: unknown,
+  network: string = copy.attachments.errors.network,
+): AlertState {
+  return { kind: 'error', text: error instanceof ApiError ? error.message : network }
+}

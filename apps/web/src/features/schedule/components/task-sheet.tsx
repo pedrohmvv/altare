@@ -7,6 +7,7 @@ import { type ScheduleTask, scheduleKeys } from '../api/schedule'
 import { useDeleteTask } from '../api/use-task-mutations'
 import { copy } from '../copy'
 import { type AlertState, alertFromError } from '../lib/errors'
+import { Attachments } from './attachments'
 import { Checklist } from './checklist'
 import { FormAlert } from './form-alert'
 import { TaskOverdueBadge, TaskStateBadge } from './milestone-badges'
@@ -74,6 +75,11 @@ export function TaskSheet({
           owner={{ kind: 'tasks', id: task.id }}
           items={task.checklist}
           progress={task.checklist_progress}
+        />
+        <Attachments
+          key={`attachments-${task.id}`}
+          owner={{ kind: 'tasks', id: task.id }}
+          items={task.attachments}
         />
         <DeleteTask task={task} onDeleted={onDeleted} />
       </SheetContent>

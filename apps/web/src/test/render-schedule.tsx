@@ -30,6 +30,12 @@ export const POST_CHECKLIST = (kind: 'milestones' | 'tasks', id: string) =>
 export const PUT_CHECKLIST_ORDER = (kind: 'milestones' | 'tasks', id: string) =>
   `PUT /api/v1/schedule/${kind}/${id}/checklist/order`
 export const PUT_CHECKLIST_ITEM = (id: string) => `PUT /api/v1/schedule/checklist/${id}`
+export const POST_ATTACHMENT_LINK = (kind: 'milestones' | 'tasks', id: string) =>
+  `POST /api/v1/schedule/${kind}/${id}/attachments/links`
+export const POST_ATTACHMENT_FILE = (kind: 'milestones' | 'tasks', id: string) =>
+  `POST /api/v1/schedule/${kind}/${id}/attachments/files`
+export const DELETE_ATTACHMENT = (id: string) => `DELETE /api/v1/schedule/attachments/${id}`
+export const POST_FILE = 'POST /api/v1/files'
 export const DELETE_CHECKLIST_ITEM = (id: string) => `DELETE /api/v1/schedule/checklist/${id}`
 
 /** A URL do teste: o que a página pediu por último, para conferir o que ficou nela. */
