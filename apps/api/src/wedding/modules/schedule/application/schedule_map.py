@@ -6,6 +6,7 @@ from wedding.modules.schedule.application.dto import (
     CATEGORY_UNCLASSIFIED_LABEL,
     BlockerDto,
     CategoryLinkDto,
+    CategoryOptionDto,
     DependencyDto,
     MilestoneDto,
     MilestoneRefDto,
@@ -28,6 +29,7 @@ from wedding.modules.schedule.domain.derivation import (
     phase_progress,
 )
 from wedding.modules.schedule.domain.entities import Milestone, Phase
+from wedding.modules.schedule.domain.errors import CategoryNotAvailable
 from wedding.modules.schedule.domain.values import BlockerKind, Standing
 from wedding.shared_kernel.actor import Actor
 from wedding.shared_kernel.clock import Clock
@@ -99,10 +101,17 @@ class ScheduleReader:
                         _milestone_dto(item, derived[item.id], titles, loaded.categories)
                         for item in members
                     ),
+                    version=phase.version,
                 )
             )
+        linked = {item.category_id for item in loaded.milestones if item.category_id}
         return ScheduleDto(
             phases=tuple(phase_dtos),
+            category_options=tuple(
+                CategoryOptionDto(category_id, info.name)
+                for category_id, info in loaded.categories.items()
+                if info.visible or category_id in linked
+            ),
             has_exact_date=self._wedding_date.wedding_date(actor).is_exact_and_defined,
         )
 
@@ -167,3 +176,22 @@ def require_milestone(schedule: ScheduleRepository, milestone_id: UUID) -> Miles
     if milestone is None:
         raise NotFound()
     return milestone
+
+
+def require_phase(schedule: ScheduleRepository, phase_id: UUID) -> Phase:
+    phase = schedule.get_phase(phase_id)
+    if phase is None:
+        raise NotFound()
+    return phase
+
+
+def require_linkable_category(
+    categories: dict[UUID, CategoryInfo], category_id: UUID | None, current: UUID | None = None
+) -> None:
+    """A categoria que o casal liga existe no Mapa e não está oculta. Manter a que o marco já tem,
+    mesmo oculta, não é uma nova ligação e passa (F-CRN-04)."""
+    if category_id is None or category_id == current:
+        return
+    info = categories.get(category_id)
+    if info is None or not info.visible:
+        raise CategoryNotAvailable()

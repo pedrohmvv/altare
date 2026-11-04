@@ -47,7 +47,9 @@ def _data(achada: WeddingDateFound):
 def test_status_e_visibilidade_viram_a_situacao_da_categoria(status, visivel, esperado):
     identificador = UUID(int=7)
     categorias = _categorias(CategoryStanding(identificador, "Frente Exemplo", status, visivel))
-    assert categorias.categories(NOIVO) == {identificador: CategoryInfo("Frente Exemplo", esperado)}
+    assert categorias.categories(NOIVO) == {
+        identificador: CategoryInfo("Frente Exemplo", esperado, visivel)
+    }
 
 
 def test_sem_categorias_a_leitura_vem_vazia():
@@ -79,3 +81,11 @@ def test_a_data_do_casamento_so_vale_com_status_definido_e_forma_exata(
     lida = _data(WeddingDateFound(status, forma, dia)).wedding_date(NOIVO)
     assert lida == esperado
     assert lida.is_exact_and_defined is (status is DefinitionStatus.DEFINED and dia is not None)
+
+
+def test_a_ordem_das_categorias_e_a_do_contrato_do_wedding():
+    primeira = CategoryStanding(UUID(int=2), "Frente B Exemplo", ScopeStatus.ESSENTIAL, True)
+    segunda = CategoryStanding(UUID(int=1), "Frente A Exemplo", ScopeStatus.ESSENTIAL, False)
+    lidas = _categorias(primeira, segunda).categories(NOIVO)
+    assert list(lidas) == [UUID(int=2), UUID(int=1)]
+    assert lidas[UUID(int=1)].visible is False

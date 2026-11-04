@@ -52,7 +52,9 @@ def install_error_handlers(app: FastAPI) -> None:
         headers = (
             {"Retry-After": str(exc.retry_after)} if isinstance(exc, TooManyAttempts) else None
         )
-        return problem_response(status, exc.code, headers=headers)
+        return problem_response(
+            status, exc.code, headers=headers, data=exc.data, detail_params=exc.detail_params
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_: Request, exc: RequestValidationError) -> Response:

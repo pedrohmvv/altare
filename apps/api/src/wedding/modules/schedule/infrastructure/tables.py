@@ -43,6 +43,7 @@ schedule_phases = Table(
     Column("title", String(60), nullable=False, comment="Como o casal chama a fase; exibido."),
     Column("position", Integer, nullable=False, comment="Ordem de exibição, a partir de zero."),
     CheckConstraint("position >= 0", name="position_not_negative"),
+    CheckConstraint("length(trim(title)) > 0", name="title_not_blank"),
     comment="Fases do cronograma (F-CRN-01); as cinco do catálogo vêm da migration.",
 )
 
@@ -98,7 +99,16 @@ milestones = Table(
         comment="Janela sugerida: fim, quantas unidades antes da data; nulo sem janela.",
     ),
     Column("window_unit", String(8), comment="meses ou semanas; nulo sem janela."),
+    Column(
+        "dependencies_revision",
+        Integer,
+        nullable=False,
+        server_default=text("0"),
+        comment="Sobe quando o conjunto de predecessores muda: duas edições se conflitam.",
+    ),
     CheckConstraint("position >= 0", name="position_not_negative"),
+    CheckConstraint("length(trim(title)) > 0", name="title_not_blank"),
+    CheckConstraint("dependencies_revision >= 0", name="dependencies_revision_not_negative"),
     CheckConstraint("window_unit IN ('meses', 'semanas')", name="window_unit_known"),
     CheckConstraint(
         "(window_start_before IS NULL) = (window_end_before IS NULL) "

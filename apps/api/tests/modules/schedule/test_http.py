@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import create_engine, text
-from tests.modules.schedule.catalog import MARCOS, categoria_id, marco_id
+from tests.modules.schedule.catalog import MARCOS, categoria_id, fase_id, marco_id
 
 BASE = "/api/v1/schedule"
 ESCOPO = "/api/v1/wedding/scope"
@@ -62,9 +62,20 @@ def concluir(client, *codigos, ignorar=None):
 
 
 def editar(client, codigo, *, versao=None, **campos):
-    atual = versao if versao is not None else marco(cronograma(client), codigo)["version"]
-    corpo = {"responsible": "Ambos", "note": None, "target_date": None, "version": atual, **campos}
-    return client.put(f"{BASE}/milestones/{marco_id(codigo)}", json=corpo)
+    """O PUT é a substituição inteira: o que não vem em `campos` fica como o marco já está."""
+    corpo = cronograma(client)
+    atual = marco(corpo, codigo)
+    fase = next(f for f in corpo["phases"] if atual in f["milestones"])
+    padrao = {
+        "title": atual["title"],
+        "phase_id": fase["id"],
+        "responsible": atual["responsible"],
+        "category_id": atual["category"]["id"] if atual["category"] else None,
+        "note": atual["note"],
+        "target_date": atual["target_date"],
+        "version": versao if versao is not None else atual["version"],
+    }
+    return client.put(f"{BASE}/milestones/{marco_id(codigo)}", json={**padrao, **campos})
 
 
 def historico(api):
@@ -83,7 +94,15 @@ def historico(api):
 def test_so_com_sessao(api):
     alvo = f"{BASE}/milestones/{marco_id('C01')}"
     assert api.anonimo.get(BASE).status_code == 401
-    corpo = {"responsible": "Ambos", "version": 1}
+    corpo = {
+        "title": "Marco Exemplo",
+        "phase_id": str(fase_id(1)),
+        "responsible": "Ambos",
+        "category_id": None,
+        "note": None,
+        "target_date": None,
+        "version": 1,
+    }
     assert api.anonimo.put(alvo, json=corpo).status_code == 401
     assert api.anonimo.put(f"{alvo}/state", json={"state": None, "version": 1}).status_code == 401
 
@@ -116,6 +135,9 @@ def test_o_contrato_declara_todos_os_campos_de_saida_como_obrigatorios(api):
         "MilestoneRefOut",
         "WarningOut",
         "CategoryLinkOut",
+        "CategoryOptionOut",
+        "RestoreOut",
+        "LeftOutOut",
     )
     for nome in saidas:
         esquema = esquemas[nome]
@@ -470,7 +492,7 @@ def test_editar_troca_responsavel_nota_e_prazo_e_devolve_o_cronograma_inteiro(ap
 
 def test_editar_pode_limpar_nota_e_prazo(api):
     editar(api.noivo, "C06", note="nota", target_date="2027-01-15")
-    limpo = editar(api.noivo, "C06")
+    limpo = editar(api.noivo, "C06", note=None, target_date=None)
     item = marco(limpo.json(), "C06")
     assert (item["note"], item["target_date"], item["responsible"]) == (None, None, "Ambos")
 
@@ -526,7 +548,15 @@ def test_edicao_invalida_e_422(api):
 
 def test_marco_inexistente_e_404(api):
     desconhecido = "00000000-0000-0000-0000-000000000abc"
-    corpo = {"responsible": "Ambos", "version": 1}
+    corpo = {
+        "title": "Marco Exemplo",
+        "phase_id": str(fase_id(1)),
+        "responsible": "Ambos",
+        "category_id": None,
+        "note": None,
+        "target_date": None,
+        "version": 1,
+    }
     assert api.noivo.put(f"{BASE}/milestones/{desconhecido}", json=corpo).status_code == 404
     estado = api.noivo.put(
         f"{BASE}/milestones/{desconhecido}/state", json={"state": None, "version": 1}

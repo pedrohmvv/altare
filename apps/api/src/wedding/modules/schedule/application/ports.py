@@ -9,6 +9,7 @@ from wedding.modules.schedule.domain.entities import (
     Dependency,
     Milestone,
     MilestoneChange,
+    MilestoneDependency,
     Phase,
 )
 from wedding.modules.schedule.domain.values import Standing
@@ -20,13 +21,40 @@ class ScheduleRepository(Protocol):
 
     def list_phases(self) -> list[Phase]: ...
 
+    def get_phase(self, phase_id: UUID) -> Phase | None: ...
+
+    def add_phase(self, phase: Phase) -> None: ...
+
+    def next_phase_position(self) -> int:
+        """O fim da lista de fases."""
+        ...
+
     def list_milestones(self) -> list[Milestone]: ...
 
-    def get_milestone(self, milestone_id: UUID) -> Milestone | None: ...
+    def get_milestone(
+        self, milestone_id: UUID, *, include_deleted: bool = False
+    ) -> Milestone | None: ...
+
+    def add_milestone(self, milestone: Milestone) -> None: ...
+
+    def next_milestone_position(self, phase_id: UUID) -> int:
+        """O fim da fase, entre os marcos vivos."""
+        ...
 
     def dependencies(self) -> list[Dependency]:
         """Só os vínculos vivos entre marcos vivos."""
         ...
+
+    def live_links_of(self, milestone_id: UUID) -> list[MilestoneDependency]:
+        """Os vínculos vivos em que o marco aparece, nos dois sentidos."""
+        ...
+
+    def deleted_links_of(self, milestone_id: UUID) -> list[MilestoneDependency]:
+        """Os vínculos desativados em que o marco aparece, nos dois sentidos, com o carimbo de cada
+        um (quem decide quais voltam é o caso de uso)."""
+        ...
+
+    def add_link(self, link: MilestoneDependency) -> None: ...
 
     def add_change(self, change: MilestoneChange) -> None: ...
 
@@ -60,12 +88,14 @@ class CategoryInfo:
 
     name: str
     standing: Standing
+    # Não oculta e de grupo não oculto: só estas o casal pode ligar a um marco (F-CRN-04).
+    visible: bool
 
 
 class CategoryReader(Protocol):
     """Porta para o Mapa de Escopo: o `schedule` não importa o módulo `wedding`; o `bootstrap`
     liga os dois pelo contrato público (`D-068`, `D-069`, `D-073`). Uma categoria que não vem na
-    resposta foi excluída."""
+    resposta foi excluída. A ordem da resposta é a do Mapa (grupo e depois categoria)."""
 
     def categories(self, actor: Actor) -> dict[UUID, CategoryInfo]: ...
 

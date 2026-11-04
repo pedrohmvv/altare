@@ -1,15 +1,19 @@
-"""O cronograma sob qualquer sequência de operações (`F-CRN-03` e `F-CRN-04`).
+"""O cronograma sob qualquer sequência de operações (F-CRN-01, F-CRN-03 e F-CRN-04).
 
-O Hypothesis sorteia classificar as categorias no Mapa de Escopo, marcar, reabrir, editar o prazo e
-passar os dias, sobre o catálogo inicial inteiro (29 marcos e as suas 31 dependências), e confere
-depois de cada passo as invariantes da derivação: o concluído não muda sozinho, arquivado e opcional
-nunca bloqueiam, bloqueado sempre diz o que aguarda e a leitura é determinística.
+O Hypothesis sorteia classificar e ocultar categorias no Mapa de Escopo, marcar e reabrir, criar,
+mover, excluir e restaurar marcos, trocar as dependências (com e sem ciclo), criar, renomear e
+reordenar fases e passar os dias, sobre o catálogo inicial inteiro (29 marcos e as suas 31
+dependências), e confere depois de cada passo as invariantes: o grafo é sempre acíclico, marco
+excluído não aparece em lugar nenhum, o concluído não muda sozinho, arquivado e opcional nunca
+bloqueiam, bloqueado sempre diz o que aguarda, restaurar logo depois de excluir devolve as mesmas
+dependências e a leitura é determinística.
 """
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from itertools import pairwise
 from uuid import UUID
 
-from hypothesis import settings
+from hypothesis import assume, settings
 from hypothesis import strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, invariant, rule
 from tests.conftest import FixedClock
@@ -19,9 +23,24 @@ from tests.modules.schedule.conftest import NOIVA, NOIVO, World
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneStateCommand,
 )
+from wedding.modules.schedule.application.commands.create_milestone import CreateMilestoneCommand
+from wedding.modules.schedule.application.commands.create_phase import CreatePhaseCommand
+from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestoneCommand
+from wedding.modules.schedule.application.commands.rename_phase import RenamePhaseCommand
+from wedding.modules.schedule.application.commands.reorder_phases import ReorderPhasesCommand
+from wedding.modules.schedule.application.commands.restore_milestone import (
+    RestoreMilestoneCommand,
+)
+from wedding.modules.schedule.application.commands.set_milestone_dependencies import (
+    SetMilestoneDependenciesCommand,
+)
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestoneCommand
 from wedding.modules.schedule.application.dto import MilestoneDto, ScheduleDto
-from wedding.modules.schedule.domain.errors import MilestoneBlocked
+from wedding.modules.schedule.domain.errors import (
+    DependencyCycle,
+    MilestoneBlocked,
+    SelfDependency,
+)
 from wedding.modules.schedule.domain.values import (
     BlockerKind,
     ManualState,
@@ -30,12 +49,36 @@ from wedding.modules.schedule.domain.values import (
 )
 from wedding.shared_kernel.profile import ProfileKind
 
-CODIGOS = [m[0] for m in MARCOS]
 CATEGORIAS = sorted({m[3] for m in MARCOS if m[3]})
 ATORES = st.sampled_from([NOIVO, NOIVA])
-CODIGO = st.sampled_from(CODIGOS)
 ESTADOS = st.sampled_from([ManualState.IN_PROGRESS, ManualState.DONE, None])
 STANDINGS = st.sampled_from(list(Standing))
+ESCOLHA = st.integers(min_value=0, max_value=1000)
+ESCOLHAS = st.lists(ESCOLHA, max_size=4)
+
+
+def _alcanca(depende_de: dict[UUID, set[UUID]], origem: UUID, destino: UUID) -> bool:
+    """Oráculo independente do grafo: `origem` depende de `destino`, direta ou transitivamente?"""
+    vistos, pilha = set(), [origem]
+    while pilha:
+        atual = pilha.pop()
+        if atual == destino:
+            return True
+        if atual not in vistos:
+            vistos.add(atual)
+            pilha.extend(depende_de.get(atual, ()))
+    return False
+
+
+def _aciclico(depende_de: dict[UUID, set[UUID]]) -> bool:
+    restantes = {m: set(d) for m, d in depende_de.items()}
+    while restantes:
+        livres = [m for m, d in restantes.items() if not d & restantes.keys()]
+        if not livres:
+            return False
+        for marco in livres:
+            del restantes[marco]
+    return True
 
 
 class ScheduleMachine(RuleBasedStateMachine):
@@ -45,23 +88,69 @@ class ScheduleMachine(RuleBasedStateMachine):
         self.world = World(self.clock)
         self.uc = self.world.use_cases()
         # O que o casal marcou, o único que a máquina deixa mudar o estado manual.
-        self.manual: dict[UUID, ManualState | None] = {marco_id(c): None for c in CODIGOS}
+        self.manual: dict[UUID, ManualState | None] = {marco_id(m[0]): None for m in MARCOS}
+        self.deleted: set[UUID] = set()
         self.history_count = 0
+        self.created = 0
+
+    # --- ajudas ---------------------------------------------------------------------------
+
+    def _tick(self) -> None:
+        """Cada passo acontece em um instante próprio: o carimbo da exclusão não se repete."""
+        self.clock.advance(seconds=1)
+
+    def _cronograma(self) -> ScheduleDto:
+        return self.uc.read_schedule.execute(NOIVO)
 
     def _marcos(self) -> dict[UUID, MilestoneDto]:
-        return _por_id(self.uc.read_schedule.execute(NOIVO))
+        return _por_id(self._cronograma())
 
-    @rule(nome=st.sampled_from(CATEGORIAS), standing=STANDINGS)
-    def classify(self, nome, standing):
-        self.world.classify(nome, standing)
+    def _vivo(self, escolha: int) -> MilestoneDto:
+        vivos = sorted(self._marcos().values(), key=lambda m: m.id)
+        assume(vivos)  # excluir tudo é permitido; sem marcos vivos o passo não tem o que sortear
+        return vivos[escolha % len(vivos)]
+
+    def _fase(self, escolha: int) -> UUID:
+        fases = self._cronograma().phases
+        return fases[escolha % len(fases)].id
+
+    def _fase_de(self, marco: MilestoneDto) -> UUID:
+        return next(
+            f.id for f in self._cronograma().phases if marco.id in {m.id for m in f.milestones}
+        )
+
+    def _opcoes(self) -> list[UUID]:
+        return [o.id for o in self._cronograma().category_options if self._visivel(o.id)]
+
+    def _visivel(self, categoria: UUID) -> bool:
+        info = self.world.categories.get(categoria)
+        return info is not None and info.visible
+
+    def _grafo(self) -> dict[UUID, set[UUID]]:
+        return {m.id: {d.id for d in m.depends_on} for m in self._marcos().values()}
+
+    # --- regras do Mapa e do relógio --------------------------------------------------------
+
+    @rule(nome=st.sampled_from(CATEGORIAS), standing=STANDINGS, visivel=st.booleans())
+    def classify(self, nome, standing, visivel):
+        self._tick()
+        self.world.classify(nome, standing, visivel)
 
     @rule(nome=st.sampled_from(CATEGORIAS))
     def delete_category_from_the_map(self, nome):
+        self._tick()
         self.world.categories.pop(categoria_id(nome), None)
 
-    @rule(codigo=CODIGO, estado=ESTADOS, ignorar=st.booleans(), ator=ATORES)
-    def mark(self, codigo, estado, ignorar, ator):
-        alvo = self._marcos()[marco_id(codigo)]
+    @rule(dias=st.integers(min_value=1, max_value=3))
+    def pass_days(self, dias):
+        self.clock.advance(days=dias)
+
+    # --- estado, prazo e edição -------------------------------------------------------------
+
+    @rule(escolha=ESCOLHA, estado=ESTADOS, ignorar=st.booleans(), ator=ATORES)
+    def mark(self, escolha, estado, ignorar, ator):
+        self._tick()
+        alvo = self._vivo(escolha)
         esperava_bloqueio = estado is not None and estado is not self.manual[alvo.id]
         esperava_bloqueio = esperava_bloqueio and self._aguarda_algo(alvo)
         comando = ChangeMilestoneStateCommand(alvo.id, estado, ignorar, alvo.version)
@@ -86,24 +175,250 @@ class ScheduleMachine(RuleBasedStateMachine):
         em_discussao = info is not None and info.standing is Standing.IN_DISCUSSION
         return bool(alvo.warnings) or em_discussao
 
-    @rule(codigo=CODIGO, dias=st.integers(min_value=-5, max_value=5) | st.none())
-    def set_deadline(self, codigo, dias):
-        alvo = self._marcos()[marco_id(codigo)]
+    @rule(escolha=ESCOLHA, dias=st.integers(min_value=-5, max_value=5) | st.none())
+    def set_deadline(self, escolha, dias):
+        self._tick()
+        alvo = self._vivo(escolha)
         prazo = None if dias is None else self.clock.now().date() + timedelta(days=dias)
-        self.uc.update_milestone.execute(
-            UpdateMilestoneCommand(alvo.id, ProfileKind.AMBOS, alvo.note, prazo, alvo.version),
-            NOIVA,
-        )
+        self._atualizar(alvo, target_date=prazo)
 
-    @rule(dias=st.integers(min_value=1, max_value=3))
-    def pass_days(self, dias):
-        self.clock.advance(days=dias)
+    def _atualizar(self, alvo: MilestoneDto, **campos):
+        padrao = {
+            "title": alvo.title,
+            "phase_id": self._fase_de(alvo),
+            "responsible": ProfileKind.AMBOS,
+            "category_id": alvo.category.id if alvo.category else None,
+            "note": alvo.note,
+            "target_date": alvo.target_date,
+            "version": alvo.version,
+        }
+        comando = UpdateMilestoneCommand(milestone_id=alvo.id, **{**padrao, **campos})
+        return self.uc.update_milestone.execute(comando, NOIVA)
+
+    @rule(escolha=ESCOLHA, fase=ESCOLHA)
+    def move_milestone(self, escolha, fase):
+        self._tick()
+        alvo = self._vivo(escolha)
+        origem = self._fase_de(alvo)
+        destino = self._fase(fase)
+        antes = self._cronograma()
+        depois = self._atualizar(alvo, phase_id=destino)
+        assert [d.id for d in _por_id(depois)[alvo.id].depends_on] == [
+            d.id for d in alvo.depends_on
+        ]
+        if destino != origem:
+            nova = next(f for f in depois.phases if f.id == destino)
+            assert nova.milestones[-1].id == alvo.id
+        outros = {m.id: m.position for f in antes.phases for m in f.milestones if m.id != alvo.id}
+        assert outros == {
+            m.id: m.position for f in depois.phases for m in f.milestones if m.id != alvo.id
+        }
+
+    @rule(escolha=ESCOLHA, categoria=ESCOLHA)
+    def link_category(self, escolha, categoria):
+        self._tick()
+        alvo = self._vivo(escolha)
+        opcoes = [None, *self._opcoes()]
+        self._atualizar(alvo, category_id=opcoes[categoria % len(opcoes)])
+
+    # --- criar, excluir e restaurar ---------------------------------------------------------
+
+    @rule(fase=ESCOLHA, predecessores=ESCOLHAS, categoria=ESCOLHA)
+    def create_milestone(self, fase, predecessores, categoria):
+        self._tick()
+        self.created += 1
+        vivos = sorted(self._marcos())
+        escolhidos = tuple(vivos[p % len(vivos)] for p in predecessores) if vivos else ()
+        opcoes = [None, *self._opcoes()]
+        alvo_fase = self._fase(fase)
+        criado = self.uc.create_milestone.execute(
+            CreateMilestoneCommand(
+                title=f"Marco Gerado {self.created}",
+                phase_id=alvo_fase,
+                responsible=ProfileKind.AMBOS,
+                category_id=opcoes[categoria % len(opcoes)],
+                depends_on=escolhidos,
+            ),
+            NOIVO,
+        )
+        depois = criado.schedule
+        novo = _por_id(depois)[criado.milestone_id]
+        assert novo.title == f"Marco Gerado {self.created}"
+        self.manual[novo.id] = None
+        fase_nova = next(f for f in depois.phases if f.id == alvo_fase)
+        assert fase_nova.milestones[-1].id == novo.id
+        assert {d.id for d in novo.depends_on} == set(escolhidos)
+
+    @rule(escolha=ESCOLHA, ator=ATORES)
+    def delete_milestone(self, escolha, ator):
+        self._tick()
+        alvo = self._vivo(escolha)
+        self.uc.delete_milestone.execute(DeleteMilestoneCommand(alvo.id, alvo.version), ator)
+        self.deleted.add(alvo.id)
+
+    @rule(escolha=ESCOLHA)
+    def restore_milestone(self, escolha):
+        self._tick()
+        if not self.deleted:
+            return
+        alvo = sorted(self.deleted)[escolha % len(self.deleted)]
+        resposta = self.uc.restore_milestone.execute(RestoreMilestoneCommand(alvo), NOIVA)
+        self.deleted.discard(alvo)
+        marcos = _por_id(resposta.schedule)
+        assert alvo in marcos
+        # O que ficou de fora não está entre as dependências que voltaram.
+        for fora in resposta.left_out:
+            assert fora.title
+            # (Se a outra ponta está excluída, ela nem aparece na leitura.)
+            assert fora.milestone_id not in marcos or not _liga(marcos, alvo, fora.milestone_id)
+        fase = next(f for f in resposta.schedule.phases if alvo in {m.id for m in f.milestones})
+        assert fase.milestones[-1].id == alvo
+
+    @rule(escolha=ESCOLHA, ator=ATORES)
+    def delete_and_restore_right_away(self, escolha, ator):
+        """Restaurar logo depois de excluir devolve o mesmo conjunto de dependências."""
+        self._tick()
+        alvo = self._vivo(escolha)
+        antes = self._cronograma()
+        marcos_antes = _por_id(antes)
+        depende = {d.id for d in alvo.depends_on}
+        libera = {u.id for u in alvo.unlocks}
+        dependentes = {m.id: {d.id for d in m.depends_on} for m in marcos_antes.values()}
+        versoes = {
+            m.id: m.version
+            for m in marcos_antes.values()
+            if alvo.id in {d.id for d in m.depends_on}
+        }
+        apos_excluir = self.uc.delete_milestone.execute(
+            DeleteMilestoneCommand(alvo.id, alvo.version), ator
+        )
+        # Os dependentes perderam um predecessor: a version deles sobe (conflito de edição).
+        assert {m: _por_id(apos_excluir)[m].version for m in versoes} == {
+            m: v + 1 for m, v in versoes.items()
+        }
+        self._tick()
+        resposta = self.uc.restore_milestone.execute(RestoreMilestoneCommand(alvo.id), ator)
+        assert resposta.left_out == ()
+        assert {m: _por_id(resposta.schedule)[m].version for m in versoes} == {
+            m: v + 2 for m, v in versoes.items()
+        }
+        marcos = _por_id(resposta.schedule)
+        assert {d.id for d in marcos[alvo.id].depends_on} == depende
+        # "Libera" omite arquivados: o conjunto completo vem do `depende_de` dos outros marcos.
+        assert {m for m, deps in _grafo_de(marcos).items() if alvo.id in deps} == {
+            m for m, deps in dependentes.items() if alvo.id in deps
+        }
+        assert {u.id for u in marcos[alvo.id].unlocks} == {
+            m for m in libera if not marcos[m].archived
+        }
+
+    @rule(escolha=ESCOLHA)
+    def delete_rewire_and_restore(self, escolha):
+        """Excluir um marco que tem predecessor e dependente, ligar o predecessor ao dependente e
+        restaurar: a volta fecharia um ciclo, então a dependência fica de fora e o grafo segue
+        acíclico."""
+        self._tick()
+        marcos = self._marcos()
+        candidatos = sorted(
+            m.id
+            for m in marcos.values()
+            if m.depends_on and any(m.id in {d.id for d in o.depends_on} for o in marcos.values())
+        )
+        if not candidatos:
+            return
+        alvo = marcos[candidatos[escolha % len(candidatos)]]
+        predecessor = alvo.depends_on[0].id
+        dependente = next(
+            o
+            for o in sorted(marcos.values(), key=lambda m: m.id)
+            if alvo.id in {d.id for d in o.depends_on}
+        )
+        self.uc.delete_milestone.execute(DeleteMilestoneCommand(alvo.id, alvo.version), NOIVO)
+        self._tick()
+        antes = _por_id(self._cronograma())
+        atual = antes[predecessor]
+        novos = (*(d.id for d in atual.depends_on), dependente.id)
+        try:
+            self.uc.set_milestone_dependencies.execute(
+                SetMilestoneDependenciesCommand(predecessor, novos, atual.version), NOIVO
+            )
+        except DependencyCycle:
+            ligou = False
+        else:
+            ligou = True
+        self._tick()
+        resposta = self.uc.restore_milestone.execute(RestoreMilestoneCommand(alvo.id), NOIVO)
+        if ligou:
+            assert resposta.left_out
+        assert _aciclico(_grafo_de(_por_id(resposta.schedule)))
+
+    @rule(escolha=ESCOLHA, predecessores=ESCOLHAS)
+    def set_dependencies(self, escolha, predecessores):
+        self._tick()
+        alvo = self._vivo(escolha)
+        vivos = sorted(self._marcos())
+        escolhidos = tuple(vivos[p % len(vivos)] for p in predecessores)
+        grafo = self._grafo()
+        antes = self._cronograma()
+        comando = SetMilestoneDependenciesCommand(alvo.id, escolhidos, alvo.version)
+        try:
+            depois = self.uc.set_milestone_dependencies.execute(comando, NOIVO)
+        except SelfDependency:
+            assert alvo.id in escolhidos
+        except DependencyCycle as erro:
+            assert alvo.id not in escolhidos
+            assert any(_alcanca(grafo, p, alvo.id) for p in escolhidos)
+            caminho = [p["id"] for p in erro.data["path"]]
+            assert caminho[0] == caminho[-1] == alvo.id
+            assert all(b in grafo[a] for a, b in pairwise(caminho[1:]))
+            assert self._cronograma() == antes
+        else:
+            assert alvo.id not in escolhidos
+            assert not any(_alcanca(grafo, p, alvo.id) for p in escolhidos)
+            assert {d.id for d in _por_id(depois)[alvo.id].depends_on} == set(escolhidos)
+
+    # --- fases ------------------------------------------------------------------------------
+
+    @rule(numero=st.integers(1, 50))
+    def create_phase(self, numero):
+        self._tick()
+        antes = len(self._cronograma().phases)
+        depois = self.uc.create_phase.execute(CreatePhaseCommand(f"Fase Gerada {numero}"), NOIVO)
+        assert len(depois.phases) == antes + 1
+        assert depois.phases[-1].milestones == ()
+
+    @rule(escolha=ESCOLHA, numero=st.integers(1, 50))
+    def rename_phase(self, escolha, numero):
+        self._tick()
+        fases = self._cronograma().phases
+        alvo = fases[escolha % len(fases)]
+        depois = self.uc.rename_phase.execute(
+            RenamePhaseCommand(alvo.id, f"Fase Renomeada {numero}", alvo.version), NOIVA
+        )
+        nova = next(f for f in depois.phases if f.id == alvo.id)
+        assert [m.id for m in nova.milestones] == [m.id for m in alvo.milestones]
+
+    @rule(ordem=st.randoms(use_true_random=False))
+    def reorder_phases(self, ordem):
+        self._tick()
+        fases = list(self._cronograma().phases)
+        ordem.shuffle(fases)
+        depois = self.uc.reorder_phases.execute(
+            ReorderPhasesCommand(tuple(f.id for f in fases)), NOIVO
+        )
+        assert [f.id for f in depois.phases] == [f.id for f in fases]
+
+    # --- invariantes ------------------------------------------------------------------------
 
     @invariant()
     def tudo_o_que_se_deriva_confere(self):
         """Lê uma vez e confere todas as invariantes sobre a mesma leitura."""
-        cronograma = self.uc.read_schedule.execute(NOIVO)
+        cronograma = self._cronograma()
         self.a_leitura_e_deterministica_e_nao_mexe_em_nada(cronograma)
+        self.o_grafo_e_sempre_aciclico(cronograma)
+        self.marco_excluido_nao_aparece_em_lugar_nenhum(cronograma)
+        self.as_fases_estao_em_ordem_e_cada_marco_esta_em_uma_so(cronograma)
+        self.depende_de_e_libera_se_correspondem(cronograma)
         self.so_o_casal_muda_o_estado_manual(cronograma)
         self.bloqueado_sempre_lista_ao_menos_um_motivo_e_destravado_nenhum(cronograma)
         self.arquivado_e_opcional_nunca_bloqueiam(cronograma)
@@ -116,11 +431,44 @@ class ScheduleMachine(RuleBasedStateMachine):
     def a_leitura_e_deterministica_e_nao_mexe_em_nada(self, cronograma: ScheduleDto) -> None:
         assert self.uc.read_schedule.execute(NOIVA) == cronograma
 
-    def so_o_casal_muda_o_estado_manual(self, cronograma: ScheduleDto) -> None:
-        """Concluído e Em andamento não mudam sozinhos: nenhuma classificação, prazo, data ou
-        reabertura de outro marco os desfaz."""
+    def o_grafo_e_sempre_aciclico(self, cronograma: ScheduleDto) -> None:
+        assert _aciclico(_grafo_de(_por_id(cronograma)))
+
+    def marco_excluido_nao_aparece_em_lugar_nenhum(self, cronograma: ScheduleDto) -> None:
+        marcos = _por_id(cronograma)
+        assert not self.deleted & marcos.keys()
+        for marco in marcos.values():
+            referidos = {d.id for d in marco.depends_on} | {u.id for u in marco.unlocks}
+            referidos |= {w.milestone_id for w in marco.warnings}
+            referidos |= {b.milestone_id for b in marco.blocked_by if b.milestone_id}
+            assert not self.deleted & referidos
+
+    def as_fases_estao_em_ordem_e_cada_marco_esta_em_uma_so(self, cronograma: ScheduleDto) -> None:
+        assert [f.position for f in cronograma.phases] == list(range(len(cronograma.phases)))
+        vistos: list[UUID] = []
+        for fase in cronograma.phases:
+            assert len({m.position for m in fase.milestones}) == len(fase.milestones)
+            assert [m.position for m in fase.milestones] == sorted(
+                m.position for m in fase.milestones
+            )
+            vistos.extend(m.id for m in fase.milestones)
+        assert len(vistos) == len(set(vistos))
+
+    def depende_de_e_libera_se_correspondem(self, cronograma: ScheduleDto) -> None:
         marcos = _por_id(cronograma)
         for marco in marcos.values():
+            for dep in marco.depends_on:
+                dono = marcos[dep.id]
+                # "Libera" omite os arquivados, que saíram das listas ativas.
+                assert (marco.id in {u.id for u in dono.unlocks}) == (not marco.archived)
+            for lib in marco.unlocks:
+                assert marco.id in {d.id for d in marcos[lib.id].depends_on}
+                assert not marcos[lib.id].archived
+
+    def so_o_casal_muda_o_estado_manual(self, cronograma: ScheduleDto) -> None:
+        """Concluído e Em andamento não mudam sozinhos: nenhuma classificação, prazo, data,
+        exclusão ou reabertura de outro marco os desfaz."""
+        for marco in _por_id(cronograma).values():
             manual = self.manual[marco.id]
             if manual is ManualState.DONE:
                 assert marco.state is MilestoneState.DONE
@@ -132,13 +480,10 @@ class ScheduleMachine(RuleBasedStateMachine):
     def bloqueado_sempre_lista_ao_menos_um_motivo_e_destravado_nenhum(
         self, cronograma: ScheduleDto
     ) -> None:
-        marcos = _por_id(cronograma)
-        for marco in marcos.values():
+        for marco in _por_id(cronograma).values():
             if marco.state is MilestoneState.BLOCKED:
                 assert marco.blocked_by
-            if marco.state is MilestoneState.UNLOCKED:
-                assert not marco.blocked_by
-            if marco.state is MilestoneState.DONE:
+            if marco.state in (MilestoneState.UNLOCKED, MilestoneState.DONE):
                 assert not marco.blocked_by
             assert all(motivo.label for motivo in marco.blocked_by)
 
@@ -154,7 +499,6 @@ class ScheduleMachine(RuleBasedStateMachine):
                     assert faltando.state is not MilestoneState.DONE
                 else:
                     assert motivo.milestone_id is None
-            assert not any(marcos[liberado].archived for liberado in (u.id for u in marco.unlocks))
 
     def bloqueio_e_aviso_batem_com_o_estado_das_dependencias(self, cronograma: ScheduleDto) -> None:
         marcos = _por_id(cronograma)
@@ -176,12 +520,11 @@ class ScheduleMachine(RuleBasedStateMachine):
     def a_categoria_em_discussao_bloqueia_so_o_que_nao_esta_concluido(
         self, cronograma: ScheduleDto
     ) -> None:
-        marcos = _por_id(cronograma)
-        for marco in marcos.values():
+        for marco in _por_id(cronograma).values():
             if marco.category is None:
                 continue
             info = self.world.categories.get(marco.category.id)
-            standing = info.standing if info else Standing.OUT
+            standing = Standing.OUT if info is None or not info.visible else info.standing
             tem_motivo_de_categoria = any(
                 b.kind is BlockerKind.CATEGORY_UNCLASSIFIED for b in marco.blocked_by
             )
@@ -195,16 +538,14 @@ class ScheduleMachine(RuleBasedStateMachine):
     def atrasado_so_com_prazo_vencido_e_nao_concluido_nem_arquivado(
         self, cronograma: ScheduleDto
     ) -> None:
-        marcos = _por_id(cronograma)
-        for marco in marcos.values():
+        hoje = (self.clock.now() - timedelta(hours=3)).date()
+        for marco in _por_id(cronograma).values():
             if marco.overdue:
                 assert marco.target_date is not None
-                assert marco.target_date < _hoje_em_brasilia(self.clock)
+                assert marco.target_date < hoje
                 assert marco.state is not MilestoneState.DONE
                 assert not marco.archived
-            elif marco.target_date is not None and marco.target_date < _hoje_em_brasilia(
-                self.clock
-            ):
+            elif marco.target_date is not None and marco.target_date < hoje:
                 assert marco.state is MilestoneState.DONE or marco.archived
 
     def o_progresso_da_fase_confere_com_a_recontagem(self, cronograma: ScheduleDto) -> None:
@@ -213,7 +554,7 @@ class ScheduleMachine(RuleBasedStateMachine):
             assert fase.progress.total == len(ativos)
             assert fase.progress.done == sum(m.state is MilestoneState.DONE for m in ativos)
 
-    def so_a_mudanca_real_vai_para_o_historico(self):
+    def so_a_mudanca_real_vai_para_o_historico(self) -> None:
         assert len(self.world.store.changes) == self.history_count
         for mudanca in self.world.store.changes:
             assert mudanca.state_before is not mudanca.state_after
@@ -225,9 +566,14 @@ def _por_id(cronograma: ScheduleDto) -> dict[UUID, MilestoneDto]:
     return {m.id: m for f in cronograma.phases for m in f.milestones}
 
 
-def _hoje_em_brasilia(clock: FixedClock) -> date:
-    return (clock.now() - timedelta(hours=3)).date()
+def _grafo_de(marcos: dict[UUID, MilestoneDto]) -> dict[UUID, set[UUID]]:
+    return {m.id: {d.id for d in m.depends_on} for m in marcos.values()}
 
 
-ScheduleMachine.TestCase.settings = settings(max_examples=60, stateful_step_count=30, deadline=None)
+def _liga(marcos: dict[UUID, MilestoneDto], a: UUID, b: UUID) -> bool:
+    """Há dependência direta entre os dois, em qualquer sentido."""
+    return b in {d.id for d in marcos[a].depends_on} or a in {d.id for d in marcos[b].depends_on}
+
+
+ScheduleMachine.TestCase.settings = settings(max_examples=50, stateful_step_count=30, deadline=None)
 TestScheduleMachine = ScheduleMachine.TestCase

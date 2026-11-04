@@ -31,6 +31,8 @@ def test_o_schema_do_problem_details_tem_os_campos_do_contrato():
     problema = _esquema()["components"]["schemas"]["ProblemDetails"]
     assert {"title", "status", "code", "detail"} <= set(problema["required"])
     assert "errors" in problema["properties"]
+    assert "data" in problema["properties"]
+    assert "data" not in problema["required"]
 
 
 def test_a_resposta_de_sucesso_continua_em_json():

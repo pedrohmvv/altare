@@ -14,6 +14,15 @@ from tests.modules.wedding.conftest import CSRF, SENHA, _FakeHasher
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
+from wedding.modules.schedule.application.commands.create_milestone import CreateMilestone
+from wedding.modules.schedule.application.commands.create_phase import CreatePhase
+from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
+from wedding.modules.schedule.application.commands.rename_phase import RenamePhase
+from wedding.modules.schedule.application.commands.reorder_phases import ReorderPhases
+from wedding.modules.schedule.application.commands.restore_milestone import RestoreMilestone
+from wedding.modules.schedule.application.commands.set_milestone_dependencies import (
+    SetMilestoneDependencies,
+)
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
@@ -23,6 +32,7 @@ from wedding.modules.schedule.domain.entities import (
     Dependency,
     Milestone,
     MilestoneChange,
+    MilestoneDependency,
     Phase,
 )
 from wedding.modules.schedule.domain.values import Standing
@@ -45,12 +55,13 @@ class Store:
     def __init__(self) -> None:
         self.phases: dict[UUID, Phase] = {}
         self.milestones: dict[UUID, Milestone] = {}
-        self.dependencies: list[Dependency] = []
+        self.links: list[MilestoneDependency] = []
         self.changes: list[MilestoneChange] = []
 
 
 class _Repository:
-    """O cronograma em memória, com as mesmas regras de leitura do SQL."""
+    """O cronograma em memória, com as mesmas regras de leitura do SQL: exclusão lógica filtrada
+    e, nas dependências, só os vínculos vivos entre marcos vivos."""
 
     def __init__(self, store: Store) -> None:
         self.store = store
@@ -58,14 +69,58 @@ class _Repository:
     def list_phases(self) -> list[Phase]:
         return list(self.store.phases.values())
 
-    def list_milestones(self) -> list[Milestone]:
-        return list(self.store.milestones.values())
+    def get_phase(self, phase_id: UUID) -> Phase | None:
+        return self.store.phases.get(phase_id)
 
-    def get_milestone(self, milestone_id: UUID) -> Milestone | None:
-        return self.store.milestones.get(milestone_id)
+    def add_phase(self, phase: Phase) -> None:
+        self.store.phases[phase.id] = phase
+
+    def next_phase_position(self) -> int:
+        return max((p.position for p in self.store.phases.values()), default=-1) + 1
+
+    def list_milestones(self) -> list[Milestone]:
+        return [m for m in self.store.milestones.values() if m.deleted_at is None]
+
+    def get_milestone(
+        self, milestone_id: UUID, *, include_deleted: bool = False
+    ) -> Milestone | None:
+        found = self.store.milestones.get(milestone_id)
+        if found is None or (found.deleted_at is not None and not include_deleted):
+            return None
+        return found
+
+    def add_milestone(self, milestone: Milestone) -> None:
+        self.store.milestones[milestone.id] = milestone
+
+    def next_milestone_position(self, phase_id: UUID) -> int:
+        positions = [m.position for m in self.list_milestones() if m.phase_id == phase_id]
+        return max(positions, default=-1) + 1
 
     def dependencies(self) -> list[Dependency]:
-        return list(self.store.dependencies)
+        live = {m.id for m in self.list_milestones()}
+        return [
+            link.as_edge()
+            for link in self.store.links
+            if link.deleted_at is None and link.milestone_id in live and link.depends_on_id in live
+        ]
+
+    def live_links_of(self, milestone_id: UUID) -> list[MilestoneDependency]:
+        return [
+            link
+            for link in self.store.links
+            if link.deleted_at is None and milestone_id in (link.milestone_id, link.depends_on_id)
+        ]
+
+    def deleted_links_of(self, milestone_id: UUID) -> list[MilestoneDependency]:
+        return [
+            link
+            for link in self.store.links
+            if link.deleted_at is not None
+            and milestone_id in (link.milestone_id, link.depends_on_id)
+        ]
+
+    def add_link(self, link: MilestoneDependency) -> None:
+        self.store.links.append(link)
 
     def add_change(self, change: MilestoneChange) -> None:
         self.store.changes.append(change)
@@ -80,6 +135,7 @@ class _UnitOfWork:
         world.actors.append(actor)
         self._store = copy.deepcopy(world.store)
         self._before = copy.deepcopy(world.store.milestones)
+        self._phases_before = copy.deepcopy(world.store.phases)
         self.schedule = _Repository(self._store)
 
     def __enter__(self) -> "_UnitOfWork":
@@ -94,14 +150,26 @@ class _UnitOfWork:
         return None
 
     def commit(self) -> None:
-        for key, milestone in self._store.milestones.items():
-            if milestone != self._before[key]:
-                milestone.version = self._before[key].version + 1
+        _bump(self._store.milestones, self._before)
+        _bump(self._store.phases, self._phases_before)
+        for link in self._store.links:
+            link.version = link.version or 1
         self._world.store = self._store
         self._before = copy.deepcopy(self._store.milestones)
+        self._phases_before = copy.deepcopy(self._store.phases)
 
     def rollback(self) -> None:
         return None
+
+
+def _bump(items: dict, before: dict) -> None:
+    """Como o mapeamento: novo começa em 1; mudado sobe um; igual fica."""
+    for key, item in items.items():
+        original = before.get(key)
+        if original is None:
+            item.version = 1
+        elif item != original:
+            item.version = original.version + 1
 
 
 class _Categories:
@@ -159,14 +227,22 @@ class World:
             )
             if categoria:
                 self.categories[categoria_id(categoria)] = CategoryInfo(
-                    categoria, Standing.IN_DISCUSSION
+                    categoria, Standing.IN_DISCUSSION, True
                 )
-            self.store.dependencies.extend(
-                Dependency(marco_id(codigo), marco_id(dep)) for dep in dependencias
-            )
+            for dep in dependencias:
+                self.store.links.append(
+                    MilestoneDependency(
+                        id=self.ids.new_id(),
+                        milestone_id=marco_id(codigo),
+                        depends_on_id=marco_id(dep),
+                        version=1,
+                    )
+                )
 
-    def classify(self, nome: str, standing: Standing) -> None:
-        self.categories[categoria_id(nome)] = CategoryInfo(nome, standing)
+    def classify(self, nome: str, standing: Standing, visible: bool = True) -> None:
+        # Como o bootstrap: a categoria oculta conta como `Fica de fora` para o cronograma.
+        folded = standing if visible else Standing.OUT
+        self.categories[categoria_id(nome)] = CategoryInfo(nome, folded, visible)
 
     def classify_all(self, standing: Standing = Standing.ENTERS) -> None:
         for nome in [info.name for info in self.categories.values()]:
@@ -177,10 +253,20 @@ class World:
 
     def use_cases(self) -> ScheduleUseCases:
         reader = ScheduleReader(_Categories(self), _WeddingDate(self), self.clock)
+        categories = _Categories(self)
         return ScheduleUseCases(
             read_schedule=ReadSchedule(self.uow_factory, reader),
-            update_milestone=UpdateMilestone(self.uow_factory, reader),
+            update_milestone=UpdateMilestone(self.uow_factory, reader, categories),
             change_milestone_state=ChangeMilestoneState(self.uow_factory, self.ids, reader),
+            create_milestone=CreateMilestone(self.uow_factory, self.ids, reader, categories),
+            delete_milestone=DeleteMilestone(self.uow_factory, self.clock, reader),
+            restore_milestone=RestoreMilestone(self.uow_factory, reader),
+            set_milestone_dependencies=SetMilestoneDependencies(
+                self.uow_factory, self.ids, self.clock, reader
+            ),
+            create_phase=CreatePhase(self.uow_factory, self.ids, reader),
+            rename_phase=RenamePhase(self.uow_factory, reader),
+            reorder_phases=ReorderPhases(self.uow_factory, reader),
         )
 
 

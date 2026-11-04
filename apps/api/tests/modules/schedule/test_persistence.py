@@ -197,3 +197,108 @@ def test_entidade_nova_de_marco_nasce_com_a_version_um(banco):
         assert lido is not None
         assert lido.version == 1
         assert lido.responsible is ProfileKind.AMBOS
+
+
+# --- F-CRN-01: criar, mover, excluir, restaurar, dependências e fases ---------------------------
+
+from wedding.modules.schedule.domain.entities import MilestoneDependency, Phase  # noqa: E402
+
+
+def test_marco_novo_e_o_vinculo_dele_gravam_na_mesma_transacao(banco):
+    novo, ligacao = uuid4(), uuid4()
+    with banco() as uow:
+        fase = uow.schedule.list_phases()[0]
+        uow.schedule.add_milestone(
+            Milestone(id=novo, phase_id=fase.id, title="Marco Exemplo", position=9)
+        )
+        uow.schedule.add_link(MilestoneDependency(ligacao, novo, marco_id("C01")))
+        uow.commit()
+    with banco() as uow:
+        assert {(d.milestone_id, d.depends_on_id) for d in uow.schedule.dependencies()} >= {
+            (novo, marco_id("C01"))
+        }
+        assert uow.schedule.next_milestone_position(fase.id) == 10
+
+
+def test_excluir_marco_e_vinculos_grava_o_mesmo_carimbo_e_restaurar_os_encontra(banco, clock):
+    with banco(NOIVA) as uow:
+        marco = uow.schedule.get_milestone(marco_id("C06"))
+        assert marco is not None
+        agora = clock.now()
+        marco.delete(agora, NOIVA.user_id)
+        for link in uow.schedule.live_links_of(marco.id):
+            link.delete(agora, NOIVA.user_id)
+        uow.commit()
+    with banco() as uow:
+        assert uow.schedule.get_milestone(marco_id("C06")) is None
+        assert len(uow.schedule.list_milestones()) == 28
+        assert len(uow.schedule.dependencies()) == 31 - 11
+        assert uow.schedule.live_links_of(marco_id("C06")) == []
+        apagado = uow.schedule.get_milestone(marco_id("C06"), include_deleted=True)
+        assert apagado is not None
+        mesmos = [
+            link
+            for link in uow.schedule.deleted_links_of(marco_id("C06"))
+            if link.deleted_at == apagado.deleted_at
+        ]
+        assert len(mesmos) == 11
+        assert {link.deleted_by for link in mesmos} == {NOIVA.user_id}
+        apagado.restore(position=7)
+        for link in mesmos:
+            link.restore()
+        uow.commit()
+    with banco() as uow:
+        assert len(uow.schedule.dependencies()) == 31
+        assert uow.schedule.live_links_of(marco_id("C06")) != []
+        restaurado = uow.schedule.get_milestone(marco_id("C06"))
+        assert restaurado is not None
+        assert restaurado.position == 7
+
+
+def test_mudar_so_o_conjunto_de_dependencias_sobe_a_version_do_marco(banco):
+    with banco() as uow:
+        marco = uow.schedule.get_milestone(marco_id("C07"))
+        assert marco is not None
+        for link in uow.schedule.live_links_of(marco.id):
+            if link.milestone_id == marco.id:
+                link.delete(uow.session.info["audit.clock"].now(), None)
+        marco.touch_dependencies()
+        uow.commit()
+    with banco() as uow:
+        marco = uow.schedule.get_milestone(marco_id("C07"))
+        assert marco is not None
+        assert (marco.version, marco.dependencies_revision) == (2, 1)
+
+
+def test_dois_conjuntos_de_dependencias_sobre_a_mesma_version_o_segundo_vira_conflito(banco):
+    with banco(NOIVO) as a, banco(NOIVA) as b:
+        x = a.schedule.get_milestone(marco_id("C07"))
+        y = b.schedule.get_milestone(marco_id("C07"))
+        assert x is not None
+        assert y is not None
+        x.touch_dependencies()
+        y.touch_dependencies()
+        a.commit()
+        with pytest.raises(VersionConflict):
+            b.commit()
+
+
+def test_fase_nova_aparece_no_fim_e_a_ordem_troca_com_a_version_de_quem_mudou(banco):
+    nova = uuid4()
+    with banco() as uow:
+        posicao = uow.schedule.next_phase_position()
+        assert posicao == 5
+        uow.schedule.add_phase(Phase(nova, "Fase Exemplo", posicao))
+        uow.commit()
+    with banco() as uow:
+        fases = {f.id: f for f in uow.schedule.list_phases()}
+        assert len(fases) == 6
+        fases[nova].position = 0
+        for fase in fases.values():
+            if fase.id != nova:
+                fase.position += 1
+        uow.commit()
+    with banco() as uow:
+        assert uow.schedule.get_phase(nova) is not None
+        assert uow.schedule.get_phase(uuid4()) is None
+        assert {f.version for f in uow.schedule.list_phases()} == {2}

@@ -419,3 +419,136 @@ def test_a_migracao_do_cronograma_desce_e_deixa_o_resto_intacto(tmp_path):
     assert _ler(url, "SELECT COUNT(*) FROM scope_categories") == [(18,)]
     command.upgrade(config, "head")
     assert _ler(url, "SELECT COUNT(*) FROM milestones") == [(29,)]
+
+
+def test_a_migracao_de_edicao_acrescenta_a_revisao_das_dependencias_e_desce(tmp_path):  # F-CRN-01
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    colunas = {c["name"] for c in inspect(create_engine(url)).get_columns("milestones")}
+    assert "dependencies_revision" in colunas
+    assert _ler(url, "SELECT DISTINCT dependencies_revision FROM milestones") == [(0,)]
+    command.downgrade(config, "0010")
+    colunas = {c["name"] for c in inspect(create_engine(url)).get_columns("milestones")}
+    assert "dependencies_revision" not in colunas
+    # A semente continua intacta depois de descer.
+    assert _ler(url, "SELECT COUNT(*) FROM milestones") == [(29,)]
+    assert _ler(url, "SELECT COUNT(*) FROM milestone_dependencies") == [(31,)]
+    assert _ler(url, "SELECT COUNT(*) FROM schedule_phases") == [(5,)]
+    command.upgrade(config, "head")
+    assert _ler(url, "SELECT COUNT(*) FROM milestones") == [(29,)]
+    assert _ler(url, "SELECT DISTINCT dependencies_revision FROM milestones") == [(0,)]
+
+
+def test_a_semente_sobrevive_a_migracao_de_edicao_com_os_mesmos_ids(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "0010")
+    antes = _ler(url, "SELECT id, title, position FROM milestones ORDER BY id")
+    command.upgrade(config, "head")
+    assert _ler(url, "SELECT id, title, position FROM milestones ORDER BY id") == antes
+
+
+def test_o_banco_recusa_titulo_em_branco_em_marco_e_fase(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    with engine.begin() as conn, pytest.raises(IntegrityError):
+        conn.execute(
+            text("UPDATE milestones SET title = '   ' WHERE id = :id"), {"id": _id("marco:C01")}
+        )
+    with engine.begin() as conn, pytest.raises(IntegrityError):
+        conn.execute(
+            text("UPDATE schedule_phases SET title = '' WHERE id = :id"), {"id": _id("fase:1")}
+        )
+    with engine.begin() as conn, pytest.raises(IntegrityError):
+        conn.execute(
+            text("UPDATE milestones SET dependencies_revision = -1 WHERE id = :id"),
+            {"id": _id("marco:C01")},
+        )
+    engine.dispose()
+
+
+def test_a_migracao_de_edicao_nao_deixa_chave_estrangeira_quebrada(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+    engine = create_engine(url)
+    alvos = {
+        (tabela, fk["referred_table"])
+        for tabela in ("milestone_dependencies", "milestone_changes", "milestones")
+        for fk in inspect(engine).get_foreign_keys(tabela)
+    }
+    engine.dispose()
+    assert ("milestone_dependencies", "milestones") in alvos
+    assert ("milestone_changes", "milestones") in alvos
+    assert ("milestones", "scope_categories") in alvos
+    assert ("milestones", "schedule_phases") in alvos
+
+
+def _linha_de_historico(url: str) -> None:
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO milestone_changes (id, created_at, updated_at, version, milestone_id,"
+                " state_before, state_after, ignored_block, profile)"
+                " VALUES (:id, '2026-10-27', '2026-10-27', 1, :m, NULL, 'Concluído', 1, 'Noiva')"
+            ),
+            {"id": uuid.uuid4().hex, "m": _id("marco:C03")},
+        )
+    engine.dispose()
+
+
+def test_a_0011_sobe_da_0010_com_dados_sem_perder_nem_alterar_nada(tmp_path):  # caminho de produção
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "0010")
+    _linha_de_historico(url)
+    sql_dependencias = (
+        "SELECT id, milestone_id, depends_on_id FROM milestone_dependencies ORDER BY id"
+    )
+    sql_historico = "SELECT * FROM milestone_changes"
+    sql_marcos = "SELECT id, phase_id, title, position, version FROM milestones ORDER BY id"
+    antes = (_ler(url, sql_dependencias), _ler(url, sql_historico), _ler(url, sql_marcos))
+    assert len(antes[0]) == 31
+    assert len(antes[1]) == 1
+
+    command.upgrade(config, "head")
+
+    depois = (_ler(url, sql_dependencias), _ler(url, sql_historico), _ler(url, sql_marcos))
+    assert depois == antes
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+    assert _ler(url, "SELECT DISTINCT dependencies_revision FROM milestones") == [(0,)]
+
+
+def test_o_caminho_completo_da_base_ao_head_deixa_as_chaves_estrangeiras_integras(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+    assert _ler(url, "SELECT COUNT(*) FROM milestone_dependencies") == [(31,)]
+
+
+@pytest.mark.parametrize("caminho", ["0010_para_0011", "base_para_head"])
+def test_sem_o_pragma_a_0011_quebra_com_as_chaves_ligadas_nos_dois_caminhos(
+    tmp_path, monkeypatch, caminho
+):
+    """O `env.py` abre a conexão com `foreign_keys=ON`, e o SQLite não tem DDL transacional: o
+    Alembic não envolve a migration numa transação, então o `PRAGMA foreign_keys=OFF` da 0011 vale
+    de fato, na subida da base e na da 0010. Sem ele, apagar `milestones` no lote falha."""
+    from alembic import op
+
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    if caminho == "0010_para_0011":
+        command.upgrade(config, "0010")
+    executar = op.execute
+
+    def sem_pragma(statement, *args, **kwargs):
+        if "PRAGMA foreign_keys" in str(statement):
+            return None
+        return executar(statement, *args, **kwargs)
+
+    monkeypatch.setattr(op, "execute", sem_pragma)
+    with pytest.raises(IntegrityError, match="FOREIGN KEY"):
+        command.upgrade(config, "head")

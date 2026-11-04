@@ -68,3 +68,113 @@ def test_marcar_e_reabrir_mudam_o_estado_manual_e_repetir_nao():  # F-CRN-03
     assert marco.set_manual_state(None) is True
     assert marco.manual_state is None
     assert marco.set_manual_state(None) is False
+
+
+# --- F-CRN-01: criar, renomear, mover, excluir e restaurar -------------------------------------
+from datetime import UTC, datetime  # noqa: E402
+
+from wedding.modules.schedule.domain.entities import Phase  # noqa: E402
+from wedding.modules.schedule.domain.errors import (  # noqa: E402
+    DependencyCycle,
+    InvalidPhaseOrder,
+    MilestoneTitleRequired,
+    PhaseTitleRequired,
+    SelfDependency,
+)
+from wedding.modules.schedule.domain.values import MAX_PHASE_TITLE, MAX_TITLE  # noqa: E402
+
+
+def test_marco_sem_titulo_ou_so_com_espacos_e_recusado():  # F-CRN-01
+    for titulo in ("", "   ", "\t\n"):
+        with pytest.raises(MilestoneTitleRequired):
+            Milestone(id=UUID(int=1), phase_id=UUID(int=2), title=titulo, position=0)
+
+
+def test_titulo_do_marco_e_aparado_e_tem_limite_da_coluna():
+    marco = Milestone(id=UUID(int=1), phase_id=UUID(int=2), title="  Marco Exemplo ", position=0)
+    assert marco.title == "Marco Exemplo"
+    Milestone(id=UUID(int=1), phase_id=UUID(int=2), title="x" * MAX_TITLE, position=0)
+    with pytest.raises(InvalidScheduleValue):
+        Milestone(id=UUID(int=1), phase_id=UUID(int=2), title="x" * (MAX_TITLE + 1), position=0)
+
+
+def test_renomear_o_marco_diz_se_mudou_e_recusa_titulo_vazio():
+    marco = novo()
+    assert marco.rename("Outro Marco") is True
+    assert marco.rename(" Outro Marco ") is False
+    with pytest.raises(MilestoneTitleRequired):
+        marco.rename("  ")
+    assert marco.title == "Outro Marco"
+
+
+def test_trocar_a_categoria_diz_se_mudou_e_aceita_nenhuma():  # F-CRN-04
+    marco = novo()
+    categoria = UUID(int=77)
+    assert marco.link_category(categoria) is True
+    assert marco.link_category(categoria) is False
+    assert marco.link_category(None) is True
+    assert marco.category_id is None
+
+
+def test_mover_de_fase_vai_para_a_posicao_dada_e_nao_mexe_em_mais_nada():  # F-CRN-01
+    marco = novo()
+    marco.set_manual_state(ManualState.DONE)
+    assert marco.move_to(UUID(int=9), 4) is True
+    assert (marco.phase_id, marco.position) == (UUID(int=9), 4)
+    assert marco.manual_state is ManualState.DONE
+    assert marco.move_to(UUID(int=9), 7) is False
+    assert marco.position == 4
+
+
+def test_excluir_carimba_e_restaurar_limpa_e_vai_para_o_fim_da_fase():  # F-CRN-01
+    marco = novo()
+    agora = datetime(2026, 11, 3, 12, 0, tzinfo=UTC)
+    marco.delete(agora, UUID(int=5))
+    assert (marco.deleted_at, marco.deleted_by) == (agora, UUID(int=5))
+    marco.restore(position=12)
+    assert (marco.deleted_at, marco.deleted_by, marco.position) == (None, None, 12)
+
+
+def test_mexer_nas_dependencias_sobe_a_revisao_para_as_edicoes_se_conflitarem():
+    marco = novo()
+    assert marco.dependencies_revision == 0
+    marco.touch_dependencies()
+    assert marco.dependencies_revision == 1
+
+
+def test_fase_sem_titulo_e_recusada_e_o_titulo_e_aparado():  # F-CRN-01
+    with pytest.raises(PhaseTitleRequired):
+        Phase(id=UUID(int=1), title="   ", position=0)
+    fase = Phase(id=UUID(int=1), title="  Fase Exemplo ", position=0)
+    assert fase.title == "Fase Exemplo"
+    with pytest.raises(InvalidScheduleValue):
+        Phase(id=UUID(int=1), title="x" * (MAX_PHASE_TITLE + 1), position=0)
+
+
+def test_renomear_a_fase_diz_se_mudou():
+    fase = Phase(id=UUID(int=1), title="Fase Exemplo", position=0)
+    assert fase.rename("Outra Fase") is True
+    assert fase.rename("Outra Fase") is False
+    with pytest.raises(PhaseTitleRequired):
+        fase.rename("")
+
+
+def test_erro_de_ciclo_leva_o_caminho_nos_dados_e_no_texto():  # F-CRN-03, regra 2
+    erro = DependencyCycle([(UUID(int=1), "A"), (UUID(int=2), "B"), (UUID(int=1), "A")])
+    assert erro.code == "dependency_cycle"
+    assert erro.data == {
+        "path": [
+            {"id": UUID(int=1), "title": "A"},
+            {"id": UUID(int=2), "title": "B"},
+            {"id": UUID(int=1), "title": "A"},
+        ]
+    }
+    assert erro.detail_params == {"path": "A → B → A"}
+    assert isinstance(erro, DomainRuleViolated)
+
+
+def test_codigos_estaveis_dos_demais_erros_da_edicao():
+    assert SelfDependency().code == "self_dependency"
+    assert InvalidPhaseOrder().code == "invalid_phase_order"
+    assert MilestoneTitleRequired().code == "milestone_title_required"
+    assert PhaseTitleRequired().code == "phase_title_required"
