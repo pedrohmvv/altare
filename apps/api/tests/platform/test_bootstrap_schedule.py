@@ -7,7 +7,9 @@ from uuid import UUID
 import pytest
 from tests.modules.schedule.conftest import NOIVO
 
+from wedding.modules.files.application.public import FileAssetDto
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
+from wedding.modules.schedule.domain.attachments import AttachedFile
 from wedding.modules.schedule.domain.values import Standing
 from wedding.modules.wedding.application.public import (
     CategoryStanding,
@@ -18,12 +20,30 @@ from wedding.modules.wedding.application.public import (
 from wedding.modules.wedding.application.public import (
     WeddingDate as WeddingDateFound,
 )
-from wedding.platform.bootstrap.schedule import WeddingDateFromBaseline, WeddingScopeCategories
+from wedding.platform.bootstrap.schedule import (
+    FilesForAttachments,
+    WeddingDateFromBaseline,
+    WeddingScopeCategories,
+)
+from wedding.shared_kernel.errors import NotFound
 
 
 def _categorias(*itens: CategoryStanding):
     scope = SimpleNamespace(get_scope_standings=SimpleNamespace(execute=lambda actor: tuple(itens)))
     return WeddingScopeCategories(lambda: scope)  # type: ignore[arg-type]
+
+
+def _arquivos(resposta):
+    chamadas = []
+
+    def achar(file_id, actor):
+        chamadas.append((file_id, actor))
+        if isinstance(resposta, Exception):
+            raise resposta
+        return resposta
+
+    files = SimpleNamespace(get_file_info=SimpleNamespace(execute=achar))
+    return FilesForAttachments(lambda: files), chamadas  # type: ignore[arg-type]
 
 
 def _data(achada: WeddingDateFound):
@@ -89,3 +109,24 @@ def test_a_ordem_das_categorias_e_a_do_contrato_do_wedding():
     lidas = _categorias(primeira, segunda).categories(NOIVO)
     assert list(lidas) == [UUID(int=2), UUID(int=1)]
     assert lidas[UUID(int=1)].visible is False
+
+
+def test_o_arquivo_achado_no_files_vira_a_copia_de_nome_tipo_e_tamanho():  # F-CRN-08
+    arquivo = UUID(int=9)
+    info = FileAssetDto(arquivo, "contrato-exemplo.pdf", "application/pdf", 2048, "abc")
+    arquivos, chamadas = _arquivos(info)
+    assert arquivos.find(arquivo, NOIVO) == AttachedFile(
+        arquivo, "contrato-exemplo.pdf", "application/pdf", 2048
+    )
+    assert chamadas == [(arquivo, NOIVO)]
+
+
+def test_arquivo_que_o_files_nao_acha_vira_none_e_nao_erro():
+    arquivos, _ = _arquivos(NotFound())
+    assert arquivos.find(UUID(int=9), NOIVO) is None
+
+
+def test_outro_erro_do_files_nao_e_engolido():
+    arquivos, _ = _arquivos(RuntimeError("falha"))
+    with pytest.raises(RuntimeError):
+        arquivos.find(UUID(int=9), NOIVO)

@@ -1,4 +1,6 @@
 from wedding.modules.schedule.adapters.http.schemas import (
+    AttachmentFileOut,
+    AttachmentOut,
     BlockerOut,
     CategoryLinkOut,
     CategoryOptionOut,
@@ -21,6 +23,7 @@ from wedding.modules.schedule.adapters.http.schemas import (
     WarningOut,
 )
 from wedding.modules.schedule.application.dto import (
+    AttachmentDto,
     ChecklistItemDto,
     CreatedMilestoneDto,
     DatePreviewDto,
@@ -43,6 +46,33 @@ def _to_checklist_out(items: tuple[ChecklistItemDto, ...]) -> list[ChecklistItem
     ]
 
 
+def _to_attachments_out(attachments: tuple[AttachmentDto, ...]) -> list[AttachmentOut]:
+    return [
+        AttachmentOut.model_validate(
+            {
+                "id": item.id,
+                "kind": item.kind,
+                "title": item.title,
+                "comment": item.comment,
+                "url": item.url,
+                "domain": item.domain,
+                "file": AttachmentFileOut(
+                    id=item.file.id,
+                    name=item.file.name,
+                    content_type=item.file.content_type,
+                    size_bytes=item.file.size_bytes,
+                )
+                if item.file
+                else None,
+                "by": item.profile,
+                "at": item.added_at,
+                "can_remove": item.can_remove,
+            }
+        )
+        for item in attachments
+    ]
+
+
 def _to_progress_out(progress: ChecklistProgress) -> ChecklistProgressOut:
     return ChecklistProgressOut(done=progress.done, total=progress.total)
 
@@ -59,6 +89,7 @@ def _to_task_out(task: TaskDto) -> TaskOut:
         days_left=task.days_left,
         checklist=_to_checklist_out(task.checklist),
         checklist_progress=_to_progress_out(task.checklist_progress),
+        attachments=_to_attachments_out(task.attachments),
         version=task.version,
     )
 
@@ -108,6 +139,7 @@ def _to_milestone_out(milestone: MilestoneDto) -> MilestoneOut:
         days_left=milestone.days_left,
         checklist=_to_checklist_out(milestone.checklist),
         checklist_progress=_to_progress_out(milestone.checklist_progress),
+        attachments=_to_attachments_out(milestone.attachments),
         version=milestone.version,
     )
 

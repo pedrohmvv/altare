@@ -1,6 +1,7 @@
 from sqlalchemy import inspect
 from sqlalchemy.orm import relationship
 
+from wedding.modules.schedule.domain.attachments import Attachment
 from wedding.modules.schedule.domain.entities import (
     ChecklistItem,
     Milestone,
@@ -10,6 +11,7 @@ from wedding.modules.schedule.domain.entities import (
     Task,
 )
 from wedding.modules.schedule.infrastructure.tables import (
+    attachments,
     checklist_items,
     milestone_changes,
     milestone_dependencies,
@@ -80,4 +82,13 @@ def start_mappers() -> None:
                 ),
                 "_task": relationship(Task, lazy="raise", foreign_keys=[checklist_items.c.task_id]),
             },
+        )
+    if inspect(Attachment, raiseerr=False) is None:
+        # O dono não tem chave estrangeira (a tabela é genérica): o mapeamento só renomeia a coluna
+        # `owner_type` para o `owner_kind` do domínio. Cada anexo tem a `version` própria.
+        mapper_registry.map_imperatively(
+            Attachment,
+            attachments,
+            version_id_col=attachments.c.version,
+            properties={"owner_kind": attachments.c.owner_type},
         )

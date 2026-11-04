@@ -2,7 +2,10 @@ from collections.abc import Callable
 from threading import Lock
 from uuid import UUID
 
+from wedding.modules.files.application.use_cases import FilesUseCases
 from wedding.modules.schedule.application.commands.add_checklist_item import AddChecklistItem
+from wedding.modules.schedule.application.commands.add_file_attachment import AddFileAttachment
+from wedding.modules.schedule.application.commands.add_link_attachment import AddLinkAttachment
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
@@ -12,6 +15,7 @@ from wedding.modules.schedule.application.commands.create_phase import CreatePha
 from wedding.modules.schedule.application.commands.create_task import CreateTask
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
 from wedding.modules.schedule.application.commands.delete_task import DeleteTask
+from wedding.modules.schedule.application.commands.remove_attachment import RemoveAttachment
 from wedding.modules.schedule.application.commands.remove_checklist_item import (
     RemoveChecklistItem,
 )
@@ -36,6 +40,7 @@ from wedding.modules.schedule.application.queries.preview_date_change import Pre
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
 from wedding.modules.schedule.application.schedule_map import ScheduleReader
 from wedding.modules.schedule.application.use_cases import ScheduleUseCases
+from wedding.modules.schedule.domain.attachments import AttachedFile
 from wedding.modules.schedule.domain.values import Standing
 from wedding.modules.schedule.infrastructure.mapping import start_mappers
 from wedding.modules.schedule.infrastructure.uow import SqlScheduleUnitOfWork
@@ -45,6 +50,7 @@ from wedding.modules.wedding.application.use_cases import WeddingUseCases
 from wedding.platform.bootstrap.database import Database
 from wedding.shared_kernel.actor import Actor
 from wedding.shared_kernel.clock import Clock, SystemClock
+from wedding.shared_kernel.errors import NotFound
 from wedding.shared_kernel.ids import UuidGenerator
 
 _STANDING_BY_STATUS = {
@@ -88,6 +94,22 @@ class WeddingDateFromBaseline:
         return WeddingDate(defined=found.status is DefinitionStatus.DEFINED, exact=exact)
 
 
+class FilesForAttachments:
+    """Liga o `schedule` ao módulo de arquivos sem um importar o outro: só o bootstrap conhece os
+    dois. Lê o nome, o tipo e o tamanho de um arquivo enviado (`GetFileInfo`), uma vez, ao anexar;
+    o anexo guarda a cópia. Nenhum nome de arquivo vai a log."""
+
+    def __init__(self, files: Callable[[], FilesUseCases]) -> None:
+        self._files = files
+
+    def find(self, file_id: UUID, actor: Actor) -> AttachedFile | None:
+        try:
+            info = self._files().get_file_info.execute(file_id, actor)
+        except NotFound:
+            return None
+        return AttachedFile(file_id, info.name, info.content_type, info.size_bytes)
+
+
 class ScheduleContainer:
     """Monta os casos de uso do cronograma na primeira vez que alguém os pede."""
 
@@ -96,12 +118,14 @@ class ScheduleContainer:
         database: Database,
         wedding: Callable[[], WeddingUseCases],
         scope: Callable[[], ScopeUseCases],
+        files: Callable[[], FilesUseCases],
         *,
         clock: Clock | None = None,
     ) -> None:
         self._database = database
         self._wedding = wedding
         self._scope = scope
+        self._files = files
         self._clock = clock or SystemClock()
         self._lock = Lock()
         self._use_cases: ScheduleUseCases | None = None
@@ -145,4 +169,9 @@ class ScheduleContainer:
             update_checklist_item=UpdateChecklistItem(uow_factory, reader),
             remove_checklist_item=RemoveChecklistItem(uow_factory, clock, reader),
             reorder_checklist=ReorderChecklist(uow_factory, reader),
+            add_link_attachment=AddLinkAttachment(uow_factory, ids, reader),
+            add_file_attachment=AddFileAttachment(
+                uow_factory, ids, reader, FilesForAttachments(self._files)
+            ),
+            remove_attachment=RemoveAttachment(uow_factory, clock, reader),
         )

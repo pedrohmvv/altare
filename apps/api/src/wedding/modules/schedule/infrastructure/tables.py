@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     Column,
@@ -14,7 +15,8 @@ from sqlalchemy import (
     text,
 )
 
-from wedding.modules.schedule.domain.values import ManualState, TaskState
+from wedding.modules.schedule.domain.attachments import AttachmentKind
+from wedding.modules.schedule.domain.values import ManualState, OwnerKind, TaskState
 from wedding.platform.db.audit import audit_columns
 from wedding.platform.db.metadata import metadata
 from wedding.shared_kernel.profile import ProfileKind
@@ -300,5 +302,83 @@ checklist_items = Table(
     comment=(
         "Itens do checklist (F-CRN-07) de um marco ou de uma tarefa avulsa: exatamente um dos "
         "dois donos. Sair é exclusão lógica; o dono excluído esconde os itens, sem apagá-los."
+    ),
+)
+
+attachments = Table(
+    "attachments",
+    metadata,
+    *audit_columns(),
+    Column(
+        "owner_type",
+        _enum(OwnerKind, "attachment_owner_type", 10),
+        nullable=False,
+        comment="De quem é o anexo: milestones (um marco) ou tasks (uma tarefa avulsa).",
+    ),
+    Column(
+        "owner_id",
+        Uuid,
+        nullable=False,
+        comment=(
+            "O id do marco ou da avulsa, conforme owner_type. Sem chave estrangeira: a tabela é "
+            "genérica e a integridade fica no caso de uso e no leitor (D-080)."
+        ),
+    ),
+    Column(
+        "kind",
+        _enum(AttachmentKind, "attachment_kind", 4),
+        nullable=False,
+        comment="link ou file.",
+    ),
+    Column(
+        "profile",
+        _enum(ProfileKind, "profile_kind", 8),
+        nullable=False,
+        comment="Quem anexou; só esse perfil remove (F-CRN-08).",
+    ),
+    Column("url", String(2000), comment="O endereço, já validado; nulo para arquivo."),
+    Column(
+        "file_id",
+        Uuid,
+        ForeignKey("file_assets.id", ondelete="RESTRICT"),
+        comment="O arquivo enviado pelo módulo de arquivos; nulo para link.",
+    ),
+    Column(
+        "file_name",
+        String(120),
+        comment="Cópia do nome do arquivo ao anexar; nulo para link. O arquivo é imutável.",
+    ),
+    Column(
+        "content_type",
+        String(20),
+        comment="Cópia do tipo do arquivo ao anexar (PDF ou imagem); nulo para link.",
+    ),
+    Column(
+        "size_bytes",
+        BigInteger,
+        comment="Cópia do tamanho do arquivo em bytes ao anexar; nulo para link.",
+    ),
+    Column("title", String(120), comment="Texto curto, opcional."),
+    Column("comment", String(500), comment="Texto livre, opcional."),
+    CheckConstraint("profile != 'Ambos'", name="profile_is_login"),
+    CheckConstraint(
+        "(kind = 'link' AND url IS NOT NULL AND file_id IS NULL AND file_name IS NULL "
+        "AND content_type IS NULL AND size_bytes IS NULL) "
+        "OR (kind = 'file' AND url IS NULL AND file_id IS NOT NULL AND file_name IS NOT NULL "
+        "AND content_type IS NOT NULL AND size_bytes IS NOT NULL)",
+        name="kind_matches_content",
+    ),
+    Index(
+        "ix_attachments_owner_live",
+        "owner_type",
+        "owner_id",
+        "created_at",
+        sqlite_where=_LIVE,
+        postgresql_where=_LIVE,
+    ),
+    comment=(
+        "Anexos de marcos e de tarefas avulsas (F-CRN-08): um link ou um arquivo já enviado, com "
+        "a cópia do nome, tipo e tamanho. Sair é exclusão lógica; o dono excluído esconde os "
+        "anexos, sem apagá-los."
     ),
 )

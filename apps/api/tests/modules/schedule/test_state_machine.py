@@ -10,7 +10,10 @@ remover e reordenar (boa e ruim) itens do checklist de marcos e de avulsas, e co
 passo as invariantes: a avulsa nunca aparece em "libera", bloqueios, dependências nem avisos de
 marco algum, o item nunca muda o estado nem a `version` do dono, "feito" fica entre 0 e o total, as
 posições ficam densas depois de reordenar, `checklist_open_items` só vem com item em aberto, o
-prazo da avulsa segue a regra e a lista de avulsas segue a ordem da chave, e o resto: o prazo
+prazo da avulsa segue a regra e a lista de avulsas segue a ordem da chave, o anexo (link ou arquivo)
+de marco e de avulsa some com o dono excluído e volta com ele sem se apagar, anexar e remover nunca
+mudam a `version` nem o estado do dono, só o autor remove (o outro perfil recebe `Forbidden` e nada
+muda), o dono excluído barra anexar e remover, e o resto: o prazo
 efetivo é o manual ou o fim da janela calculada, o concluído e o
 arquivado não têm contagem nem atraso, só a janela nunca editada é "sugestão", o grafo é sempre
 acíclico, marco excluído não aparece em lugar nenhum, o concluído não muda sozinho, arquivado e
@@ -18,6 +21,7 @@ opcional nunca bloqueiam, bloqueado sempre diz o que aguarda, restaurar logo dep
 devolve as mesmas dependências e a leitura é determinística.
 """
 
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from functools import wraps
 from itertools import pairwise
@@ -34,6 +38,12 @@ from tests.modules.schedule.conftest import NOIVA, NOIVO, World
 from wedding.modules.schedule.application.commands.add_checklist_item import (
     AddChecklistItemCommand,
 )
+from wedding.modules.schedule.application.commands.add_file_attachment import (
+    AddFileAttachmentCommand,
+)
+from wedding.modules.schedule.application.commands.add_link_attachment import (
+    AddLinkAttachmentCommand,
+)
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneStateCommand,
 )
@@ -43,6 +53,9 @@ from wedding.modules.schedule.application.commands.create_phase import CreatePha
 from wedding.modules.schedule.application.commands.create_task import CreateTaskCommand
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestoneCommand
 from wedding.modules.schedule.application.commands.delete_task import DeleteTaskCommand
+from wedding.modules.schedule.application.commands.remove_attachment import (
+    RemoveAttachmentCommand,
+)
 from wedding.modules.schedule.application.commands.remove_checklist_item import (
     RemoveChecklistItemCommand,
 )
@@ -67,6 +80,7 @@ from wedding.modules.schedule.application.commands.update_milestone_window impor
 )
 from wedding.modules.schedule.application.commands.update_task import UpdateTaskCommand
 from wedding.modules.schedule.application.dto import (
+    AttachmentDto,
     ChecklistItemDto,
     MilestoneDto,
     ScheduleDto,
@@ -93,7 +107,7 @@ from wedding.modules.schedule.domain.values import (
     TaskState,
 )
 from wedding.modules.schedule.domain.windows import WindowUnit, window_dates
-from wedding.shared_kernel.errors import NotFound
+from wedding.shared_kernel.errors import Forbidden, NotFound
 from wedding.shared_kernel.profile import ProfileKind
 
 CATEGORIAS = sorted({m[3] for m in MARCOS if m[3]})
@@ -171,6 +185,11 @@ class ScheduleMachine(RuleBasedStateMachine):
         self.item_order: dict[UUID, list[UUID]] = {}
         self.item_fields: dict[UUID, tuple[str, bool]] = {}
         self.items_added = 0
+        # Os anexos de cada dono (marco ou avulsa) como o casal os deixou, na ordem em que foram
+        # anexados, e o autor de cada um. Excluir o dono não mexe aqui: restaurar o traz de volta.
+        self.attachment_order: dict[UUID, list[UUID]] = {}
+        self.attachment_author: dict[UUID, ProfileKind] = {}
+        self.attachments_added = 0
 
     @initialize()
     def start_with_a_task_and_some_checklists(self) -> None:
@@ -821,6 +840,90 @@ class ScheduleMachine(RuleBasedStateMachine):
             tentativas[operacao]()
         assert self._cronograma() == antes
 
+    # --- anexos -----------------------------------------------------------------------------
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, arquivo=st.booleans(), ator=ATORES)
+    @_se_houver_alvo
+    def add_attachment(self, avulsa, escolha, arquivo, ator):
+        """Link ou arquivo, sem limite por item: vai para o fim da lista do dono com a autoria da
+        sessão, e o dono (estado e `version`) fica como estava."""
+        self._tick()
+        tipo, dono = self._dono(avulsa, escolha)
+        self.attachments_added += 1
+        numero = self.attachments_added
+        if arquivo:
+            enviado = self.world.files.add(f"arquivo-{numero}.pdf", "application/pdf", numero)
+            comando_arquivo = AddFileAttachmentCommand(tipo, dono.id, enviado.file_id, None, None)
+            depois = self.uc.add_file_attachment.execute(comando_arquivo, ator)
+        else:
+            url = f"https://exemplo.com/{numero}"
+            depois = self.uc.add_link_attachment.execute(
+                AddLinkAttachmentCommand(tipo, dono.id, url, None, None), ator
+            )
+        anexos = _anexos_do_dono(depois, dono.id)
+        novo = anexos[-1]
+        assert [a.id for a in anexos[:-1]] == [a.id for a in dono.attachments]
+        assert novo.profile is ator.profile
+        assert (novo.file is not None) is arquivo
+        self._nao_tocou_no_dono(dono)
+        self.attachment_order.setdefault(dono.id, []).append(novo.id)
+        self.attachment_author[novo.id] = ator.profile
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, ator=ATORES)
+    @_se_houver_alvo
+    def remove_attachment(self, avulsa, escolha, ator):
+        """Só o autor remove; o outro perfil recebe `Forbidden` e nada muda. Remover tira só aquele
+        anexo da lista e não toca o dono."""
+        self._tick()
+        com_anexos = sorted((d for d in self._donos(avulsa).values() if d.attachments), key=_id)
+        if not com_anexos:
+            raise _SemAlvo
+        dono = com_anexos[escolha % len(com_anexos)]
+        anexo = dono.attachments[(escolha // 7) % len(dono.attachments)]
+        comando = RemoveAttachmentCommand(anexo.id)
+        if self.attachment_author[anexo.id] is not ator.profile:
+            antes = self._cronograma()
+            with pytest.raises(Forbidden):
+                self.uc.remove_attachment.execute(comando, ator)
+            assert self._cronograma() == antes
+            return
+        depois = self.uc.remove_attachment.execute(comando, ator)
+        restantes = [a.id for a in _anexos_do_dono(depois, dono.id)]
+        assert restantes == [a.id for a in dono.attachments if a.id != anexo.id]
+        self._nao_tocou_no_dono(dono)
+        self.attachment_order[dono.id].remove(anexo.id)
+        del self.attachment_author[anexo.id]
+
+    @rule(escolha=ESCOLHA, avulsa=st.booleans(), operacao=st.integers(0, 2))
+    @_se_houver_alvo
+    def touch_the_attachments_of_a_deleted_owner(self, escolha, avulsa, operacao):
+        """Com o dono excluído os anexos somem da leitura e nem anexar nem remover os alcança
+        (404); nada é gravado e nenhuma linha de anexo é apagada."""
+        self._tick()
+        excluidos = sorted(self.deleted_tasks if avulsa else self.deleted)
+        if not excluidos:
+            raise _SemAlvo
+        dono = excluidos[escolha % len(excluidos)]
+        tipo = OwnerKind.TASK if avulsa else OwnerKind.MILESTONE
+        guardados = self.attachment_order.get(dono, [])
+        anexo = guardados[escolha % len(guardados)] if guardados else UUID(int=2**100)
+        enviado = self.world.files.add("novo.pdf", "application/pdf", 1)
+        tentativas = [
+            lambda: self.uc.add_link_attachment.execute(
+                AddLinkAttachmentCommand(tipo, dono, "https://exemplo.com/x", None, None), NOIVO
+            ),
+            lambda: self.uc.add_file_attachment.execute(
+                AddFileAttachmentCommand(tipo, dono, enviado.file_id, None, None), NOIVO
+            ),
+            lambda: self.uc.remove_attachment.execute(RemoveAttachmentCommand(anexo), NOIVO),
+        ]
+        antes = self._cronograma()
+        linhas_antes = len(self.world.store.attachments)
+        with pytest.raises(NotFound):
+            tentativas[operacao]()
+        assert self._cronograma() == antes
+        assert len(self.world.store.attachments) == linhas_antes
+
     @rule(avulsa=st.booleans(), escolha=ESCOLHA, ordem=st.randoms(use_true_random=False))
     @_se_houver_alvo
     def reorder_items(self, avulsa, escolha, ordem):
@@ -924,9 +1027,12 @@ class ScheduleMachine(RuleBasedStateMachine):
         self.o_checklist_e_o_que_o_casal_deixou_inclusive_depois_de_restaurar(cronograma)
         self.o_progresso_do_checklist_confere_com_a_recontagem(cronograma)
         self.as_posicoes_do_checklist_sao_unicas_e_a_ordem_e_a_da_posicao(cronograma)
+        self.os_anexos_somem_e_voltam_com_o_dono_e_nunca_sao_apagados(cronograma)
 
     def a_leitura_e_deterministica_e_nao_mexe_em_nada(self, cronograma: ScheduleDto) -> None:
-        assert self.uc.read_schedule.execute(NOIVA) == cronograma
+        assert self.uc.read_schedule.execute(NOIVO) == cronograma
+        # Só o `can_remove` muda com quem lê: o resto da leitura é o mesmo para os dois perfis.
+        assert _sem_can_remove(self.uc.read_schedule.execute(NOIVA)) == _sem_can_remove(cronograma)
 
     def o_grafo_e_sempre_aciclico(self, cronograma: ScheduleDto) -> None:
         assert _aciclico(_grafo_de(_por_id(cronograma)))
@@ -1165,6 +1271,54 @@ class ScheduleMachine(RuleBasedStateMachine):
             posicoes = [i.position for i in dono.checklist]
             assert posicoes == sorted(set(posicoes))
             assert all(p >= 0 for p in posicoes)
+
+    def os_anexos_somem_e_voltam_com_o_dono_e_nunca_sao_apagados(
+        self, cronograma: ScheduleDto
+    ) -> None:
+        """O dono vivo mostra exatamente os anexos que o casal deixou, na ordem, com a autoria da
+        sessão e o `can_remove` do perfil de quem lê; o anexo de dono excluído está fora da leitura
+        mas a linha segue guardada, viva, esperando a restauração."""
+        donos = [*_por_id(cronograma).values(), *cronograma.tasks]
+        for dono in donos:
+            assert [a.id for a in dono.attachments] == self.attachment_order.get(dono.id, [])
+            for anexo in dono.attachments:
+                assert anexo.profile is self.attachment_author[anexo.id]
+                assert anexo.can_remove is (anexo.profile is NOIVO.profile)  # a leitura é do Noivo
+                assert (anexo.url is None) is (anexo.file is not None)
+        visiveis = [a.id for dono in donos for a in dono.attachments]
+        assert len(visiveis) == len(set(visiveis))
+        for dono in {*self.deleted, *self.deleted_tasks}:
+            for anexo in self.attachment_order.get(dono, []):
+                assert self.world.store.attachments[anexo].deleted_at is None
+                assert anexo not in visiveis
+
+
+def _id(item: MilestoneDto | TaskDto) -> UUID:
+    return item.id
+
+
+def _sem_can_remove(cronograma: ScheduleDto) -> ScheduleDto:
+    def neutro(anexos: tuple[AttachmentDto, ...]) -> tuple[AttachmentDto, ...]:
+        return tuple(replace(a, can_remove=False) for a in anexos)
+
+    return replace(
+        cronograma,
+        phases=tuple(
+            replace(
+                fase,
+                milestones=tuple(
+                    replace(m, attachments=neutro(m.attachments)) for m in fase.milestones
+                ),
+            )
+            for fase in cronograma.phases
+        ),
+        tasks=tuple(replace(t, attachments=neutro(t.attachments)) for t in cronograma.tasks),
+    )
+
+
+def _anexos_do_dono(cronograma: ScheduleDto, dono: UUID) -> tuple[AttachmentDto, ...]:
+    donos = {**_por_id(cronograma), **_tarefas_por_id(cronograma)}
+    return donos[dono].attachments
 
 
 def _tarefas_por_id(cronograma: ScheduleDto) -> dict[UUID, TaskDto]:

@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from wedding.modules.schedule.application.dates import today_in_brazil
 from wedding.modules.schedule.application.dto import (
     CATEGORY_UNCLASSIFIED_LABEL,
+    AttachmentDto,
+    AttachmentFileDto,
     BlockerDto,
     CategoryLinkDto,
     CategoryOptionDto,
@@ -25,6 +27,7 @@ from wedding.modules.schedule.application.ports import (
     ScheduleRepository,
     WeddingDateReader,
 )
+from wedding.modules.schedule.domain.attachments import Attachment
 from wedding.modules.schedule.domain.checklist import checklist_progress
 from wedding.modules.schedule.domain.derivation import (
     Blocker,
@@ -51,6 +54,8 @@ class _Loaded:
     tasks: list[Task]
     # Os itens vivos agrupados pelo dono vivo, cada lista na ordem do checklist.
     checklists: dict[tuple[OwnerKind, UUID], list[ChecklistItem]]
+    # Os anexos vivos agrupados pelo dono vivo, na ordem em que foram anexados.
+    attachments: dict[tuple[OwnerKind, UUID], list[Attachment]]
 
 
 class ScheduleReader:
@@ -91,7 +96,13 @@ class ScheduleReader:
         ]
         tasks = sorted(schedule.list_tasks(), key=task_order_key)
         return _Loaded(
-            phases, ordered, categories, facts, tasks, _group_checklists(schedule, ordered, tasks)
+            phases,
+            ordered,
+            categories,
+            facts,
+            tasks,
+            _group_checklists(schedule, ordered, tasks),
+            _group_attachments(schedule, ordered, tasks),
         )
 
     def facts(self, schedule: ScheduleRepository, actor: Actor) -> list[MilestoneFacts]:
@@ -130,6 +141,9 @@ class ScheduleReader:
                             titles,
                             loaded.categories,
                             loaded.checklists.get((OwnerKind.MILESTONE, item.id), []),
+                            self._attachment_dtos(
+                                loaded.attachments.get((OwnerKind.MILESTONE, item.id), []), actor
+                            ),
                         )
                         for item in members
                     ),
@@ -140,7 +154,14 @@ class ScheduleReader:
         return ScheduleDto(
             phases=tuple(phase_dtos),
             tasks=tuple(
-                _task_dto(task, today, loaded.checklists.get((OwnerKind.TASK, task.id), []))
+                _task_dto(
+                    task,
+                    today,
+                    loaded.checklists.get((OwnerKind.TASK, task.id), []),
+                    self._attachment_dtos(
+                        loaded.attachments.get((OwnerKind.TASK, task.id), []), actor
+                    ),
+                )
                 for task in loaded.tasks
             ),
             category_options=tuple(
@@ -150,6 +171,47 @@ class ScheduleReader:
             ),
             has_exact_date=exact is not None,
         )
+
+    def _attachment_dtos(
+        self, attachments: list[Attachment], actor: Actor
+    ) -> tuple[AttachmentDto, ...]:
+        # `at` cai no instante de agora só para o anexo ainda não gravado (sem `created_at`).
+        fallback = self._clock.now()
+        return tuple(_attachment_dto(attachment, actor, fallback) for attachment in attachments)
+
+
+def _attachment_dto(attachment: Attachment, actor: Actor, fallback: datetime) -> AttachmentDto:
+    file = attachment.file
+    return AttachmentDto(
+        id=attachment.id,
+        kind=attachment.kind,
+        title=attachment.title,
+        comment=attachment.comment,
+        url=attachment.url,
+        domain=attachment.domain,
+        file=AttachmentFileDto(file.file_id, file.name, file.content_type, file.size_bytes)
+        if file
+        else None,
+        profile=attachment.profile,
+        added_at=attachment.created_at or fallback,
+        can_remove=attachment.profile is actor.profile,
+    )
+
+
+def _group_attachments(
+    schedule: ScheduleRepository, milestones: list[Milestone], tasks: list[Task]
+) -> dict[tuple[OwnerKind, UUID], list[Attachment]]:
+    """Uma consulta só para todos os anexos, agrupados pelo dono, na ordem do repositório. O anexo
+    de um dono excluído fica de fora (o dono não está entre os vivos); restaurar o dono o traz de
+    volta."""
+    live_owners = {(OwnerKind.MILESTONE, item.id) for item in milestones}
+    live_owners |= {(OwnerKind.TASK, task.id) for task in tasks}
+    grouped: dict[tuple[OwnerKind, UUID], list[Attachment]] = {}
+    for attachment in schedule.list_attachments():
+        owner = (attachment.owner_kind, attachment.owner_id)
+        if owner in live_owners:
+            grouped.setdefault(owner, []).append(attachment)
+    return grouped
 
 
 def _group_checklists(
@@ -176,7 +238,12 @@ def _checklist_dtos(items: list[ChecklistItem]) -> tuple[ChecklistItemDto, ...]:
     )
 
 
-def _task_dto(task: Task, today: date, items: list[ChecklistItem]) -> TaskDto:
+def _task_dto(
+    task: Task,
+    today: date,
+    items: list[ChecklistItem],
+    attachments: tuple[AttachmentDto, ...],
+) -> TaskDto:
     deadline = task_deadline(task.target_date, task.state is TaskState.DONE, today)
     return TaskDto(
         id=task.id,
@@ -189,6 +256,7 @@ def _task_dto(task: Task, today: date, items: list[ChecklistItem]) -> TaskDto:
         days_left=deadline.days_left,
         checklist=_checklist_dtos(items),
         checklist_progress=checklist_progress(items),
+        attachments=attachments,
         version=task.version,
     )
 
@@ -222,6 +290,7 @@ def _milestone_dto(
     titles: dict[UUID, str],
     categories: dict[UUID, CategoryInfo],
     items: list[ChecklistItem],
+    attachments: tuple[AttachmentDto, ...],
 ) -> MilestoneDto:
     return MilestoneDto(
         id=milestone.id,
@@ -261,6 +330,7 @@ def _milestone_dto(
         days_left=derived.days_left,
         checklist=_checklist_dtos(items),
         checklist_progress=checklist_progress(items),
+        attachments=attachments,
         version=milestone.version,
     )
 
@@ -296,6 +366,16 @@ def require_checklist_item(schedule: ScheduleRepository, item_id: UUID) -> Check
         raise NotFound()
     require_checklist_owner(schedule, item.owner_kind, item.owner_id)
     return item
+
+
+def require_attachment(schedule: ScheduleRepository, attachment_id: UUID) -> Attachment:
+    """O anexo vivo cujo dono também está vivo: com o dono excluído, o anexo é como se não existisse
+    (404) até o dono voltar."""
+    attachment = schedule.get_attachment(attachment_id)
+    if attachment is None:
+        raise NotFound()
+    require_checklist_owner(schedule, attachment.owner_kind, attachment.owner_id)
+    return attachment
 
 
 def has_open_items(schedule: ScheduleRepository, kind: OwnerKind, owner_id: UUID) -> bool:

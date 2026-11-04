@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 from uuid import UUID
 
+from wedding.modules.schedule.domain.attachments import AttachmentKind
 from wedding.modules.schedule.domain.checklist import ChecklistProgress
 from wedding.modules.schedule.domain.derivation import PhaseProgress
 from wedding.modules.schedule.domain.values import BlockerKind, MilestoneState, TaskState
@@ -78,6 +79,33 @@ class ChecklistItemDto:
 
 
 @dataclass(frozen=True)
+class AttachmentFileDto:
+    """O arquivo de um anexo, com o nome, o tipo e o tamanho copiados ao anexar."""
+
+    id: UUID
+    name: str
+    content_type: str
+    size_bytes: int
+
+
+@dataclass(frozen=True)
+class AttachmentDto:
+    """Um anexo vivo de um marco ou de uma avulsa (F-CRN-08): link (`url` e o `domain` derivado) ou
+    arquivo. `can_remove` é derivado do perfil da sessão: só o autor remove."""
+
+    id: UUID
+    kind: AttachmentKind
+    title: str | None
+    comment: str | None
+    url: str | None
+    domain: str | None
+    file: AttachmentFileDto | None
+    profile: ProfileKind
+    added_at: datetime
+    can_remove: bool
+
+
+@dataclass(frozen=True)
 class MilestoneDto:
     id: UUID
     title: str
@@ -107,6 +135,8 @@ class MilestoneDto:
     # Os itens vivos na ordem do checklist e o "N de M" (F-CRN-07); não mexem no estado do marco.
     checklist: tuple[ChecklistItemDto, ...]
     checklist_progress: ChecklistProgress
+    # Os anexos vivos, na ordem em que foram anexados; não mexem no estado nem na `version`.
+    attachments: tuple[AttachmentDto, ...]
     version: int
 
 
@@ -127,6 +157,7 @@ class TaskDto:
     days_left: int | None
     checklist: tuple[ChecklistItemDto, ...]
     checklist_progress: ChecklistProgress
+    attachments: tuple[AttachmentDto, ...]
     version: int
 
 

@@ -13,6 +13,8 @@ from tests.modules.schedule.catalog import (
 from tests.modules.wedding.conftest import CSRF, SENHA, _FakeHasher
 
 from wedding.modules.schedule.application.commands.add_checklist_item import AddChecklistItem
+from wedding.modules.schedule.application.commands.add_file_attachment import AddFileAttachment
+from wedding.modules.schedule.application.commands.add_link_attachment import AddLinkAttachment
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
@@ -22,6 +24,7 @@ from wedding.modules.schedule.application.commands.create_phase import CreatePha
 from wedding.modules.schedule.application.commands.create_task import CreateTask
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
 from wedding.modules.schedule.application.commands.delete_task import DeleteTask
+from wedding.modules.schedule.application.commands.remove_attachment import RemoveAttachment
 from wedding.modules.schedule.application.commands.remove_checklist_item import (
     RemoveChecklistItem,
 )
@@ -46,6 +49,7 @@ from wedding.modules.schedule.application.queries.preview_date_change import Pre
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
 from wedding.modules.schedule.application.schedule_map import ScheduleReader
 from wedding.modules.schedule.application.use_cases import ScheduleUseCases
+from wedding.modules.schedule.domain.attachments import AttachedFile, Attachment
 from wedding.modules.schedule.domain.entities import (
     ChecklistItem,
     Dependency,
@@ -79,6 +83,7 @@ class Store:
         self.changes: list[MilestoneChange] = []
         self.tasks: dict[UUID, Task] = {}
         self.items: dict[UUID, ChecklistItem] = {}
+        self.attachments: dict[UUID, Attachment] = {}
 
 
 class _Repository:
@@ -179,6 +184,16 @@ class _Repository:
     def add_checklist_item(self, item: ChecklistItem) -> None:
         self.store.items[item.id] = item
 
+    def list_attachments(self) -> list[Attachment]:
+        return [a for a in self.store.attachments.values() if a.deleted_at is None]
+
+    def get_attachment(self, attachment_id: UUID) -> Attachment | None:
+        found = self.store.attachments.get(attachment_id)
+        return None if found is None or found.deleted_at is not None else found
+
+    def add_attachment(self, attachment: Attachment) -> None:
+        self.store.attachments[attachment.id] = attachment
+
 
 class _UnitOfWork:
     """Transação de mentira: trabalha numa cópia e só a publica no commit, subindo a `version`
@@ -192,6 +207,7 @@ class _UnitOfWork:
         self._phases_before = copy.deepcopy(world.store.phases)
         self._tasks_before = copy.deepcopy(world.store.tasks)
         self._items_before = copy.deepcopy(world.store.items)
+        self._attachments_before = copy.deepcopy(world.store.attachments)
         self.schedule = _Repository(self._store)
 
     def __enter__(self) -> "_UnitOfWork":
@@ -210,6 +226,8 @@ class _UnitOfWork:
         _bump(self._store.phases, self._phases_before)
         _bump(self._store.tasks, self._tasks_before)
         _bump(self._store.items, self._items_before)
+        _bump(self._store.attachments, self._attachments_before)
+        self._stamp_new_attachments()
         for link in self._store.links:
             link.version = link.version or 1
         self._world.store = self._store
@@ -217,6 +235,13 @@ class _UnitOfWork:
         self._phases_before = copy.deepcopy(self._store.phases)
         self._tasks_before = copy.deepcopy(self._store.tasks)
         self._items_before = copy.deepcopy(self._store.items)
+        self._attachments_before = copy.deepcopy(self._store.attachments)
+
+    def _stamp_new_attachments(self) -> None:
+        """Como o histórico básico: o anexo novo ganha o instante em que foi gravado."""
+        for attachment in self._store.attachments.values():
+            if attachment.created_at is None:
+                attachment.created_at = self._world.clock.now()
 
     def rollback(self) -> None:
         return None
@@ -248,6 +273,28 @@ class _WeddingDate:
         return self._world.wedding_date
 
 
+class FakeFiles:
+    """O módulo `files` em memória: o que o `AttachmentFiles` do bootstrap devolveria."""
+
+    def __init__(self) -> None:
+        self.found: dict[UUID, AttachedFile] = {}
+        self.calls = 0
+
+    def add(
+        self,
+        name: str = "contrato-exemplo.pdf",
+        content_type: str = "application/pdf",
+        size_bytes: int = 2048,
+    ) -> AttachedFile:
+        file = AttachedFile(UUID(int=5000 + len(self.found)), name, content_type, size_bytes)
+        self.found[file.file_id] = file
+        return file
+
+    def find(self, file_id: UUID, actor: Actor) -> AttachedFile | None:
+        self.calls += 1
+        return self.found.get(file_id)
+
+
 class _Ids:
     def __init__(self) -> None:
         self._next = 1000
@@ -268,6 +315,7 @@ class World:
         self.store = Store()
         self.wedding_date = WeddingDate(defined=False, exact=None)
         self.categories: dict[UUID, CategoryInfo] = {}
+        self.files = FakeFiles()
         self._seed()
 
     def _seed(self) -> None:
@@ -347,6 +395,9 @@ class World:
             update_checklist_item=UpdateChecklistItem(self.uow_factory, reader),
             remove_checklist_item=RemoveChecklistItem(self.uow_factory, self.clock, reader),
             reorder_checklist=ReorderChecklist(self.uow_factory, reader),
+            add_link_attachment=AddLinkAttachment(self.uow_factory, self.ids, reader),
+            add_file_attachment=AddFileAttachment(self.uow_factory, self.ids, reader, self.files),
+            remove_attachment=RemoveAttachment(self.uow_factory, self.clock, reader),
         )
 
 

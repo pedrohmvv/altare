@@ -1,9 +1,11 @@
 import datetime as dt
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from wedding.modules.schedule.application.dto import DateMode, LeftOutDirection, WarningKind
+from wedding.modules.schedule.domain.attachments import AttachmentKind
 from wedding.modules.schedule.domain.values import (
     BlockerKind,
     ManualState,
@@ -13,6 +15,7 @@ from wedding.modules.schedule.domain.values import (
 from wedding.modules.schedule.domain.windows import WindowUnit
 from wedding.shared_kernel.profile import ProfileKind
 
+LoginProfile = Literal[ProfileKind.NOIVO, ProfileKind.NOIVA]
 _VERSION = Field(ge=1, description="A versão do marco que a tela viu; divergir dá 409.")
 _IGNORE_OPEN_ITEMS = Field(
     default=False,
@@ -149,6 +152,24 @@ class ChecklistOrderIn(BaseModel):
     )
 
 
+class AttachmentLinkIn(BaseModel):
+    """Um link. Sem campo de autoria: quem anexou é o perfil da sessão, e um `by` ou `profile` que
+    venha no corpo é ignorado."""
+
+    url: str = Field(description="Um endereço http ou https completo; até 2000 caracteres.")
+    title: str | None = Field(default=None, description="Opcional, até 120 caracteres.")
+    comment: str | None = Field(default=None, description="Opcional, até 500 caracteres.")
+
+
+class AttachmentFileIn(BaseModel):
+    """Um arquivo já enviado por `POST /files` (PDF ou imagem; o envio valida o tipo, o tamanho e a
+    assinatura). Sem campo de autoria, como o link."""
+
+    file_id: UUID
+    title: str | None = Field(default=None, description="Opcional, até 120 caracteres.")
+    comment: str | None = Field(default=None, description="Opcional, até 500 caracteres.")
+
+
 # Saída: nenhum valor padrão, para o contrato declarar todos os campos como obrigatórios.
 class MilestoneRefOut(BaseModel):
     id: UUID
@@ -198,6 +219,30 @@ class ChecklistProgressOut(BaseModel):
     total: int
 
 
+class AttachmentFileOut(BaseModel):
+    id: UUID = Field(description="O id do arquivo, para baixar por `GET /files/{id}`.")
+    name: str = Field(description="O nome do arquivo ao anexar (cópia).")
+    content_type: str = Field(description="O tipo do arquivo ao anexar (cópia): PDF ou imagem.")
+    size_bytes: int = Field(description="O tamanho em bytes ao anexar (cópia).")
+
+
+class AttachmentOut(BaseModel):
+    id: UUID
+    kind: AttachmentKind
+    title: str | None
+    comment: str | None
+    url: str | None = Field(description="O endereço do link; nulo se o anexo é um arquivo.")
+    domain: str | None = Field(
+        description=(
+            "O domínio visível do link, derivado do endereço (sem `www.`); nunca lido da página."
+        )
+    )
+    file: AttachmentFileOut | None = Field(description="O arquivo; nulo se o anexo é um link.")
+    by: LoginProfile = Field(description="Quem anexou: o perfil da sessão, nunca do corpo.")
+    at: dt.datetime = Field(description="O instante em que foi anexado.")
+    can_remove: bool = Field(description="Derivado do perfil de quem lê: só o autor remove.")
+
+
 class MilestoneOut(BaseModel):
     id: UUID
     title: str
@@ -241,6 +286,11 @@ class MilestoneOut(BaseModel):
         description="Os itens vivos do checklist, na ordem; não mudam o estado do marco."
     )
     checklist_progress: ChecklistProgressOut = Field(description='O "N de M" do checklist.')
+    attachments: list[AttachmentOut] = Field(
+        description=(
+            "Os anexos vivos, na ordem em que foram anexados; não mudam o estado nem a `version`."
+        )
+    )
     version: int
 
 
@@ -260,6 +310,7 @@ class TaskOut(BaseModel):
     )
     checklist: list[ChecklistItemOut]
     checklist_progress: ChecklistProgressOut
+    attachments: list[AttachmentOut]
     version: int
 
 

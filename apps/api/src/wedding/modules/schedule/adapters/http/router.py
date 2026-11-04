@@ -11,6 +11,8 @@ from wedding.modules.schedule.adapters.http.mappers import (
     to_schedule_out,
 )
 from wedding.modules.schedule.adapters.http.schemas import (
+    AttachmentFileIn,
+    AttachmentLinkIn,
     ChecklistItemCreateIn,
     ChecklistItemUpdateIn,
     ChecklistOrderIn,
@@ -33,6 +35,12 @@ from wedding.modules.schedule.adapters.http.schemas import (
 from wedding.modules.schedule.application.commands.add_checklist_item import (
     AddChecklistItemCommand,
 )
+from wedding.modules.schedule.application.commands.add_file_attachment import (
+    AddFileAttachmentCommand,
+)
+from wedding.modules.schedule.application.commands.add_link_attachment import (
+    AddLinkAttachmentCommand,
+)
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneStateCommand,
 )
@@ -42,6 +50,9 @@ from wedding.modules.schedule.application.commands.create_phase import CreatePha
 from wedding.modules.schedule.application.commands.create_task import CreateTaskCommand
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestoneCommand
 from wedding.modules.schedule.application.commands.delete_task import DeleteTaskCommand
+from wedding.modules.schedule.application.commands.remove_attachment import (
+    RemoveAttachmentCommand,
+)
 from wedding.modules.schedule.application.commands.remove_checklist_item import (
     RemoveChecklistItemCommand,
 )
@@ -78,7 +89,11 @@ CurrentActor = Annotated[Actor, Depends(current_actor)]
 Version = Annotated[int, Query(ge=1, description="A versão que a tela viu; divergir dá 409.")]
 OwnerSegment = Annotated[
     Literal["milestones", "tasks"],
-    Path(description="De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`)."),
+    Path(
+        description=(
+            "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+        )
+    ),
 ]
 _WRITE_ERRORS = problem_responses(401, 404, 409, 422)
 
@@ -358,5 +373,51 @@ def build_router(provide: ScheduleProvider) -> APIRouter:
     def remove_checklist_item(item_id: UUID, version: Version, actor: CurrentActor) -> ScheduleOut:
         command = RemoveChecklistItemCommand(item_id, version)
         return to_schedule_out(provide().remove_checklist_item.execute(command, actor))
+
+    @router.post(
+        "/{owner_kind}/{owner_id}/attachments/links",
+        operation_id="add_link_attachment",
+        status_code=201,
+        response_model=ScheduleOut,
+        # O dono é um marco ou uma avulsa vivos: 404 se não existe ou foi excluído. O 422 é o
+        # endereço que não é http(s) ou o título e o comentário longos.
+        responses=problem_responses(401, 404, 422),
+    )
+    def add_link_attachment(
+        owner_kind: OwnerSegment, owner_id: UUID, body: AttachmentLinkIn, actor: CurrentActor
+    ) -> ScheduleOut:
+        command = AddLinkAttachmentCommand(
+            OwnerKind(owner_kind), owner_id, body.url, body.title, body.comment
+        )
+        return to_schedule_out(provide().add_link_attachment.execute(command, actor))
+
+    @router.post(
+        "/{owner_kind}/{owner_id}/attachments/files",
+        operation_id="add_file_attachment",
+        status_code=201,
+        response_model=ScheduleOut,
+        # 404: o dono ou o arquivo não existe. 422: o arquivo não é PDF nem imagem, ou os textos
+        # passam do limite. O envio em si é o `POST /files`.
+        responses=problem_responses(401, 404, 422),
+    )
+    def add_file_attachment(
+        owner_kind: OwnerSegment, owner_id: UUID, body: AttachmentFileIn, actor: CurrentActor
+    ) -> ScheduleOut:
+        command = AddFileAttachmentCommand(
+            OwnerKind(owner_kind), owner_id, body.file_id, body.title, body.comment
+        )
+        return to_schedule_out(provide().add_file_attachment.execute(command, actor))
+
+    @router.delete(
+        "/attachments/{attachment_id}",
+        operation_id="remove_attachment",
+        response_model=ScheduleOut,
+        # Só o autor remove (403 para o outro perfil). Remoção lógica, sem rota de restaurar. O 409
+        # é a corrida entre duas remoções simultâneas (a `version` do anexo é conferida no banco).
+        responses=problem_responses(401, 403, 404, 409),
+    )
+    def remove_attachment(attachment_id: UUID, actor: CurrentActor) -> ScheduleOut:
+        command = RemoveAttachmentCommand(attachment_id)
+        return to_schedule_out(provide().remove_attachment.execute(command, actor))
 
     return router

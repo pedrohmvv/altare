@@ -164,3 +164,24 @@ def test_o_contrato_declara_todos_os_campos_de_saida_como_obrigatorios_e_os_oper
         "add_scope_image_reference",
         "remove_scope_reference",
     }
+
+
+def test_referencia_gravada_com_url_que_a_regra_atual_recusa_lista_sem_erro(api, tmp_path):
+    """Uma linha antiga não derruba a listagem: o domínio mostra o host cru, sem `\\`."""
+    from sqlalchemy import create_engine, text
+
+    cat = categoria(api.noivo)
+    engine = create_engine(f"sqlite:///{tmp_path / 'api.db'}")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO scope_references (id, created_at, updated_at, version, category_id,"
+                " kind, profile, url) VALUES ('a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', '2026-11-04',"
+                " '2026-11-04', 1, :cat, 'link', 'Noiva', :url)"
+            ),
+            {"cat": cat.replace("-", ""), "url": "https://banco-exemplo.com\\.gov.br/x"},
+        )
+    engine.dispose()
+    resposta = api.noivo.get(f"{SCOPE}/categories/{cat}/references")
+    assert resposta.status_code == 200
+    assert [r["domain"] for r in resposta.json()] == ["banco-exemplo.com"]

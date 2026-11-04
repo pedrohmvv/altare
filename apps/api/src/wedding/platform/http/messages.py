@@ -177,9 +177,10 @@ MESSAGES: dict[str, Message] = {
     "invalid_schedule_value": Message(
         "Valor não aceito",
         (
-            "Confiram os textos e o prazo: o título do marco ou da tarefa vai até 120 caracteres, "
-            "o da fase até 60, o texto de um item do checklist até 200, a nota até 500 e o prazo "
-            "é uma data entre os anos 2000 e 2100."
+            "Confiram os textos e o prazo: o título do marco ou da tarefa, e o de um anexo, vai "
+            "até 120 caracteres, o da fase até 60, o texto de um item do checklist até 200, a "
+            "nota e o comentário de um anexo até 500 e o prazo é uma data entre os anos 2000 e "
+            "2100."
         ),
     ),
     "invalid_preview_date": Message(
@@ -226,6 +227,14 @@ MESSAGES: dict[str, Message] = {
             "Ainda há itens do checklist em aberto. Confirmem que querem concluir mesmo assim: "
             "os itens ficam como estão."
         ),
+    ),
+    "invalid_attachment_url": Message(
+        "Endereço não aceito",
+        "Cole um endereço completo, começando com http:// ou https://.",
+    ),
+    "attachment_file_not_allowed": Message(
+        "Arquivo não aceito",
+        "Só dá para anexar PDF ou imagem (JPG, PNG ou WebP). Escolham outro arquivo.",
     ),
     "invalid_phase_order": Message(
         "Ordem das fases não aceita",
