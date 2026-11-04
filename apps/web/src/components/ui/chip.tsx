@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
-/** Botão de alternar em forma de pílula (`aria-pressed`): filtros e prioridades. */
+/** Botão de alternar em forma de pílula (`aria-pressed`): filtros e prioridades (Convidados, Escopo e Cronograma). */
 export function Chip({
   pressed,
   onClick,

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Chip } from '@/components/ui/chip'
 import {
   Dialog,
   DialogClose,
@@ -57,7 +58,7 @@ const ETAPAS = [
   { value: 'c', label: 'Indisponível', disabled: true },
 ]
 
-// Os 16 primitivos com variantes e estados (design-system.md §8). Hover, ativo e foco são estados vivos:
+// Os primitivos de components/ui, com variantes e estados (design-system.md §8). Hover, ativo e foco são estados vivos:
 // passe o mouse, clique e use Tab. Os exemplos são fictícios (AGENTS.md §2).
 export function PrimitivesShowcase() {
   const { toast } = useToast()
@@ -182,6 +183,13 @@ export function PrimitivesShowcase() {
             defaultValue="a"
           />
         </div>
+      </section>
+
+      <section aria-labelledby="conf-chips" className="flex flex-col gap-4">
+        <h2 id="conf-chips" className="text-heading">
+          Chips de filtro
+        </h2>
+        <ChipsExample />
       </section>
 
       <section aria-labelledby="conf-dinheiro" className="flex flex-col gap-4">
@@ -464,6 +472,27 @@ export function PrimitivesShowcase() {
           </Button>
         </div>
       </section>
+    </div>
+  )
+}
+
+/** Chips de alternar: cada um liga e desliga sozinho, e `aria-pressed` diz o estado em texto. */
+function ChipsExample() {
+  const [on, setOn] = useState<string[]>(['Só atrasados'])
+  const toggle = (label: string) =>
+    setOn((current) =>
+      current.includes(label) ? current.filter((item) => item !== label) : [...current, label],
+    )
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {['Só atrasados', 'Só avulsas', 'Exemplo'].map((label) => (
+        <Chip key={label} pressed={on.includes(label)} onClick={() => toggle(label)}>
+          {label}
+        </Chip>
+      ))}
+      <Chip pressed={false} disabled onClick={() => {}}>
+        Indisponível
+      </Chip>
     </div>
   )
 }
