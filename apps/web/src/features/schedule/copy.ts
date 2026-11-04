@@ -27,6 +27,56 @@ export const copy = {
     noTarget: 'Sem prazo',
     emptyPhase: 'Nenhum marco ativo nesta fase.',
   },
+  banner: {
+    text: 'Sem data definida. Quando vocês definirem a data exata do casamento, as janelas e os prazos sugeridos aparecem aqui.',
+    link: 'Definir a data em Definições Base',
+  },
+  countdown: {
+    today: 'é hoje',
+    left: (days: number) => (days === 1 ? 'falta 1 dia' : `faltam ${days} dias`),
+    overdue: (days: number) => (days === 1 ? 'venceu há 1 dia' : `venceu há ${days} dias`),
+  },
+  deadline: {
+    window: (start: string, end: string) => `Janela: ${start} a ${end}`,
+    suggestion: 'sugestão genérica',
+    manual: 'prazo definido por vocês',
+  },
+  window: {
+    title: 'Janela',
+    range: (start: number, end: number, unit: 'meses' | 'semanas') => {
+      const word = start === 1 ? (unit === 'meses' ? 'mês' : 'semana') : unit
+      return `de ${start} a ${end} ${word} antes da data`
+    },
+    calculated: (start: string, end: string) => `Datas calculadas: ${start} a ${end}`,
+    suggestion: 'Sugestão genérica: ainda ninguém editou esta janela.',
+    noWindow: 'Este marco ainda não tem janela.',
+    define: 'Definir janela',
+    cancelDefine: 'Cancelar',
+    noDateWithRange: (range: string) =>
+      `Janela ${range}. As datas aparecem quando vocês definirem a data exata do casamento.`,
+    noDateNoWindow:
+      'Este marco ainda não tem janela. Com a data exata definida, vocês podem criar uma.',
+    start: 'Início',
+    end: 'Fim',
+    unit: 'Unidade',
+    units: { meses: 'meses', semanas: 'semanas' },
+    // Uma frase por unidade: "meses" é masculino e "semanas" é feminino.
+    hints: {
+      meses: 'Quantos meses antes da data do casamento.',
+      semanas: 'Quantas semanas antes da data do casamento.',
+    },
+    save: 'Salvar janela',
+    noChange: 'Mudem o início, o fim ou a unidade para salvar.',
+    saved: 'Janela salva.',
+    errors: {
+      integer: (max: number) => `Informem um número inteiro de 0 a ${max}.`,
+      max: (max: number, unit: 'meses' | 'semanas') => `Usem no máximo ${max} ${unit}.`,
+      order: 'O início precisa ser maior ou igual ao fim (a janela começa antes de terminar).',
+      conflict:
+        'Este marco foi alterado em outra tela. Vejam a versão mais recente antes de salvar.',
+      network: 'Não conseguimos salvar a janela agora. O que vocês escreveram continua aqui.',
+    },
+  },
   phase: {
     label: (number: number) => `Fase ${number}`,
     progress: (done: number, total: number) =>
@@ -53,6 +103,7 @@ export const copy = {
   } satisfies Record<Responsible, string>,
   sheet: {
     phase: (title: string) => `Fase: ${title}`,
+    deadline: 'Prazo-alvo:',
     stateTitle: 'Estado',
     actions: {
       start: 'Marcar em andamento',
@@ -120,6 +171,9 @@ export const copy = {
     target: 'Prazo-alvo',
     targetHint: 'Só a data. Podem deixar em branco.',
     clearTarget: 'Tirar o prazo',
+    backToSuggestion: 'Voltar à sugestão',
+    suggestion: (date: string) => `Sugestão: ${date}`,
+    blankUsesSuggestion: 'Em branco, vale a sugestão.',
     note: 'Nota',
     noteHint: 'Opcional. Até 500 caracteres.',
     save: 'Salvar alterações',

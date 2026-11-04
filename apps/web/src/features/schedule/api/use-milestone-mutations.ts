@@ -9,6 +9,7 @@ import {
   type Schedule,
   type ScheduleMilestone,
   scheduleKeys,
+  type WindowUnit,
 } from './schedule'
 
 /**
@@ -49,6 +50,30 @@ export const useUpdateMilestone = () =>
             responsible: v.responsible,
             note: v.note,
             target_date: v.targetDate,
+            version: v.version,
+          },
+        }),
+      ),
+  )
+
+/** A janela inteira, em início, fim e unidade; vale em qualquer modo e em marco que não tinha janela. */
+export const useUpdateMilestoneWindow = () =>
+  useScheduleWrite(
+    async (v: {
+      milestoneId: string
+      startBefore: number
+      endBefore: number
+      unit: WindowUnit
+      /** A versão do marco que a tela viu. */
+      version: number
+    }) =>
+      unwrap(
+        await api.PUT('/api/v1/schedule/milestones/{milestone_id}/window', {
+          params: { path: { milestone_id: v.milestoneId } },
+          body: {
+            start_before: v.startBefore,
+            end_before: v.endBefore,
+            unit: v.unit,
             version: v.version,
           },
         }),

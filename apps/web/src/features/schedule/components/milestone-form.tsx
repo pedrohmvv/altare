@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Controller, type FieldPath, useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError } from '@/lib/api/errors'
+import { formatTableDay } from '@/lib/date'
 import {
   type CategoryOption,
   findMilestone,
@@ -51,6 +52,7 @@ export interface MilestoneFormProps {
 /** Título, fase, categoria, responsável, prazo-alvo (só data, pode limpar) e nota (F-CRN-01, F-CRN-05). */
 export function MilestoneForm({ milestone, phaseId, phases, categoryOptions }: MilestoneFormProps) {
   const queryClient = useQueryClient()
+  const suggestionId = useId()
   const update = useUpdateMilestone()
   // O marco de quando o formulário abriu: um conflito nunca troca o que foi digitado, e a versão
   // enviada é a dele, a não ser que o resto do marco continue igual (só o estado mudou, por nós).
@@ -63,7 +65,7 @@ export function MilestoneForm({ milestone, phaseId, phases, categoryOptions }: M
     mode: 'onTouched',
     defaultValues: toFormValues(opened.milestone, opened.phaseId),
   })
-  const { control, register, handleSubmit, setValue, watch, formState } = form
+  const { control, register, handleSubmit, setValue, setFocus, watch, formState } = form
   const errors = formState.errors
 
   const sameContent =
@@ -74,6 +76,12 @@ export function MilestoneForm({ milestone, phaseId, phases, categoryOptions }: M
     opened.milestone.note === milestone.note &&
     opened.milestone.target_date === milestone.target_date
   const version = sameContent ? milestone.version : opened.milestone.version
+
+  // A sugestão é o fim da janela que a API calculou: só existe no Modo Com Data e com janela.
+  const suggestion = milestone.window_end ? formatTableDay(milestone.window_end) : null
+
+  // Em branco, vale a sugestão: ela só é dita (e descreve o campo) enquanto o campo está vazio.
+  const showSuggestion = suggestion !== null && watch('target_date') === ''
 
   // A categoria ligada que já não é uma opção continua na lista: nunca a trocamos em silêncio.
   const linked = milestone.category
@@ -188,7 +196,8 @@ export function MilestoneForm({ milestone, phaseId, phases, categoryOptions }: M
         <Input
           type="date"
           label={labels.target}
-          hint={labels.targetHint}
+          hint={showSuggestion ? labels.blankUsesSuggestion : labels.targetHint}
+          aria-describedby={showSuggestion ? suggestionId : undefined}
           error={errors.target_date?.message}
           {...register('target_date')}
         />
@@ -201,11 +210,16 @@ export function MilestoneForm({ milestone, phaseId, phases, categoryOptions }: M
             onClick={() => {
               setSaved(false)
               setValue('target_date', '', { shouldDirty: true, shouldValidate: true })
+              // O botão some ao limpar o campo: o foco vai para o campo.
+              setFocus('target_date')
             }}
           >
-            {labels.clearTarget}
+            {suggestion ? labels.backToSuggestion : labels.clearTarget}
           </Button>
         )}
+        <p id={suggestionId} role="status" className="text-body-sm text-ink-muted">
+          {suggestion && showSuggestion ? labels.suggestion(suggestion) : ''}
+        </p>
       </div>
       <Textarea
         label={labels.note}

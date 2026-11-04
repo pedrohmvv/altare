@@ -181,6 +181,17 @@ MESSAGES: dict[str, Message] = {
             "até 60, a nota até 500 e o prazo é uma data entre os anos 2000 e 2100."
         ),
     ),
+    "invalid_preview_date": Message(
+        "Data não aceita",
+        "A data do casamento precisa estar entre os anos 2000 e 2100.",
+    ),
+    "invalid_window": Message(
+        "Janela não aceita",
+        (
+            "Confiram a janela: o início vem antes do fim (ou junto, com 0 e 0 para o dia do "
+            "casamento), nenhum valor é negativo e o limite é de 120 meses ou 520 semanas."
+        ),
+    ),
     "milestone_title_required": Message(
         "Falta o título",
         "Escrevam o título do marco antes de salvar.",

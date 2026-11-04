@@ -3,6 +3,7 @@ import { formatDay } from '@/lib/date'
 import type { ScheduleMilestone } from '../api/schedule'
 import { copy } from '../copy'
 import { OptionalBadge, OverdueBadge, StateBadge } from './milestone-badges'
+import { DeadlineDate, DeadlineDetails } from './milestone-deadline'
 import { MilestoneNotes } from './milestone-notes'
 
 /**
@@ -40,16 +41,18 @@ export function MilestoneCard({
         {milestone.optional && <OptionalBadge />}
       </div>
       <MilestoneNotes milestone={milestone} />
-      <p className="flex flex-wrap items-center justify-between gap-x-3 text-body-sm text-ink-muted">
-        <span>
-          <span className="sr-only">{`${copy.list.columns.responsible}: `}</span>
-          {copy.responsibles[milestone.responsible]}
-        </span>
-        <span className="text-num-sm">
-          <span className="sr-only">{`${copy.list.columns.target}: `}</span>
-          {milestone.target_date ? formatDay(milestone.target_date) : copy.list.noTarget}
-        </span>
-      </p>
+      <div className="flex flex-col gap-1 text-body-sm text-ink-muted">
+        <p className="flex flex-wrap items-center justify-between gap-x-3">
+          <span>
+            <span className="sr-only">{`${copy.list.columns.responsible}: `}</span>
+            {copy.responsibles[milestone.responsible]}
+          </span>
+          <span className="text-num-sm">
+            <DeadlineDate milestone={milestone} format={formatDay} srLabel />
+          </span>
+        </p>
+        <DeadlineDetails milestone={milestone} format={formatDay} align="end" />
+      </div>
     </li>
   )
 }

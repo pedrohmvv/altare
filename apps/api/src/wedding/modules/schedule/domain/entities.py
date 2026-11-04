@@ -10,6 +10,7 @@ from wedding.modules.schedule.domain.values import (
     clean_phase_title,
     clean_target_date,
 )
+from wedding.modules.schedule.domain.windows import Window, WindowUnit, validate_window
 from wedding.shared_kernel.profile import ProfileKind
 
 
@@ -35,9 +36,10 @@ class Phase:
 
 @dataclass
 class Milestone:
-    """Um marco (F-CRN-01). Guarda só fatos: o estado manual, o responsável, o prazo e a nota. Se
-    está `Bloqueado`, `Destravado`, `Atrasado` ou arquivado se deriva na leitura
-    (`domain/derivation.py`), nunca se grava. `version` é mantido pelo mapeamento."""
+    """Um marco (F-CRN-01). Guarda só fatos: o estado manual, o responsável, o prazo manual, a
+    janela e a nota. As datas calculadas da janela, o prazo efetivo, a contagem regressiva e se está
+    `Bloqueado`, `Destravado`, `Atrasado` ou arquivado se derivam na leitura
+    (`domain/derivation.py`), nunca se gravam. `version` é mantido pelo mapeamento."""
 
     id: UUID
     phase_id: UUID
@@ -48,6 +50,12 @@ class Milestone:
     note: str | None = None
     target_date: date | None = None
     manual_state: ManualState | None = None
+    # A janela, em deslocamentos antes da data do casamento (F-CRN-05); `window_unit` guarda o
+    # valor de `WindowUnit`. Sem `window_edited`, é a sugestão genérica da semente (F-CRN-02).
+    window_start_before: int | None = None
+    window_end_before: int | None = None
+    window_unit: str | None = None
+    window_edited: bool = False
     # Sobe quando o conjunto de predecessores muda: duas edições das dependências do mesmo marco
     # se conflitam (`D-072`, `members_revision`), embora a linha do marco em si não mude.
     dependencies_revision: int = 0
@@ -100,6 +108,35 @@ class Milestone:
         if before == after:
             return False
         self.responsible, self.note, self.target_date = after
+        return True
+
+    @property
+    def window(self) -> Window | None:
+        """A janela do marco, sugerida pelo catálogo ou editada pelo casal; `None` se não tem."""
+        if self.window_start_before is None or self.window_end_before is None:
+            return None
+        if self.window_unit is None:
+            return None
+        return Window(
+            self.window_start_before, self.window_end_before, WindowUnit(self.window_unit)
+        )
+
+    @property
+    def window_is_suggestion(self) -> bool:
+        """Há janela e ninguém a editou: o rótulo "sugestão genérica" (F-CRN-02)."""
+        return self.window is not None and not self.window_edited
+
+    def set_window(self, start_before: int, end_before: int, unit: WindowUnit) -> bool:
+        """O casal edita a janela (F-CRN-05, regra 5), mesmo a de um marco que não tinha. Mesmo com
+        os deslocamentos da sugestão, a primeira vez já conta como edição (deixa de ser sugestão);
+        repetir uma janela já editada não é mudança."""
+        validate_window(start_before, end_before, unit)
+        after = (start_before, end_before, unit.value)
+        before = (self.window_start_before, self.window_end_before, self.window_unit)
+        if self.window_edited and before == after:
+            return False
+        self.window_start_before, self.window_end_before, self.window_unit = after
+        self.window_edited = True
         return True
 
     def set_manual_state(self, state: ManualState | None) -> bool:

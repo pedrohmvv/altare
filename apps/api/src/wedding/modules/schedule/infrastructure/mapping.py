@@ -18,7 +18,7 @@ from wedding.platform.db.metadata import mapper_registry
 
 def start_mappers() -> None:
     """Liga as dataclasses do domínio às tabelas; pode ser chamada mais de uma vez. A janela
-    sugerida fica só na tabela por enquanto: nenhuma regra a usa.
+    (`window_*`) e a marca de editada são colunas da própria entidade `Milestone`.
 
     O domínio não tem associações entre as entidades, mas o ORM só sabe a ordem de gravação (a
     fase antes do marco, o marco antes do vínculo) por um `relationship`. Ele nunca é lido nem

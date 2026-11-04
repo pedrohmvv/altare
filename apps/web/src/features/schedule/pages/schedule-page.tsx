@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/toast'
 import { scheduleQueryOptions } from '../api/schedule'
 import type { Created } from '../api/use-milestone-mutations'
 import { NewMilestoneDialog } from '../components/new-milestone-dialog'
+import { NoDateBanner, type PlanningLink } from '../components/no-date-banner'
 import { PhasesDialog } from '../components/phases-dialog'
 import { ScheduleList } from '../components/schedule-list'
 import { copy } from '../copy'
@@ -17,10 +18,12 @@ export interface SchedulePageProps {
   search: ScheduleSearch
   /** Pede uma mudança na URL; `undefined` num campo o tira. */
   onSearchChange: (patch: Partial<ScheduleSearch>) => void
+  /** O link do aviso "Sem data definida" para as Definições Base; a rota o liga ao roteador. */
+  planningLink?: PlanningLink
 }
 
 /** A página não conhece o roteador: recebe a URL e devolve o que quer mudar, e assim se testa sem ele. */
-export function SchedulePage({ search, onSearchChange }: SchedulePageProps) {
+export function SchedulePage({ search, onSearchChange, planningLink }: SchedulePageProps) {
   const query = useQuery(scheduleQueryOptions)
   const { toast } = useToast()
   const [newMilestone, setNewMilestone] = useState<{ phaseId?: string } | null>(null)
@@ -77,6 +80,11 @@ export function SchedulePage({ search, onSearchChange }: SchedulePageProps) {
           )
         }
       />
+      {schedule && !schedule.has_exact_date && (
+        <div className="mt-6">
+          <NoDateBanner planningLink={planningLink} />
+        </div>
+      )}
       <div className="mt-10">
         <ScheduleList
           search={search}

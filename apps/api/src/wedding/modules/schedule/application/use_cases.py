@@ -14,6 +14,10 @@ from wedding.modules.schedule.application.commands.set_milestone_dependencies im
     SetMilestoneDependencies,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
+from wedding.modules.schedule.application.commands.update_milestone_window import (
+    UpdateMilestoneWindow,
+)
+from wedding.modules.schedule.application.queries.preview_date_change import PreviewDateChange
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
 
 
@@ -21,6 +25,8 @@ from wedding.modules.schedule.application.queries.read_schedule import ReadSched
 class ScheduleUseCases:
     read_schedule: ReadSchedule
     update_milestone: UpdateMilestone
+    update_milestone_window: UpdateMilestoneWindow
+    preview_date_change: PreviewDateChange
     change_milestone_state: ChangeMilestoneState
     create_milestone: CreateMilestone
     delete_milestone: DeleteMilestone

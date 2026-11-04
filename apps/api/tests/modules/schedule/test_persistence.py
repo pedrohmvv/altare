@@ -14,6 +14,7 @@ from tests.modules.schedule.catalog import MARCOS, marco_id
 
 from wedding.modules.schedule.domain.entities import Milestone, MilestoneChange
 from wedding.modules.schedule.domain.values import ManualState
+from wedding.modules.schedule.domain.windows import Window, WindowUnit
 from wedding.modules.schedule.infrastructure.mapping import start_mappers
 from wedding.modules.schedule.infrastructure.tables import milestone_changes, milestones
 from wedding.modules.schedule.infrastructure.uow import SqlScheduleUnitOfWork
@@ -68,6 +69,71 @@ def test_marco_lido_traz_os_campos_do_dominio(banco):
         assert marco.category_id is not None
         assert (marco.note, marco.target_date, marco.manual_state) == (None, None, None)
         assert uow.schedule.get_milestone(uuid4()) is None
+
+
+def test_a_janela_sugerida_da_semente_vem_no_marco_sem_ter_sido_editada(banco):  # F-CRN-02
+    with banco() as uow:
+        janelas = {
+            codigo: uow.schedule.get_milestone(marco_id(codigo)).window  # type: ignore[union-attr]
+            for codigo in ("C01", "C06", "C28")
+        }
+        editadas = [m for m in uow.schedule.list_milestones() if m.window_edited]
+    assert janelas == {
+        "C01": None,
+        "C06": Window(14, 10, WindowUnit.MONTHS),
+        "C28": Window(4, 1, WindowUnit.WEEKS),
+    }
+    assert editadas == []
+
+
+def test_editar_a_janela_persiste_os_tres_valores_e_a_marca_de_editada(banco):  # F-CRN-05
+    with banco(NOIVA) as uow:
+        marco = uow.schedule.get_milestone(marco_id("C06"))
+        assert marco is not None
+        assert marco.set_window(12, 8, WindowUnit.WEEKS) is True
+        uow.commit()
+    with banco() as uow:
+        lido = uow.schedule.get_milestone(marco_id("C06"))
+        assert lido is not None
+        assert lido.window == Window(12, 8, WindowUnit.WEEKS)
+        assert (lido.window_edited, lido.version) == (True, 2)
+        # Repetir a janela já editada não grava nada: a version fica.
+        assert lido.set_window(12, 8, WindowUnit.WEEKS) is False
+        uow.commit()
+    with banco() as uow:
+        assert uow.schedule.get_milestone(marco_id("C06")).version == 2  # type: ignore[union-attr]
+
+
+def test_dar_janela_a_marco_sem_janela_persiste(banco):  # F-CRN-05
+    with banco() as uow:
+        marco = uow.schedule.get_milestone(marco_id("C01"))
+        assert marco is not None
+        marco.set_window(3, 1, WindowUnit.MONTHS)
+        uow.commit()
+    with banco() as uow:
+        lido = uow.schedule.get_milestone(marco_id("C01"))
+        assert lido is not None
+        assert (lido.window, lido.window_edited) == (Window(3, 1, WindowUnit.MONTHS), True)
+
+
+def test_editar_a_janela_nao_toca_no_prazo_manual(banco):
+    with banco() as uow:
+        marco = uow.schedule.get_milestone(marco_id("C06"))
+        assert marco is not None
+        marco.set_window(12, 8, WindowUnit.MONTHS)
+        uow.commit()
+    with banco() as uow:
+        assert uow.schedule.get_milestone(marco_id("C06")).target_date is None  # type: ignore[union-attr]
+
+
+def test_editar_a_janela_continua_recusada_pelo_banco_quando_incoerente(banco):
+    with banco() as uow:
+        with pytest.raises(IntegrityError):
+            uow.session.execute(
+                text("UPDATE milestones SET window_end_before = NULL WHERE id = :id"),
+                {"id": marco_id("C06").hex},
+            )
+        uow.session.rollback()
 
 
 def test_editar_persiste_sobe_a_version_e_grava_o_autor_da_sessao(banco):

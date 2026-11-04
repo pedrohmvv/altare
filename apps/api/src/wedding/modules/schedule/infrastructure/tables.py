@@ -1,3 +1,4 @@
+import sqlalchemy as sa
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -76,7 +77,10 @@ milestones = Table(
     Column(
         "target_date",
         Date,
-        comment="Prazo-alvo digitado à mão (F-CRN-05); nulo se não há. Atrasado se deriva dele.",
+        comment=(
+            "Prazo-alvo digitado à mão (F-CRN-05); nulo se não há. Sem ele, o prazo é o fim da "
+            "janela calculada, que se deriva e nunca se grava; o Atrasado se deriva do prazo."
+        ),
     ),
     Column(
         "manual_state",
@@ -89,16 +93,24 @@ milestones = Table(
     Column(
         "window_start_before",
         Integer,
-        comment=(
-            "Janela sugerida (F-CRN-02): início, quantas unidades antes da data; nulo sem janela."
-        ),
+        comment="Janela (F-CRN-05): início, quantas unidades antes da data; nulo sem janela.",
     ),
     Column(
         "window_end_before",
         Integer,
-        comment="Janela sugerida: fim, quantas unidades antes da data; nulo sem janela.",
+        comment="Janela: fim, quantas unidades antes da data; nulo sem janela.",
     ),
     Column("window_unit", String(8), comment="meses ou semanas; nulo sem janela."),
+    Column(
+        "window_edited",
+        Boolean,
+        nullable=False,
+        server_default=sa.false(),
+        comment=(
+            "Verdadeiro se o casal editou a janela; falso é a sugestão genérica da semente "
+            "(F-CRN-02). Sem janela, falso."
+        ),
+    ),
     Column(
         "dependencies_revision",
         Integer,

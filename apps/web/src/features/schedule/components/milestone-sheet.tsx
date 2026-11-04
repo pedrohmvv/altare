@@ -1,13 +1,16 @@
 import { useId } from 'react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { formatTableDay } from '@/lib/date'
 import type { Schedule, ScheduleMilestone, SchedulePhase } from '../api/schedule'
 import { copy } from '../copy'
 import { OptionalBadge, OverdueBadge, StateBadge } from './milestone-badges'
+import { DeadlineDate, DeadlineDetails } from './milestone-deadline'
 import { type DeletedMilestone, DeleteMilestone } from './milestone-delete'
 import { MilestoneDependencies } from './milestone-dependencies'
 import { MilestoneForm } from './milestone-form'
 import { MilestoneNotes } from './milestone-notes'
 import { MilestoneStateActions } from './milestone-state-actions'
+import { MilestoneWindow } from './milestone-window'
 
 export interface MilestoneSheetProps {
   milestone: ScheduleMilestone
@@ -55,6 +58,16 @@ export function MilestoneSheet({
             {milestone.overdue && <OverdueBadge />}
             {milestone.optional && <OptionalBadge />}
           </div>
+          <p className="flex items-start gap-2 text-body text-ink">
+            <span className="text-ink-muted">{copy.sheet.deadline}</span>
+            <span className="flex flex-col gap-0.5">
+              <DeadlineDate milestone={milestone} format={formatTableDay} className="text-num" />
+              <DeadlineDetails milestone={milestone} format={formatTableDay} showWindow={false} />
+              {milestone.window && milestone.target_date !== null && (
+                <span className="text-body-sm text-ink-muted">{copy.deadline.manual}</span>
+              )}
+            </span>
+          </p>
           <MilestoneNotes milestone={milestone} />
         </div>
         <MilestoneStateActions key={`state-${milestone.id}`} milestone={milestone} />
@@ -64,6 +77,11 @@ export function MilestoneSheet({
           phaseId={phase.id}
           phases={schedule.phases}
           categoryOptions={schedule.category_options}
+        />
+        <MilestoneWindow
+          key={`window-${milestone.id}`}
+          milestone={milestone}
+          hasExactDate={schedule.has_exact_date}
         />
         <MilestoneDependencies
           key={`deps-${milestone.id}`}

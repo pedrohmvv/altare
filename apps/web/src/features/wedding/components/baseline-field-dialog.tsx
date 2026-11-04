@@ -1,17 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CircleAlert } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { ApiError } from '@/lib/api/errors'
 import { type Baseline, type BaselineKey, baselineQueryOptions } from '../api/baseline'
+import { useDateImpact } from '../api/use-date-impact'
 import { useUpdateBaselineField } from '../api/use-update-baseline-field'
 import { copy } from '../copy'
 import { describeValue } from '../lib/describe-value'
 import { type FormValues, makeSchema, toFormValues, toUpdate } from '../schemas/baseline-form'
 import { StatusFields, ValueFields } from './baseline-value-fields'
+import { DateImpact } from './date-impact'
 
 export interface BaselineFieldDialogProps {
   fieldKey: BaselineKey
@@ -62,6 +64,12 @@ function FieldEditor({
   const update = useUpdateBaselineField()
   const queryClient = useQueryClient()
   const { isFetching } = useQuery({ ...baselineQueryOptions, enabled: false })
+  // A prévia só faz sentido na confirmação da data, com a data que o formulário tem agora (o estado
+  // depois da mudança): só uma data exata `Definida` dá Modo Com Data; qualquer outra é Sem Data.
+  const impact = useDateImpact(
+    pending?.dateKind === 'exata' && pending.status === 'Definido' ? pending.exact : undefined,
+    fieldKey === 'date' && pending !== null,
+  )
   const schema = useMemo(() => makeSchema(fieldKey), [fieldKey])
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -107,9 +115,11 @@ function FieldEditor({
   if (pending) {
     return (
       <Confirmation
-        fieldKey={fieldKey}
         before={describeValue(fieldKey, opened[fieldKey].value)}
         after={describeValue(fieldKey, toUpdate(fieldKey, pending, version).body.value)}
+        impact={
+          fieldKey === 'date' ? <DateImpact data={impact.data} failed={impact.isError} /> : null
+        }
         saving={update.isPending}
         onBack={() => setPending(null)}
         onConfirm={() => save(pending)}
@@ -158,24 +168,29 @@ function FieldEditor({
 }
 
 function Confirmation({
-  fieldKey,
   before,
   after,
+  impact,
   saving,
   onBack,
   onConfirm,
 }: {
-  fieldKey: BaselineKey
   before: string | null
   after: string | null
+  /** O que a mudança faz em outra área; só a data tem. */
+  impact: ReactNode
   saving: boolean
   onBack: () => void
   onConfirm: () => void
 }) {
-  const impact = fieldKey === 'date' ? copy.confirm.impact.date : null
+  // O formulário sai e a confirmação entra: o foco vai ao título dela, que o leitor de tela lê.
+  const heading = useRef<HTMLHeadingElement>(null)
+  useEffect(() => heading.current?.focus(), [])
   return (
     <div className="flex flex-col gap-5">
-      <h3 className="text-heading text-ink">{copy.confirm.title}</h3>
+      <h3 ref={heading} tabIndex={-1} className="text-heading text-ink">
+        {copy.confirm.title}
+      </h3>
       <dl className="flex flex-col gap-3">
         <div>
           <dt className="text-eyebrow text-ink-muted">{copy.confirm.before}</dt>
@@ -187,10 +202,11 @@ function Confirmation({
         </div>
       </dl>
       <div className="flex flex-col gap-1 text-body-sm text-ink-muted">
-        {impact && <p>{impact}</p>}
+        {impact}
         <p>{copy.confirm.history}</p>
       </div>
-      <DialogFooter>
+      {/* No celular a confirmação rola: o rodapé fica à vista, para o confirmar nunca ficar abaixo da dobra. */}
+      <DialogFooter className="max-md:sticky max-md:-bottom-5 max-md:-mb-5 max-md:border-t max-md:border-border max-md:bg-surface max-md:pt-3 max-md:pb-5">
         <Button type="button" variant="ghost" onClick={onBack}>
           {copy.confirm.back}
         </Button>

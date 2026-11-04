@@ -3437,6 +3437,68 @@
         }
       }
     },
+    "/api/v1/schedule/date-preview": {
+      "get": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Preview Date Change",
+        "operationId": "preview_date_change",
+        "parameters": [
+          {
+            "name": "exact",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A data exata que o casamento passaria a ter, já `Definida`; sem ela, o cenário é o Modo Sem Data. O ano vai de 2000 a 2100.",
+              "title": "Exact"
+            },
+            "description": "A data exata que o casamento passaria a ter, já `Definida`; sem ela, o cenário é o Modo Sem Data. O ano vai de 2000 a 2100."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatePreviewOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schedule/milestones": {
       "post": {
         "tags": [
@@ -3620,6 +3682,89 @@
             "description": "A versão que a tela viu; divergir dá 409."
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/window": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Milestone Window",
+        "operationId": "update_milestone_window",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneWindowIn"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4780,6 +4925,73 @@
         ],
         "title": "CurrentUserOut"
       },
+      "DateChangeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "window_before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateRangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "window_after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateRangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "target_before": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Before"
+          },
+          "target_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target After"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "window_before",
+          "window_after",
+          "target_before",
+          "target_after"
+        ],
+        "title": "DateChangeOut"
+      },
       "DateFieldIn": {
         "properties": {
           "status": {
@@ -4855,6 +5067,71 @@
           "exata"
         ],
         "title": "DateKind"
+      },
+      "DateMode": {
+        "type": "string",
+        "enum": [
+          "sem_data",
+          "com_data"
+        ],
+        "title": "DateMode"
+      },
+      "DatePreviewOut": {
+        "properties": {
+          "mode_before": {
+            "$ref": "#/components/schemas/DateMode"
+          },
+          "mode_after": {
+            "$ref": "#/components/schemas/DateMode"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/DateChangeOut"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "Marcos ativos e não concluídos, com janela e sem prazo manual, cujas datas calculadas mudam."
+          },
+          "manual_kept": {
+            "type": "integer",
+            "title": "Manual Kept",
+            "description": "Marcos ativos e não concluídos com janela e prazo manual: o prazo não muda."
+          },
+          "newly_overdue": {
+            "type": "integer",
+            "title": "Newly Overdue",
+            "description": "Marcos que passariam a Atrasado com a data hipotética e não estavam."
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode_before",
+          "mode_after",
+          "changes",
+          "manual_kept",
+          "newly_overdue"
+        ],
+        "title": "DatePreviewOut"
+      },
+      "DateRangeOut": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "DateRangeOut"
       },
       "DateValueSchema": {
         "properties": {
@@ -6547,7 +6824,8 @@
                 "type": "null"
               }
             ],
-            "title": "Target Date"
+            "title": "Target Date",
+            "description": "Só o prazo-alvo digitado à mão; nulo se não há. Nunca é o fim da janela calculada: esse vem em `effective_target`."
           },
           "state": {
             "$ref": "#/components/schemas/MilestoneState"
@@ -6602,6 +6880,68 @@
               }
             ]
           },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MilestoneWindowOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Os deslocamentos da janela, sempre que há janela; nulo se o marco não tem."
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start",
+            "description": "Início calculado da janela; só no Modo Com Data e com janela."
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End",
+            "description": "Fim calculado da janela; só no Modo Com Data e com janela."
+          },
+          "effective_target": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Target",
+            "description": "O prazo que vale: o manual (`target_date`) ou, sem ele, o fim da janela."
+          },
+          "days_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Left",
+            "description": "Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o marco está concluído, arquivado ou sem prazo efetivo."
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -6624,6 +6964,11 @@
           "unlocks",
           "warnings",
           "category",
+          "window",
+          "window_start",
+          "window_end",
+          "effective_target",
+          "days_left",
           "version"
         ],
         "title": "MilestoneOut"
@@ -6762,6 +7107,64 @@
         ],
         "title": "MilestoneUpdateIn",
         "description": "A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio\nvai como nulo, para omitir um campo nunca apagar um dado em silêncio. Mudar `phase_id` leva o\nmarco para o fim da nova fase."
+      },
+      "MilestoneWindowIn": {
+        "properties": {
+          "start_before": {
+            "type": "integer",
+            "title": "Start Before"
+          },
+          "end_before": {
+            "type": "integer",
+            "title": "End Before"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/WindowUnit"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_before",
+          "end_before",
+          "unit",
+          "version"
+        ],
+        "title": "MilestoneWindowIn",
+        "description": "A janela inteira, na unidade dada: do início ao fim, quantas unidades antes da data do\ncasamento. Vale em qualquer modo e para o marco que ainda não tinha janela; o início não vem\ndepois do fim, `0` e `0` é o dia do casamento e o teto é 120 meses ou 520 semanas."
+      },
+      "MilestoneWindowOut": {
+        "properties": {
+          "start_before": {
+            "type": "integer",
+            "title": "Start Before"
+          },
+          "end_before": {
+            "type": "integer",
+            "title": "End Before"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/WindowUnit"
+          },
+          "is_suggestion": {
+            "type": "boolean",
+            "title": "Is Suggestion",
+            "description": "Há janela e ninguém a editou: a sugestão genérica."
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_before",
+          "end_before",
+          "unit",
+          "is_suggestion"
+        ],
+        "title": "MilestoneWindowOut"
       },
       "MonthYearSchema": {
         "properties": {
@@ -7696,6 +8099,14 @@
           "phase_2_pct"
         ],
         "title": "WeightsOut"
+      },
+      "WindowUnit": {
+        "type": "string",
+        "enum": [
+          "meses",
+          "semanas"
+        ],
+        "title": "WindowUnit"
       }
     }
   }

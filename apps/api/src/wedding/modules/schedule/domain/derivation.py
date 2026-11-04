@@ -9,6 +9,7 @@ from wedding.modules.schedule.domain.values import (
     MilestoneState,
     Standing,
 )
+from wedding.modules.schedule.domain.windows import Window, window_dates
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class MilestoneFacts:
     standing: Standing | None
     target_date: date | None
     depends_on: tuple[UUID, ...]
+    window: Window | None = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,10 @@ class Derived:
     dependencies: tuple[DependencyStatus, ...]
     unlocks: tuple[UUID, ...]
     unresolved: tuple[UUID, ...]
+    window_start: date | None = None
+    window_end: date | None = None
+    effective_target: date | None = None
+    days_left: int | None = None
 
 
 @dataclass(frozen=True)
@@ -107,15 +113,21 @@ def waiting_on(facts: Sequence[MilestoneFacts], milestone_id: UUID) -> tuple[Blo
     return _waiting(by_id[milestone_id], _dependencies(by_id[milestone_id], by_id))
 
 
-def derive(facts: Sequence[MilestoneFacts], today: date) -> dict[UUID, Derived]:
+def derive(
+    facts: Sequence[MilestoneFacts], today: date, wedding_date: date | None = None
+) -> dict[UUID, Derived]:
     """Tudo o que se deriva dos marcos, do Mapa de Escopo e do dia de hoje (`architecture.md` §5).
     Função pura: o mesmo cronograma no mesmo dia dá sempre a mesma resposta e nada é gravado.
 
     Os bloqueios existem para todo marco não concluído (o `Em andamento` guarda o estado, mas a
     lista continua dizendo o que falta); o concluído tem, em vez deles, o aviso de quais
     predecessores não estão resolvidos (F-CRN-03, regra 5), tenham sido reabertos ou nunca
-    concluídos. "Libera" não lista os arquivados, que saíram das listas ativas, e o atraso também
-    não vale para eles (F-CRN-04)."""
+    concluídos. "Libera" não lista os arquivados, que saíram das listas ativas, e o atraso e a
+    contagem regressiva também não valem para eles (F-CRN-04).
+
+    `wedding_date` é a data exata `Definida` do casamento (Modo Com Data) ou `None` (Modo Sem
+    Data): só com ela as janelas ganham datas e o fim delas vira o prazo-alvo padrão. O atraso
+    olha o prazo efetivo, o manual ou o fim da janela (F-CRN-05)."""
     by_id = {item.id: item for item in facts}
     unlocks: dict[UUID, list[UUID]] = {item.id: [] for item in facts}
     for item in facts:
@@ -131,9 +143,11 @@ def derive(facts: Sequence[MilestoneFacts], today: date) -> dict[UUID, Derived]:
         done = item.manual_state is ManualState.DONE
         blockers = () if done else _waiting(item, dependencies)
         archived = item.standing is Standing.OUT
-        overdue = (
-            item.target_date is not None and item.target_date < today and not done and not archived
-        )
+        calculated = _calculated_window(item, wedding_date)
+        # O prazo digitado à mão prevalece; sem ele, o fim da janela calculada (F-CRN-05).
+        effective_target = item.target_date or (calculated[1] if calculated else None)
+        counts = not done and not archived
+        overdue = effective_target is not None and effective_target < today and counts
         result[item.id] = Derived(
             state=_state(item, blockers),
             optional=item.standing is Standing.MAYBE,
@@ -143,8 +157,21 @@ def derive(facts: Sequence[MilestoneFacts], today: date) -> dict[UUID, Derived]:
             dependencies=dependencies,
             unlocks=tuple(unlocks[item.id]),
             unresolved=_pending(dependencies) if done else (),
+            window_start=calculated[0] if calculated else None,
+            window_end=calculated[1] if calculated else None,
+            effective_target=effective_target,
+            days_left=(effective_target - today).days if effective_target and counts else None,
         )
     return result
+
+
+def _calculated_window(item: MilestoneFacts, wedding_date: date | None) -> tuple[date, date] | None:
+    """As datas da janela só existem no Modo Com Data e para o marco que tem janela."""
+    if wedding_date is None or item.window is None:
+        return None
+    return window_dates(
+        wedding_date, item.window.start_before, item.window.end_before, item.window.unit
+    )
 
 
 def phase_progress(members: Iterable[Derived]) -> PhaseProgress:

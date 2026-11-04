@@ -15,7 +15,11 @@ from wedding.modules.schedule.application.commands.set_milestone_dependencies im
     SetMilestoneDependencies,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
+from wedding.modules.schedule.application.commands.update_milestone_window import (
+    UpdateMilestoneWindow,
+)
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
+from wedding.modules.schedule.application.queries.preview_date_change import PreviewDateChange
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
 from wedding.modules.schedule.application.schedule_map import ScheduleReader
 from wedding.modules.schedule.application.use_cases import ScheduleUseCases
@@ -109,6 +113,8 @@ class ScheduleContainer:
         return ScheduleUseCases(
             read_schedule=ReadSchedule(uow_factory, reader),
             update_milestone=UpdateMilestone(uow_factory, reader, categories),
+            update_milestone_window=UpdateMilestoneWindow(uow_factory, reader),
+            preview_date_change=PreviewDateChange(uow_factory, reader),
             change_milestone_state=ChangeMilestoneState(uow_factory, ids, reader),
             create_milestone=CreateMilestone(uow_factory, ids, reader, categories),
             delete_milestone=DeleteMilestone(uow_factory, clock, reader),

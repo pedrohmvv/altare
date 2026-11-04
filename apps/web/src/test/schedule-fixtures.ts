@@ -17,14 +17,30 @@ export const ID = {
   espaco: '00000000-0000-4000-8000-0000000000c1',
   buffet: '00000000-0000-4000-8000-0000000000c2',
   musica: '00000000-0000-4000-8000-0000000000c3',
+  janelaSugerida: '00000000-0000-4000-8000-0000000000a1',
+  janelaEditada: '00000000-0000-4000-8000-0000000000a2',
+  prazoManual: '00000000-0000-4000-8000-0000000000a3',
+  atrasadoComJanela: '00000000-0000-4000-8000-0000000000a4',
+  semJanela: '00000000-0000-4000-8000-0000000000a5',
+  semPrazo: '00000000-0000-4000-8000-0000000000a6',
 } as const
 
+/**
+ * Um marco com os padrões do Modo Sem Data: sem janela, sem prazo calculado e sem contagem. O prazo
+ * efetivo acompanha o manual, como a API faz quando não há janela. Quem testa o Modo Com Data
+ * passa os campos derivados que o servidor calcularia (`window`, `window_start`, `days_left`...).
+ */
 export function milestone(over: Partial<ScheduleMilestone> & { id: string; title: string }) {
   return {
     position: 0,
     responsible: 'Ambos',
     note: null,
     target_date: null,
+    window: null,
+    window_start: null,
+    window_end: null,
+    effective_target: over.target_date ?? null,
+    days_left: null,
     state: 'Destravado',
     optional: false,
     archived: false,
@@ -153,10 +169,14 @@ export const SCHEDULE: Schedule = {
 }
 
 /** O cronograma de exemplo com uma mudança num marco, como a API devolveria depois de uma escrita. */
-export function scheduleWith(id: string, change: Partial<ScheduleMilestone>): Schedule {
+export function scheduleWith(
+  id: string,
+  change: Partial<ScheduleMilestone>,
+  base: Schedule = SCHEDULE,
+): Schedule {
   return {
-    ...SCHEDULE,
-    phases: SCHEDULE.phases.map((phase) => ({
+    ...base,
+    phases: base.phases.map((phase) => ({
       ...phase,
       milestones: phase.milestones.map((item) => (item.id === id ? { ...item, ...change } : item)),
     })),
@@ -215,5 +235,88 @@ export function scheduleWithMoved(
           ? [...phase.milestones.filter((item) => item.id !== id), { ...moved, ...change }]
           : phase.milestones.filter((item) => item.id !== id),
     })),
+  }
+}
+
+/**
+ * O Modo Com Data (data fictícia de teste: 12/06/2027), com os valores que a API calcularia: janela
+ * sugerida com contagem de 12 dias, janela editada, prazo manual com janela, atrasado com janela de
+ * 3 dias atrás e um marco sem janela e sem prazo. Os rótulos de data vêm prontos, sem calcular nada.
+ */
+export function scheduleComData(): Schedule {
+  const suggested = {
+    start_before: 14,
+    end_before: 10,
+    unit: 'meses',
+    is_suggestion: true,
+  } as const
+  const calculated = {
+    window_start: '2026-04-12',
+    window_end: '2026-08-12',
+  } as const
+  return {
+    ...SCHEDULE,
+    has_exact_date: true,
+    phases: [
+      {
+        id: ID.faseUm,
+        title: 'Fase Exemplo Um',
+        position: 0,
+        version: 1,
+        progress: { done: 0, total: 6 },
+        milestones: [
+          milestone({
+            id: ID.janelaSugerida,
+            title: 'Marco Exemplo com Janela Sugerida',
+            position: 0,
+            window: suggested,
+            ...calculated,
+            effective_target: '2026-08-12',
+            days_left: 12,
+          }),
+          milestone({
+            id: ID.janelaEditada,
+            title: 'Marco Exemplo com Janela Editada',
+            position: 1,
+            window: { start_before: 8, end_before: 4, unit: 'semanas', is_suggestion: false },
+            window_start: '2027-04-17',
+            window_end: '2027-05-15',
+            effective_target: '2027-05-15',
+            days_left: 1,
+          }),
+          milestone({
+            id: ID.prazoManual,
+            title: 'Marco Exemplo com Prazo Manual',
+            position: 2,
+            window: suggested,
+            ...calculated,
+            target_date: '2026-07-30',
+            effective_target: '2026-07-30',
+            days_left: 0,
+          }),
+          milestone({
+            id: ID.atrasadoComJanela,
+            title: 'Marco Exemplo Atrasado com Janela',
+            position: 3,
+            overdue: true,
+            window: { start_before: 12, end_before: 10, unit: 'meses', is_suggestion: true },
+            window_start: '2026-06-12',
+            window_end: '2026-08-12',
+            effective_target: '2026-08-12',
+            days_left: -3,
+          }),
+          milestone({ id: ID.semJanela, title: 'Marco Exemplo sem Janela', position: 4 }),
+          milestone({
+            id: ID.semPrazo,
+            title: 'Marco Exemplo Concluído com Janela',
+            position: 5,
+            state: 'Concluído',
+            window: suggested,
+            ...calculated,
+            effective_target: '2026-08-12',
+          }),
+        ],
+      },
+    ],
   }
 }

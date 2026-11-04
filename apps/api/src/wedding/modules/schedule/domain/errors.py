@@ -44,3 +44,11 @@ class DependencyCycle(DomainRuleViolated):
             data={"path": [{"id": step_id, "title": title} for step_id, title in path]},
             detail_params={"path": " → ".join(title for _, title in path)},
         )
+
+
+class InvalidMilestoneWindow(DomainRuleViolated):
+    default_code = "invalid_window"
+
+
+class InvalidPreviewDate(DomainRuleViolated):
+    default_code = "invalid_preview_date"

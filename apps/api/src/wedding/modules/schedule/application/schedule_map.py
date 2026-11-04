@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from wedding.modules.schedule.application.dates import today_in_brazil
@@ -10,6 +11,7 @@ from wedding.modules.schedule.application.dto import (
     DependencyDto,
     MilestoneDto,
     MilestoneRefDto,
+    MilestoneWindowDto,
     PhaseDto,
     ScheduleDto,
     WarningDto,
@@ -46,7 +48,8 @@ class _Loaded:
 
 class ScheduleReader:
     """Monta o cronograma inteiro, com tudo o que é derivado calculado aqui e nunca gravado
-    (`architecture.md` §5): bloqueios, opcional, arquivado, atraso, avisos e progresso por fase."""
+    (`architecture.md` §5): bloqueios, opcional, arquivado, datas das janelas, prazo efetivo,
+    contagem regressiva, atraso, avisos e progresso por fase."""
 
     def __init__(
         self, categories: CategoryReader, wedding_date: WeddingDateReader, clock: Clock
@@ -74,6 +77,7 @@ class ScheduleReader:
                 standing=_standing(item, categories),
                 target_date=item.target_date,
                 depends_on=tuple(depends_on.get(item.id, ())),
+                window=item.window,
             )
             for item in ordered
         ]
@@ -83,9 +87,19 @@ class ScheduleReader:
         """Os fatos de cada marco, na ordem do cronograma, como a derivação os recebe."""
         return self._load(schedule, actor).facts
 
+    def today(self) -> date:
+        """Hoje é o dia em Brasília (`D-031`)."""
+        return today_in_brazil(self._clock)
+
+    def exact_wedding_date(self, actor: Actor) -> date | None:
+        """A data do casamento que liga o Modo Com Data: só vale `Definida` e exata."""
+        wedding_date = self._wedding_date.wedding_date(actor)
+        return wedding_date.exact if wedding_date.is_exact_and_defined else None
+
     def read(self, schedule: ScheduleRepository, actor: Actor) -> ScheduleDto:
         loaded = self._load(schedule, actor)
-        derived = derive(loaded.facts, today_in_brazil(self._clock))
+        exact = self.exact_wedding_date(actor)
+        derived = derive(loaded.facts, self.today(), exact)
         titles = {item.id: item.title for item in loaded.milestones}
 
         phase_dtos = []
@@ -112,7 +126,7 @@ class ScheduleReader:
                 for category_id, info in loaded.categories.items()
                 if info.visible or category_id in linked
             ),
-            has_exact_date=self._wedding_date.wedding_date(actor).is_exact_and_defined,
+            has_exact_date=exact is not None,
         )
 
 
@@ -167,6 +181,20 @@ def _milestone_dto(
             for other in derived.unresolved
         ),
         category=_category_link(milestone, categories),
+        window=(
+            MilestoneWindowDto(
+                milestone.window.start_before,
+                milestone.window.end_before,
+                milestone.window.unit,
+                milestone.window_is_suggestion,
+            )
+            if milestone.window
+            else None
+        ),
+        window_start=derived.window_start,
+        window_end=derived.window_end,
+        effective_target=derived.effective_target,
+        days_left=derived.days_left,
         version=milestone.version,
     )
 

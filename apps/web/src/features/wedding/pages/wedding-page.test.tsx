@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { jsonResponse, mockApi, problemResponse } from '@/test/fake-api'
 import type { Baseline, BaselineChange } from '../api/baseline'
+import type { DateImpact } from '../api/use-date-impact'
 import { WeddingPage, type WeddingPageProps } from './wedding-page'
 
 const GET = 'GET /api/v1/wedding/baseline'
@@ -11,6 +12,8 @@ const PUT_CITY = 'PUT /api/v1/wedding/baseline/city'
 const PUT_DATE = 'PUT /api/v1/wedding/baseline/date'
 const PUT_CEILING = 'PUT /api/v1/wedding/baseline/ceiling'
 const CHANGES = 'GET /api/v1/wedding/baseline/changes'
+const PREVIEW = 'GET /api/v1/schedule/date-preview'
+const SCHEDULE = 'GET /api/v1/schedule'
 
 function emptyBaseline(): Baseline {
   return {
@@ -243,6 +246,27 @@ describe('Definições Base: editar uma definição', () => {
   })
 })
 
+/** A prévia do cronograma como a API a devolve: sem mudança, para os testes que não a olham. */
+function preview(over: Partial<DateImpact> = {}): DateImpact {
+  return {
+    mode_before: 'com_data',
+    mode_after: 'com_data',
+    changes: [],
+    manual_kept: 0,
+    newly_overdue: 0,
+    ...over,
+  }
+}
+
+const aChange = (n: number, title = `Marco Exemplo ${n}`): DateImpact['changes'][number] => ({
+  id: `00000000-0000-4000-8000-00000000000${n}`,
+  title,
+  window_before: { start: '2026-04-12', end: '2026-08-12' },
+  window_after: { start: '2026-05-12', end: '2026-09-12' },
+  target_before: '2026-08-12',
+  target_after: '2026-09-12',
+})
+
 describe('Definições Base: mudar algo já definido (F-PLN-01, regra 2)', () => {
   function withDefinedDate() {
     const baseline = emptyBaseline()
@@ -266,12 +290,13 @@ describe('Definições Base: mudar algo já definido (F-PLN-01, regra 2)', () =>
     const { api, user } = renderPage({
       [GET]: jsonResponse(200, withDefinedDate()),
       [PUT_DATE]: jsonResponse(200, withDefinedDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
     })
     await changeDate(user)
 
     const confirmacao = within(await dialog())
     expect(await confirmacao.findByText('Mudar algo que vocês já definiram?')).toBeVisible()
-    expect(confirmacao.getByText('A data recalcula as janelas do cronograma.')).toBeVisible()
+    expect(await confirmacao.findByText('Nenhum marco muda de janela.')).toBeVisible()
     expect(confirmacao.getByText('1 mai 2027')).toBeVisible()
     expect(confirmacao.getByText('5 jun 2027')).toBeVisible()
     expect(api.callsTo(PUT_DATE)).toHaveLength(0)
@@ -285,7 +310,10 @@ describe('Definições Base: mudar algo já definido (F-PLN-01, regra 2)', () =>
   })
 
   it('Voltar devolve ao formulário com o que foi digitado, sem enviar nada', async () => {
-    const { api, user } = renderPage({ [GET]: jsonResponse(200, withDefinedDate()) })
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withDefinedDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
     await changeDate(user)
     await user.click(await screen.findByRole('button', { name: 'Voltar' }))
     expect(screen.getByLabelText('Data')).toHaveValue('2027-06-05')
@@ -477,5 +505,239 @@ describe('Planejamento: as abas ficam na URL (F-PLN-08)', () => {
     )
     expect(await screen.findByText('Nenhuma frente por aqui ainda')).toBeVisible()
     expect(api.callsTo('GET /api/v1/wedding/baseline')).toHaveLength(0)
+  })
+})
+
+describe('Definições Base: a prévia do cronograma ao mudar a data (F-CRN-05, regra 4)', () => {
+  const definedAs = (value: Baseline['date']['value'], status: 'Definido' | 'Em definição') => {
+    const baseline = emptyBaseline()
+    baseline.date = { status, note: null, version: 4, value }
+    return baseline
+  }
+  const withExactDate = () => definedAs({ kind: 'exata', exact: '2027-06-12' }, 'Definido')
+
+  async function changeExactDate(user: ReturnType<typeof userEvent.setup>, to = '2027-07-12') {
+    await user.click(await row(/Data ou época/))
+    await screen.findByRole('dialog')
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: to } })
+    await user.click(screen.getByRole('button', { name: 'Salvar definição' }))
+    return within(await dialog())
+  }
+
+  it('só consulta a prévia quando a tela de confirmação abre, com a data do formulário', async () => {
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
+    await user.click(await row(/Data ou época/))
+    await screen.findByRole('dialog')
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2027-07-12' } })
+    expect(api.callsTo(PREVIEW)).toHaveLength(0)
+
+    await user.click(screen.getByRole('button', { name: 'Salvar definição' }))
+
+    await screen.findByText('Mudar algo que vocês já definiram?')
+    await waitFor(() => expect(api.callsTo(PREVIEW)).toHaveLength(1))
+    expect(new URL(api.callsTo(PREVIEW)[0]?.request.url as string).searchParams.get('exact')).toBe(
+      '2027-07-12',
+    )
+  })
+
+  it('mudar de data exata para uma janela é o cenário Sem Data: a consulta vai sem `exact`', async () => {
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(
+        200,
+        preview({
+          mode_after: 'sem_data',
+          changes: [{ ...aChange(1), window_after: null }],
+          manual_kept: 2,
+        }),
+      ),
+    })
+    await user.click(await row(/Data ou época/))
+    await screen.findByRole('dialog')
+    await user.click(screen.getByRole('radio', { name: 'Janela' }))
+    await user.click(screen.getByRole('combobox', { name: 'Mês do início' }))
+    await user.click(screen.getByRole('option', { name: 'junho' }))
+    await user.type(screen.getByRole('textbox', { name: 'Ano do início' }), '2027')
+    await user.click(screen.getByRole('combobox', { name: 'Mês do fim' }))
+    await user.click(screen.getByRole('option', { name: 'julho' }))
+    await user.type(screen.getByRole('textbox', { name: 'Ano do fim' }), '2027')
+    await user.click(screen.getByRole('button', { name: 'Salvar definição' }))
+
+    const confirmacao = within(await dialog())
+    expect(await confirmacao.findByText('1 marco perde a janela calculada.')).toBeVisible()
+    expect(confirmacao.getByText('2 marcos com prazo definido por vocês não mudam.')).toBeVisible()
+    expect(new URL(api.callsTo(PREVIEW)[0]?.request.url as string).searchParams.has('exact')).toBe(
+      false,
+    )
+  })
+
+  it('resume o que muda, os prazos de vocês que ficam, os atrasos novos e lista os marcos', async () => {
+    const { user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(
+        200,
+        preview({
+          changes: [aChange(1), aChange(2), aChange(3)],
+          manual_kept: 1,
+          newly_overdue: 2,
+        }),
+      ),
+    })
+    const confirmacao = await changeExactDate(user)
+
+    expect(await confirmacao.findByText('3 marcos mudam de janela.')).toBeVisible()
+    expect(confirmacao.getByText('1 marco com prazo definido por vocês não muda.')).toBeVisible()
+    expect(confirmacao.getByText('2 marcos passam a aparecer como Atrasado.')).toBeVisible()
+    const lista = confirmacao.getByRole('list', { name: 'Marcos que mudam de janela' })
+    expect(within(lista).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(lista).getAllByText('12/04/2026 a 12/08/2026')).toHaveLength(3)
+  })
+
+  it('ao abrir a confirmação, o foco vai ao título dela, e não se perde', async () => {
+    const { user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
+    const confirmacao = await changeExactDate(user)
+
+    expect(
+      confirmacao.getByRole('heading', { name: 'Mudar algo que vocês já definiram?' }),
+    ).toHaveFocus()
+  })
+
+  it('o texto fixo antigo não aparece quando a prévia chega', async () => {
+    const { user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview({ changes: [aChange(1)] })),
+    })
+    const confirmacao = await changeExactDate(user)
+
+    await confirmacao.findByText('1 marco muda de janela.')
+    expect(confirmacao.queryByText('A data recalcula as janelas do cronograma.')).toBeNull()
+  })
+
+  it('enquanto calcula, avisa numa região de status e o confirmar não fica bloqueado', async () => {
+    let release: (response: Response) => void = () => {}
+    const pending = new Promise<Response>((resolve) => {
+      release = resolve
+    })
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PUT_DATE]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: () => pending,
+    })
+    const confirmacao = await changeExactDate(user)
+
+    expect(await confirmacao.findByRole('status')).toHaveTextContent(
+      'Calculando o que muda no cronograma…',
+    )
+    const confirmar = confirmacao.getByRole('button', { name: 'Confirmar mudança' })
+    expect(confirmar).toBeEnabled()
+
+    await user.click(confirmar)
+    await waitFor(() => expect(api.callsTo(PUT_DATE)).toHaveLength(1))
+    release(jsonResponse(200, preview()))
+  })
+
+  it('se a prévia falha, diz que não calculou e o confirmar continua valendo', async () => {
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PUT_DATE]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: problemResponse(500, 'internal_error'),
+    })
+    const confirmacao = await changeExactDate(user)
+
+    expect(
+      await confirmacao.findByText(
+        'Não conseguimos calcular agora o que muda no cronograma. Ao confirmar, as janelas são recalculadas.',
+      ),
+    ).toBeVisible()
+    expect(confirmacao.queryByText('A data recalcula as janelas do cronograma.')).toBeNull()
+    expect(confirmacao.queryByText(/Calculando/)).not.toBeInTheDocument()
+
+    await user.click(confirmacao.getByRole('button', { name: 'Confirmar mudança' }))
+    await waitFor(() => expect(api.callsTo(PUT_DATE)).toHaveLength(1))
+  })
+
+  it('Voltar e confirmar de novo calcula outra vez, sem aproveitar a prévia antiga', async () => {
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview({ changes: [aChange(1)] })),
+    })
+    const primeira = await changeExactDate(user)
+    await primeira.findByText('1 marco muda de janela.')
+
+    await user.click(screen.getByRole('button', { name: 'Voltar' }))
+    await user.click(await screen.findByRole('button', { name: 'Salvar definição' }))
+
+    await screen.findByText('Mudar algo que vocês já definiram?')
+    await waitFor(() => expect(api.callsTo(PREVIEW)).toHaveLength(2))
+  })
+
+  it('a primeira definição da data não pede confirmação nem consulta a prévia', async () => {
+    const { api, user } = renderPage({
+      [PUT_DATE]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
+    await user.click(await row(/Data ou época/))
+    await screen.findByRole('dialog')
+    await user.click(screen.getByRole('radio', { name: 'Data exata' }))
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2027-06-12' } })
+    await user.click(screen.getByRole('radio', { name: 'Definido' }))
+    await user.click(screen.getByRole('button', { name: 'Salvar definição' }))
+
+    await waitFor(() => expect(api.callsTo(PUT_DATE)).toHaveLength(1))
+    expect(screen.queryByText('Mudar algo que vocês já definiram?')).not.toBeInTheDocument()
+    expect(api.callsTo(PREVIEW)).toHaveLength(0)
+  })
+
+  it('voltar a Em definição não pede confirmação nem consulta a prévia', async () => {
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PUT_DATE]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
+    await user.click(await row(/Data ou época/))
+    await screen.findByRole('dialog')
+    await user.click(screen.getByRole('radio', { name: 'Em definição' }))
+    await user.click(screen.getByRole('button', { name: 'Salvar definição' }))
+
+    await waitFor(() => expect(api.callsTo(PUT_DATE)).toHaveLength(1))
+    expect(api.callsTo(PREVIEW)).toHaveLength(0)
+  })
+
+  it('só a data tem prévia: mudar a cidade já definida mantém o texto próprio, sem consulta', async () => {
+    const baseline = emptyBaseline()
+    baseline.city = { status: 'Definido', note: null, version: 2, value: 'Cidade Exemplo' }
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, baseline),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
+    await user.click(await row(/Cidade/))
+    await screen.findByRole('dialog')
+    const campo = screen.getByRole('textbox', { name: /Cidade/ })
+    await user.clear(campo)
+    await user.type(campo, 'Outra Cidade Exemplo')
+    await user.click(screen.getByRole('button', { name: 'Salvar definição' }))
+
+    await screen.findByText('Mudar algo que vocês já definiram?')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(api.callsTo(PREVIEW)).toHaveLength(0)
+  })
+
+  it('não lê nem invalida o cronograma: ele refaz a leitura sozinho ao montar', async () => {
+    const { api, user } = renderPage({
+      [GET]: jsonResponse(200, withExactDate()),
+      [PUT_DATE]: jsonResponse(200, withExactDate()),
+      [PREVIEW]: jsonResponse(200, preview()),
+    })
+    const confirmacao = await changeExactDate(user)
+    await user.click(confirmacao.getByRole('button', { name: 'Confirmar mudança' }))
+
+    await waitFor(() => expect(api.callsTo(PUT_DATE)).toHaveLength(1))
+    expect(api.callsTo(SCHEDULE)).toHaveLength(0)
   })
 })

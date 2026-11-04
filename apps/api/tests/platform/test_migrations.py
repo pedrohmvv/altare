@@ -552,3 +552,159 @@ def test_sem_o_pragma_a_0011_quebra_com_as_chaves_ligadas_nos_dois_caminhos(
     monkeypatch.setattr(op, "execute", sem_pragma)
     with pytest.raises(IntegrityError, match="FOREIGN KEY"):
         command.upgrade(config, "head")
+
+
+# --- 0012: a marca de janela editada (F-CRN-02 e F-CRN-05) --------------------------------------
+
+CHECKS_DA_JANELA = {
+    "ck_milestones_window_unit_known",
+    "ck_milestones_window_all_or_none",
+    "ck_milestones_window_starts_before_it_ends",
+}
+SQL_SEMENTE = {
+    "marcos": "SELECT id, phase_id, title, position, version, window_start_before,"
+    " window_end_before, window_unit FROM milestones ORDER BY id",
+    "dependencias": "SELECT id, milestone_id, depends_on_id FROM milestone_dependencies"
+    " ORDER BY id",
+    "fases": "SELECT id, title, position FROM schedule_phases ORDER BY id",
+}
+
+
+def _nomes_dos_checks(url: str, tabela: str) -> set[str]:
+    engine = create_engine(url)
+    nomes = {str(c["name"]) for c in inspect(engine).get_check_constraints(tabela)}
+    engine.dispose()
+    return nomes
+
+
+def _tentar_update(url: str, sql: str) -> None:
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(text(sql), {"id": _id("marco:C06")})
+    engine.dispose()
+
+
+def test_a_0012_acrescenta_a_marca_de_janela_editada_falsa_e_desce_e_sobe(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    colunas = {c["name"] for c in inspect(create_engine(url)).get_columns("milestones")}
+    assert "window_edited" in colunas
+    assert _ler(url, "SELECT DISTINCT window_edited FROM milestones") == [(0,)]
+    antes = {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()}
+
+    command.downgrade(config, "0011")
+    colunas = {c["name"] for c in inspect(create_engine(url)).get_columns("milestones")}
+    assert "window_edited" not in colunas
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+    assert [len(antes[c]) for c in ("marcos", "dependencias", "fases")] == [29, 31, 5]
+
+    command.upgrade(config, "head")
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+    assert _ler(url, "SELECT DISTINCT window_edited FROM milestones") == [(0,)]
+
+
+def test_a_0012_nao_marca_nenhuma_janela_da_semente_como_editada(tmp_path):  # F-CRN-02
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "0011")
+    command.upgrade(_config(url), "head")
+    assert _ler(url, "SELECT COUNT(*) FROM milestones WHERE window_edited") == [(0,)]
+
+
+def test_o_downgrade_da_0012_preserva_os_tres_checks_da_janela(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    todos = _nomes_dos_checks(url, "milestones")
+    assert todos >= CHECKS_DA_JANELA
+
+    command.downgrade(config, "0011")
+
+    assert _nomes_dos_checks(url, "milestones") == todos
+    for sql in (
+        "UPDATE milestones SET window_unit = NULL WHERE id = :id",
+        "UPDATE milestones SET window_unit = 'dias' WHERE id = :id",
+        "UPDATE milestones SET window_start_before = 1, window_end_before = 4 WHERE id = :id",
+    ):
+        with pytest.raises(IntegrityError):
+            _tentar_update(url, sql)
+
+
+def test_o_downgrade_da_0012_nao_deixa_chave_estrangeira_quebrada_e_guarda_os_dados_do_casal(
+    tmp_path,
+):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    _linha_de_historico(url)
+    historico = _ler(url, "SELECT * FROM milestone_changes")
+    assert len(historico) == 1
+
+    command.downgrade(config, "0011")
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+    assert _ler(url, "SELECT * FROM milestone_changes") == historico
+
+    command.upgrade(config, "head")
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+    assert _ler(url, "SELECT * FROM milestone_changes") == historico
+
+
+def test_a_0012_sobe_da_0011_com_dados_sem_perder_nem_alterar_nada(tmp_path):  # caminho de produção
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "0011")
+    _linha_de_historico(url)
+    antes = {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()}
+    historico = _ler(url, "SELECT * FROM milestone_changes")
+
+    command.upgrade(config, "head")
+
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+    assert _ler(url, "SELECT * FROM milestone_changes") == historico
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+
+def test_sem_o_pragma_a_descida_da_0012_quebra_com_as_chaves_ligadas(tmp_path, monkeypatch):
+    """Como a 0011: o `drop_column` em lote recria `milestones`, e apagá-la com as dependências
+    apontando para ela falha se as chaves estrangeiras estiverem ligadas. O `PRAGMA` da 0012 é o
+    que impede."""
+    from alembic import op
+
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    executar = op.execute
+
+    def sem_pragma(statement, *args, **kwargs):
+        if "PRAGMA foreign_keys" in str(statement):
+            return None
+        return executar(statement, *args, **kwargs)
+
+    monkeypatch.setattr(op, "execute", sem_pragma)
+    with pytest.raises(IntegrityError, match="FOREIGN KEY"):
+        command.downgrade(config, "0011")
+
+
+def test_a_marca_de_janela_editada_tem_default_falso_que_o_postgresql_entende(tmp_path):
+    from sqlalchemy.dialects import postgresql
+    from sqlalchemy.schema import CreateTable
+
+    from wedding.modules.schedule.infrastructure.tables import milestones
+
+    ddl = str(CreateTable(milestones).compile(dialect=postgresql.dialect()))
+    assert "window_edited BOOLEAN DEFAULT false NOT NULL" in ddl
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO milestones (id, created_at, updated_at, version, phase_id, position,"
+                " title, responsible, dependencies_revision)"
+                " VALUES (:id, '2026-10-27', '2026-10-27', 1, :fase, 99, 'Marco Exemplo',"
+                " 'Ambos', 0)"
+            ),
+            {"id": uuid.uuid4().hex, "fase": _id("fase:1")},
+        )
+    engine.dispose()
+    assert _ler(url, "SELECT window_edited FROM milestones WHERE title = 'Marco Exemplo'") == [(0,)]

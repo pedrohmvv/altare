@@ -1,15 +1,18 @@
-"""O cronograma sob qualquer sequência de operações (F-CRN-01, F-CRN-03 e F-CRN-04).
+"""O cronograma sob qualquer sequência de operações (F-CRN-01, F-CRN-03, F-CRN-04 e F-CRN-05).
 
 O Hypothesis sorteia classificar e ocultar categorias no Mapa de Escopo, marcar e reabrir, criar,
 mover, excluir e restaurar marcos, trocar as dependências (com e sem ciclo), criar, renomear e
 reordenar fases e passar os dias, sobre o catálogo inicial inteiro (29 marcos e as suas 31
-dependências), e confere depois de cada passo as invariantes: o grafo é sempre acíclico, marco
-excluído não aparece em lugar nenhum, o concluído não muda sozinho, arquivado e opcional nunca
-bloqueiam, bloqueado sempre diz o que aguarda, restaurar logo depois de excluir devolve as mesmas
-dependências e a leitura é determinística.
+dependências), definir a data do casamento (qualquer uma, com e sem `Definida`), editar a janela de
+um marco (dentro e fora dos limites) e pedir a prévia de mudar a data, e confere depois de cada
+passo as invariantes: o prazo efetivo é o manual ou o fim da janela calculada, o concluído e o
+arquivado não têm contagem nem atraso, só a janela nunca editada é "sugestão", o grafo é sempre
+acíclico, marco excluído não aparece em lugar nenhum, o concluído não muda sozinho, arquivado e
+opcional nunca bloqueiam, bloqueado sempre diz o que aguarda, restaurar logo depois de excluir
+devolve as mesmas dependências e a leitura é determinística.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from itertools import pairwise
 from uuid import UUID
 
@@ -35,9 +38,16 @@ from wedding.modules.schedule.application.commands.set_milestone_dependencies im
     SetMilestoneDependenciesCommand,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestoneCommand
+from wedding.modules.schedule.application.commands.update_milestone_window import (
+    UpdateMilestoneWindowCommand,
+)
 from wedding.modules.schedule.application.dto import MilestoneDto, ScheduleDto
+from wedding.modules.schedule.application.queries.preview_date_change import (
+    PreviewDateChangeCommand,
+)
 from wedding.modules.schedule.domain.errors import (
     DependencyCycle,
+    InvalidMilestoneWindow,
     MilestoneBlocked,
     SelfDependency,
 )
@@ -47,6 +57,7 @@ from wedding.modules.schedule.domain.values import (
     MilestoneState,
     Standing,
 )
+from wedding.modules.schedule.domain.windows import WindowUnit, window_dates
 from wedding.shared_kernel.profile import ProfileKind
 
 CATEGORIAS = sorted({m[3] for m in MARCOS if m[3]})
@@ -55,6 +66,9 @@ ESTADOS = st.sampled_from([ManualState.IN_PROGRESS, ManualState.DONE, None])
 STANDINGS = st.sampled_from(list(Standing))
 ESCOLHA = st.integers(min_value=0, max_value=1000)
 ESCOLHAS = st.lists(ESCOLHA, max_size=4)
+# A data do casamento não tem o ano validado no `wedding`: o cronograma aguenta qualquer uma.
+DATAS_DO_CASAMENTO = st.dates(min_value=date(1, 1, 1), max_value=date(9999, 12, 31))
+DATAS_DA_PREVIA = st.dates(min_value=date(2000, 1, 1), max_value=date(2100, 12, 31))
 
 
 def _alcanca(depende_de: dict[UUID, set[UUID]], origem: UUID, destino: UUID) -> bool:
@@ -90,6 +104,8 @@ class ScheduleMachine(RuleBasedStateMachine):
         # O que o casal marcou, o único que a máquina deixa mudar o estado manual.
         self.manual: dict[UUID, ManualState | None] = {marco_id(m[0]): None for m in MARCOS}
         self.deleted: set[UUID] = set()
+        # Os marcos cuja janela o casal editou à mão: só os outros têm a "sugestão genérica".
+        self.window_edited: set[UUID] = set()
         self.history_count = 0
         self.created = 0
 
@@ -145,7 +161,71 @@ class ScheduleMachine(RuleBasedStateMachine):
     def pass_days(self, dias):
         self.clock.advance(days=dias)
 
+    @rule(exata=DATAS_DO_CASAMENTO | st.none(), definida=st.booleans())
+    def set_wedding_date(self, exata, definida):
+        """Modo Com Data (exata e `Definida`) ou Sem Data (sem data, ou ainda em definição)."""
+        self._tick()
+        self.world.set_wedding_date(exata, defined=definida)
+
     # --- estado, prazo e edição -------------------------------------------------------------
+
+    @rule(
+        escolha=ESCOLHA,
+        inicio=st.integers(min_value=-2, max_value=130),
+        fim=st.integers(min_value=-2, max_value=130),
+        unidade=st.sampled_from(list(WindowUnit)),
+        ator=ATORES,
+    )
+    def edit_window(self, escolha, inicio, fim, unidade, ator):
+        """Em qualquer modo, em qualquer marco (arquivado ou sem janela): a janela vale se está nos
+        limites; fora deles recusa sem gravar. Nunca toca o prazo manual."""
+        self._tick()
+        alvo = self._vivo(escolha)
+        teto = 120 if unidade is WindowUnit.MONTHS else 520
+        valida = 0 <= fim <= inicio <= teto
+        comando = UpdateMilestoneWindowCommand(alvo.id, inicio, fim, unidade, alvo.version)
+        try:
+            depois = self.uc.update_milestone_window.execute(comando, ator)
+        except InvalidMilestoneWindow:
+            assert not valida
+            assert _por_id(self._cronograma())[alvo.id] == alvo
+            return
+        assert valida
+        self.window_edited.add(alvo.id)
+        editado = _por_id(depois)[alvo.id]
+        assert editado.window is not None
+        assert (editado.window.start_before, editado.window.end_before, editado.window.unit) == (
+            inicio,
+            fim,
+            unidade,
+        )
+        assert editado.window.is_suggestion is False
+        assert editado.target_date == alvo.target_date
+
+    @rule(exata=DATAS_DA_PREVIA | st.none())
+    def preview_date_change(self, exata):
+        """A prévia só lê: nada do cronograma nem da data muda, e só lista o que é elegível."""
+        antes = (self._cronograma(), self.world.wedding_date, len(self.world.store.changes))
+        previa = self.uc.preview_date_change.execute(PreviewDateChangeCommand(exata), NOIVO)
+        assert (self._cronograma(), self.world.wedding_date, len(self.world.store.changes)) == antes
+        marcos = _por_id(antes[0])
+        for mudanca in previa.changes:
+            marco = marcos[mudanca.id]
+            assert marco.window is not None
+            assert marco.target_date is None
+            assert not marco.archived
+            assert marco.state is not MilestoneState.DONE
+            assert mudanca.window_before != mudanca.window_after
+        assert previa.manual_kept == sum(
+            m.window is not None
+            and m.target_date is not None
+            and not m.archived
+            and m.state is not MilestoneState.DONE
+            for m in marcos.values()
+        )
+        # A mesma data da atual não muda nada.
+        if exata == self.world.wedding_date.exact and self.world.wedding_date.defined:
+            assert previa.changes == ()
 
     @rule(escolha=ESCOLHA, estado=ESTADOS, ignorar=st.booleans(), ator=ATORES)
     def mark(self, escolha, estado, ignorar, ator):
@@ -424,7 +504,10 @@ class ScheduleMachine(RuleBasedStateMachine):
         self.arquivado_e_opcional_nunca_bloqueiam(cronograma)
         self.bloqueio_e_aviso_batem_com_o_estado_das_dependencias(cronograma)
         self.a_categoria_em_discussao_bloqueia_so_o_que_nao_esta_concluido(cronograma)
-        self.atrasado_so_com_prazo_vencido_e_nao_concluido_nem_arquivado(cronograma)
+        self.atrasado_so_com_prazo_efetivo_vencido_e_nao_concluido_nem_arquivado(cronograma)
+        self.o_prazo_efetivo_e_o_manual_ou_o_fim_da_janela_calculada(cronograma)
+        self.a_contagem_regressiva_so_existe_para_o_marco_ativo_com_prazo(cronograma)
+        self.so_a_janela_nao_editada_e_sugestao(cronograma)
         self.o_progresso_da_fase_confere_com_a_recontagem(cronograma)
         self.so_a_mudanca_real_vai_para_o_historico()
 
@@ -535,18 +618,55 @@ class ScheduleMachine(RuleBasedStateMachine):
             assert marco.archived == (standing is Standing.OUT)
             assert marco.optional == (standing is Standing.MAYBE)
 
-    def atrasado_so_com_prazo_vencido_e_nao_concluido_nem_arquivado(
+    def atrasado_so_com_prazo_efetivo_vencido_e_nao_concluido_nem_arquivado(
         self, cronograma: ScheduleDto
     ) -> None:
         hoje = (self.clock.now() - timedelta(hours=3)).date()
         for marco in _por_id(cronograma).values():
-            if marco.overdue:
-                assert marco.target_date is not None
-                assert marco.target_date < hoje
-                assert marco.state is not MilestoneState.DONE
-                assert not marco.archived
-            elif marco.target_date is not None and marco.target_date < hoje:
-                assert marco.state is MilestoneState.DONE or marco.archived
+            vencido = marco.effective_target is not None and marco.effective_target < hoje
+            ativo = marco.state is not MilestoneState.DONE and not marco.archived
+            assert marco.overdue == (vencido and ativo)
+
+    def o_prazo_efetivo_e_o_manual_ou_o_fim_da_janela_calculada(
+        self, cronograma: ScheduleDto
+    ) -> None:
+        com_data = self.world.wedding_date.is_exact_and_defined
+        assert cronograma.has_exact_date == com_data
+        for marco in _por_id(cronograma).values():
+            calculada = None
+            if com_data and marco.window is not None:
+                calculada = window_dates(
+                    self.world.wedding_date.exact,  # type: ignore[arg-type]
+                    marco.window.start_before,
+                    marco.window.end_before,
+                    marco.window.unit,
+                )
+            assert (marco.window_start, marco.window_end) == (calculada or (None, None))
+            if calculada:
+                assert marco.window_start <= marco.window_end  # type: ignore[operator]
+            fim = calculada[1] if calculada else None
+            assert marco.effective_target == (marco.target_date or fim)
+
+    def a_contagem_regressiva_so_existe_para_o_marco_ativo_com_prazo(
+        self, cronograma: ScheduleDto
+    ) -> None:
+        hoje = (self.clock.now() - timedelta(hours=3)).date()
+        for marco in _por_id(cronograma).values():
+            if (
+                marco.state is MilestoneState.DONE
+                or marco.archived
+                or marco.effective_target is None
+            ):
+                assert marco.days_left is None
+            else:
+                assert marco.days_left == (marco.effective_target - hoje).days
+
+    def so_a_janela_nao_editada_e_sugestao(self, cronograma: ScheduleDto) -> None:
+        for marco in _por_id(cronograma).values():
+            if marco.window is None:
+                assert marco.id not in self.window_edited
+            else:
+                assert marco.window.is_suggestion == (marco.id not in self.window_edited)
 
     def o_progresso_da_fase_confere_com_a_recontagem(self, cronograma: ScheduleDto) -> None:
         for fase in cronograma.phases:

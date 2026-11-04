@@ -744,6 +744,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schedule/date-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Date Change */
+        get: operations["preview_date_change"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schedule/milestones": {
         parameters: {
             query?: never;
@@ -774,6 +791,23 @@ export interface paths {
         post?: never;
         /** Delete Milestone */
         delete: operations["delete_milestone"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Milestone Window */
+        put: operations["update_milestone_window"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1142,6 +1176,22 @@ export interface components {
              */
             profile: "Noivo" | "Noiva";
         };
+        /** DateChangeOut */
+        DateChangeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            window_before: components["schemas"]["DateRangeOut"] | null;
+            window_after: components["schemas"]["DateRangeOut"] | null;
+            /** Target Before */
+            target_before: string | null;
+            /** Target After */
+            target_after: string | null;
+        };
         /** DateFieldIn */
         DateFieldIn: {
             status: components["schemas"]["DefinitionStatus"];
@@ -1168,6 +1218,44 @@ export interface components {
          * @enum {string}
          */
         DateKind: "nenhuma" | "janela" | "exata";
+        /**
+         * DateMode
+         * @enum {string}
+         */
+        DateMode: "sem_data" | "com_data";
+        /** DatePreviewOut */
+        DatePreviewOut: {
+            mode_before: components["schemas"]["DateMode"];
+            mode_after: components["schemas"]["DateMode"];
+            /**
+             * Changes
+             * @description Marcos ativos e não concluídos, com janela e sem prazo manual, cujas datas calculadas mudam.
+             */
+            changes: components["schemas"]["DateChangeOut"][];
+            /**
+             * Manual Kept
+             * @description Marcos ativos e não concluídos com janela e prazo manual: o prazo não muda.
+             */
+            manual_kept: number;
+            /**
+             * Newly Overdue
+             * @description Marcos que passariam a Atrasado com a data hipotética e não estavam.
+             */
+            newly_overdue: number;
+        };
+        /** DateRangeOut */
+        DateRangeOut: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+        };
         /**
          * DateValueSchema
          * @description `nenhuma` é o campo vazio: o domínio só guarda janela ou data exata.
@@ -1707,7 +1795,10 @@ export interface components {
             responsible: components["schemas"]["ProfileKind"];
             /** Note */
             note: string | null;
-            /** Target Date */
+            /**
+             * Target Date
+             * @description Só o prazo-alvo digitado à mão; nulo se não há. Nunca é o fim da janela calculada: esse vem em `effective_target`.
+             */
             target_date: string | null;
             state: components["schemas"]["MilestoneState"];
             /** Optional */
@@ -1725,6 +1816,28 @@ export interface components {
             /** Warnings */
             warnings: components["schemas"]["WarningOut"][];
             category: components["schemas"]["CategoryLinkOut"] | null;
+            /** @description Os deslocamentos da janela, sempre que há janela; nulo se o marco não tem. */
+            window: components["schemas"]["MilestoneWindowOut"] | null;
+            /**
+             * Window Start
+             * @description Início calculado da janela; só no Modo Com Data e com janela.
+             */
+            window_start: string | null;
+            /**
+             * Window End
+             * @description Fim calculado da janela; só no Modo Com Data e com janela.
+             */
+            window_end: string | null;
+            /**
+             * Effective Target
+             * @description O prazo que vale: o manual (`target_date`) ou, sem ele, o fim da janela.
+             */
+            effective_target: string | null;
+            /**
+             * Days Left
+             * @description Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o marco está concluído, arquivado ou sem prazo efetivo.
+             */
+            days_left: number | null;
             /** Version */
             version: number;
         };
@@ -1795,6 +1908,37 @@ export interface components {
              * @description A versão do marco que a tela viu; divergir dá 409.
              */
             version: number;
+        };
+        /**
+         * MilestoneWindowIn
+         * @description A janela inteira, na unidade dada: do início ao fim, quantas unidades antes da data do
+         *     casamento. Vale em qualquer modo e para o marco que ainda não tinha janela; o início não vem
+         *     depois do fim, `0` e `0` é o dia do casamento e o teto é 120 meses ou 520 semanas.
+         */
+        MilestoneWindowIn: {
+            /** Start Before */
+            start_before: number;
+            /** End Before */
+            end_before: number;
+            unit: components["schemas"]["WindowUnit"];
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** MilestoneWindowOut */
+        MilestoneWindowOut: {
+            /** Start Before */
+            start_before: number;
+            /** End Before */
+            end_before: number;
+            unit: components["schemas"]["WindowUnit"];
+            /**
+             * Is Suggestion
+             * @description Há janela e ninguém a editou: a sugestão genérica.
+             */
+            is_suggestion: boolean;
         };
         /** MonthYearSchema */
         MonthYearSchema: {
@@ -2145,6 +2289,11 @@ export interface components {
             /** Phase 2 Pct */
             phase_2_pct: number;
         };
+        /**
+         * WindowUnit
+         * @enum {string}
+         */
+        WindowUnit: "meses" | "semanas";
     };
     responses: never;
     parameters: never;
@@ -4814,6 +4963,47 @@ export interface operations {
             };
         };
     };
+    preview_date_change: {
+        parameters: {
+            query?: {
+                /** @description A data exata que o casamento passaria a ter, já `Definida`; sem ela, o cenário é o Modo Sem Data. O ano vai de 2000 a 2100. */
+                exact?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatePreviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     create_milestone: {
         parameters: {
             query?: never;
@@ -4949,6 +5139,68 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_milestone_window: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneWindowIn"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

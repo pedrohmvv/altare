@@ -1,4 +1,5 @@
 import copy
+from datetime import date
 from types import TracebackType
 from uuid import UUID
 
@@ -24,7 +25,11 @@ from wedding.modules.schedule.application.commands.set_milestone_dependencies im
     SetMilestoneDependencies,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
+from wedding.modules.schedule.application.commands.update_milestone_window import (
+    UpdateMilestoneWindow,
+)
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
+from wedding.modules.schedule.application.queries.preview_date_change import PreviewDateChange
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
 from wedding.modules.schedule.application.schedule_map import ScheduleReader
 from wedding.modules.schedule.application.use_cases import ScheduleUseCases
@@ -214,7 +219,8 @@ class World:
         for numero, titulo in enumerate(FASES_DO_CATALOGO, start=1):
             self.store.phases[fase_id(numero)] = Phase(fase_id(numero), titulo, numero - 1, 1)
         posicao: dict[int, int] = {}
-        for codigo, fase, titulo, categoria, dependencias, _janela in MARCOS:
+        for codigo, fase, titulo, categoria, dependencias, janela in MARCOS:
+            inicio, fim, unidade = janela or (None, None, None)
             ordem = posicao.get(fase, 0)
             posicao[fase] = ordem + 1
             self.store.milestones[marco_id(codigo)] = Milestone(
@@ -223,6 +229,9 @@ class World:
                 title=titulo,
                 position=ordem,
                 category_id=categoria_id(categoria) if categoria else None,
+                window_start_before=inicio,
+                window_end_before=fim,
+                window_unit=unidade,
                 version=1,
             )
             if categoria:
@@ -238,6 +247,11 @@ class World:
                         version=1,
                     )
                 )
+
+    def set_wedding_date(self, exact: date | None, *, defined: bool = True) -> None:
+        """A data do casamento nas Definições Base: exata e `Definida` por padrão (Modo Com Data);
+        `None` volta ao Modo Sem Data."""
+        self.wedding_date = WeddingDate(defined=defined and exact is not None, exact=exact)
 
     def classify(self, nome: str, standing: Standing, visible: bool = True) -> None:
         # Como o bootstrap: a categoria oculta conta como `Fica de fora` para o cronograma.
@@ -257,6 +271,8 @@ class World:
         return ScheduleUseCases(
             read_schedule=ReadSchedule(self.uow_factory, reader),
             update_milestone=UpdateMilestone(self.uow_factory, reader, categories),
+            update_milestone_window=UpdateMilestoneWindow(self.uow_factory, reader),
+            preview_date_change=PreviewDateChange(self.uow_factory, reader),
             change_milestone_state=ChangeMilestoneState(self.uow_factory, self.ids, reader),
             create_milestone=CreateMilestone(self.uow_factory, self.ids, reader, categories),
             delete_milestone=DeleteMilestone(self.uow_factory, self.clock, reader),

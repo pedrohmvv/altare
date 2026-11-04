@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { jsonResponse, problemResponse } from '@/test/fake-api'
 import { GET_SCHEDULE, renderSchedule, stubWideScreen } from '@/test/render-schedule'
-import { ID, SCHEDULE } from '@/test/schedule-fixtures'
+import { ID, SCHEDULE, scheduleComData } from '@/test/schedule-fixtures'
 
 const phase = (name: string) => screen.getByRole('region', { name })
 
@@ -249,5 +249,37 @@ describe('o painel do marco na URL (F-CRN-09)', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(gatilho).toHaveFocus()
+  })
+})
+
+describe('o aviso "Sem data definida" (F-CRN-05)', () => {
+  const BANNER =
+    'Sem data definida. Quando vocês definirem a data exata do casamento, as janelas e os prazos sugeridos aparecem aqui.'
+
+  it('sem data exata, diz com calma o que vem quando ela for definida e leva às Definições Base', async () => {
+    renderSchedule()
+    await screen.findByRole('heading', { name: 'Fase Exemplo Um' })
+
+    expect(screen.getByText(BANNER)).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Definir a data em Definições Base' })).toHaveAttribute(
+      'href',
+      '/planejamento',
+    )
+  })
+
+  it('com data exata, o aviso não aparece', async () => {
+    renderSchedule({ [GET_SCHEDULE]: jsonResponse(200, scheduleComData()) })
+    await screen.findByRole('heading', { name: 'Fase Exemplo Um' })
+
+    expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Definições Base/ })).not.toBeInTheDocument()
+  })
+
+  it('enquanto carrega e se a leitura falha, o aviso não aparece (ainda não se sabe o modo)', async () => {
+    renderSchedule({ [GET_SCHEDULE]: problemResponse(500, 'internal_error') })
+
+    expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
+    await screen.findByText('Não conseguimos carregar o cronograma agora.')
+    expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
   })
 })

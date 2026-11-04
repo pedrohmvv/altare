@@ -9,10 +9,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/cn'
+import { formatTableDay } from '@/lib/date'
 import type { ScheduleMilestone, SchedulePhase } from '../api/schedule'
 import { copy } from '../copy'
-import { formatTableDay } from '../lib/format'
 import { OptionalBadge, OverdueBadge, StateBadge } from './milestone-badges'
+import { MilestoneDeadline } from './milestone-deadline'
 import { MilestoneNotes } from './milestone-notes'
 import { PhaseHeader } from './phase-header'
 
@@ -125,7 +126,7 @@ function MilestoneRow({
       </TableCell>
       <TableCell>{copy.responsibles[milestone.responsible]}</TableCell>
       <TableCell numeric>
-        {milestone.target_date ? formatTableDay(milestone.target_date) : copy.list.noTarget}
+        <MilestoneDeadline milestone={milestone} format={formatTableDay} align="end" />
       </TableCell>
     </TableRow>
   )

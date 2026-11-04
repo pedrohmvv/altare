@@ -246,8 +246,35 @@ export const copy = {
     before: 'Antes',
     after: 'Depois',
     history: 'A mudança fica registrada no histórico, com o valor anterior e quem mudou.',
-    impact: {
-      date: 'A data recalcula as janelas do cronograma.',
+    preview: {
+      loading: 'Calculando o que muda no cronograma…',
+      // Sem a prévia, a confirmação continua valendo: a tela diz que a lista não veio.
+      failed:
+        'Não conseguimos calcular agora o que muda no cronograma. Ao confirmar, as janelas são recalculadas.',
+      gain: (count: number) =>
+        count === 1
+          ? '1 marco ganha janela calculada.'
+          : `${count} marcos ganham janela calculada.`,
+      lose: (count: number) =>
+        count === 1
+          ? '1 marco perde a janela calculada.'
+          : `${count} marcos perdem a janela calculada.`,
+      change: (count: number) =>
+        count === 1 ? '1 marco muda de janela.' : `${count} marcos mudam de janela.`,
+      none: 'Nenhum marco muda de janela.',
+      manualKept: (count: number) =>
+        count === 1
+          ? '1 marco com prazo definido por vocês não muda.'
+          : `${count} marcos com prazo definido por vocês não mudam.`,
+      newlyOverdue: (count: number) =>
+        count === 1
+          ? '1 marco passa a aparecer como Atrasado.'
+          : `${count} marcos passam a aparecer como Atrasado.`,
+      listLabel: 'Marcos que mudam de janela',
+      noWindow: 'sem janela calculada',
+      range: (start: string, end: string) => `${start} a ${end}`,
+      becomes: 'para',
+      more: (count: number) => (count === 1 ? 'e mais 1 marco' : `e mais ${count} marcos`),
     },
     back: 'Voltar',
     confirm: 'Confirmar mudança',
