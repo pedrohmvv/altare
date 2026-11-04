@@ -1,6 +1,6 @@
 # Features: Cronograma & Dependências (`features/cronograma.md`)
 
-> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`, e o PR 2, a edição de marcos, dependências e fases (`F-CRN-01` completa; `F-CRN-03`, regra 2), em `D-082`.
+> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`, o PR 2, a edição de marcos, dependências e fases (`F-CRN-01` completa; `F-CRN-03`, regra 2), em `D-082`, e o PR 3, as datas (`F-CRN-05`: Modos Sem e Com Data, janelas calculadas, prazo efetivo, contagem regressiva, editor de janela e a prévia ao mudar a data), em `D-083`.
 >
 > **Fontes:** `docs/product/scope.md` §2, `docs/design/experience.md` (objeto 4), `docs/product/jobs.md` (J4, J5), `features/planejamento-e-caminhos.md` (F-PLN-01, F-PLN-07), `D-026`, `D-031`.
 >
@@ -166,7 +166,7 @@ Concretiza `F-PLN-07` para o cronograma.
 1. Cada marco com janela recebe **datas calculadas**: início = data − "início antes"; fim = data − "fim antes". Meses respeitam o fim do mês (31 → 30 ou 28/29).
 2. O **prazo-alvo padrão** é o **fim da janela**. Um prazo digitado à mão **prevalece**, e há um botão "voltar à sugestão".
 3. Mostra contagem regressiva em linguagem direta ("faltam 12 dias") com a data exata no `title`/tooltip.
-4. **Mudar a data do casamento** recalcula as janelas dos marcos **não editados à mão** e mostra, antes de confirmar, a lista do que muda ("7 marcos mudam de janela"). Marcos com prazo manual não mudam.
+4. **Mudar a data do casamento** recalcula as janelas e mostra, antes de confirmar, a lista do que muda ("7 marcos mudam de janela"). As janelas são deslocamentos "antes da data" e **acompanham sempre a nova data**; o que não muda é o **prazo digitado à mão**: os marcos com prazo manual ficam como estão ("não editados à mão" refere-se ao prazo, não à janela; `D-083`). A prévia aparece ao mudar uma data **já definida**.
 5. O casal pode editar a janela de um marco (início, fim e unidade).
 6. **Voltar ao Modo Sem Data** (data deixa de ser `Definida`) mantém prazos manuais e apaga as datas calculadas.
 
