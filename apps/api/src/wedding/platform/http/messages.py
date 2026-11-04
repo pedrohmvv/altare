@@ -177,8 +177,9 @@ MESSAGES: dict[str, Message] = {
     "invalid_schedule_value": Message(
         "Valor não aceito",
         (
-            "Confiram os textos e o prazo: o título do marco vai até 120 caracteres, o da fase "
-            "até 60, a nota até 500 e o prazo é uma data entre os anos 2000 e 2100."
+            "Confiram os textos e o prazo: o título do marco ou da tarefa vai até 120 caracteres, "
+            "o da fase até 60, o texto de um item do checklist até 200, a nota até 500 e o prazo "
+            "é uma data entre os anos 2000 e 2100."
         ),
     ),
     "invalid_preview_date": Message(
@@ -199,6 +200,32 @@ MESSAGES: dict[str, Message] = {
     "phase_title_required": Message(
         "Falta o título",
         "Escrevam o título da fase antes de salvar.",
+    ),
+    "task_title_required": Message(
+        "Falta o título",
+        "Escrevam o título da tarefa antes de salvar.",
+    ),
+    "checklist_text_required": Message(
+        "Falta o texto",
+        "Escrevam o texto do item antes de salvar.",
+    ),
+    "invalid_checklist_order": Message(
+        "Ordem do checklist não aceita",
+        (
+            "A nova ordem precisa listar todos os itens do checklist uma só vez, sem repetir nem "
+            "faltar. Recarreguem o cronograma e tentem de novo."
+        ),
+    ),
+    "checklist_full": Message(
+        "Checklist cheio",
+        "Cada checklist tem no máximo 50 itens. Removam um item antes de acrescentar outro.",
+    ),
+    "checklist_open_items": Message(
+        "Itens em aberto",
+        (
+            "Ainda há itens do checklist em aberto. Confirmem que querem concluir mesmo assim: "
+            "os itens ficam como estão."
+        ),
     ),
     "invalid_phase_order": Message(
         "Ordem das fases não aceita",
@@ -221,7 +248,7 @@ MESSAGES: dict[str, Message] = {
     "milestone_blocked": Message(
         "Marco bloqueado",
         (
-            "Este marco ainda aguarda outros passos. Confirme que quer ignorar o bloqueio "
+            "Este marco ainda aguarda outros passos. Confirmem que queiram ignorar o bloqueio "
             "para marcá-lo como Em andamento ou Concluído."
         ),
     ),

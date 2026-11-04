@@ -74,7 +74,29 @@ def test_codes_sem_campo_continuam_sem_parametros():
         ("invalid_phase_order", ["Recarreguem", "tentem de novo"], ["Recarregue ", "tente "]),
         ("milestone_title_required", ["Escrevam o título do marco"], ["Escreva "]),
         ("phase_title_required", ["Escrevam o título da fase"], ["Escreva "]),
-        ("invalid_schedule_value", ["Confiram"], ["Confira "]),
+        (
+            "invalid_schedule_value",
+            ["Confiram", "título do marco ou da tarefa", "120", "texto de um item", "200"],
+            ["Confira "],
+        ),
+        (
+            "milestone_blocked",
+            ["Confirmem", "queiram ignorar o bloqueio", "marcá-lo"],
+            ["Confirme ", "quer "],
+        ),
+        ("task_title_required", ["Escrevam o título da tarefa"], ["Escreva "]),
+        ("checklist_text_required", ["Escrevam o texto do item"], ["Escreva "]),
+        (
+            "invalid_checklist_order",
+            ["Recarreguem", "tentem de novo", "checklist"],
+            ["Recarregue ", "tente "],
+        ),
+        ("checklist_full", ["50 itens", "Removam"], ["Remova "]),
+        (
+            "checklist_open_items",
+            ["em aberto", "Confirmem", "mesmo assim", "ficam como estão"],
+            ["Confirme "],
+        ),
         (
             "invalid_preview_date",
             ["A data do casamento precisa estar entre os anos 2000 e 2100."],
@@ -102,3 +124,10 @@ def test_todo_erro_do_cronograma_tem_mensagem_propria():
         if e.__module__ == "wedding.modules.schedule.domain.errors" and e.default_code
     }
     assert codes <= MESSAGES.keys(), codes - MESSAGES.keys()
+
+
+def test_a_mensagem_dos_itens_em_aberto_nao_leva_a_contagem_a_tela_a_monta():
+    """A tela diz "há 3 itens em aberto" com o progresso que a leitura já traz: o texto do erro não
+    leva `{open}` nem nenhum outro campo (F-CRN-07, regra 5)."""
+    assert _campos(MESSAGES["checklist_open_items"].detail) == set()
+    assert "checklist_open_items" not in COM_CAMPOS

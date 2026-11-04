@@ -2,7 +2,7 @@
 
 > Regras gerais: leia `AGENTS.md` (raiz) e os docs abaixo. Este arquivo só traz o que é específico do módulo.
 
-**Propósito:** é dono do cronograma do casamento: fases, marcos (criar, renomear, mover de fase, excluir e restaurar), dependências entre marcos, o estado que o casal marca (`Em andamento`, `Concluído`), responsável, categoria ligada, prazo-alvo manual, janelas (início, fim e unidade, em deslocamentos antes da data do casamento), nota e o histórico de estado, e calcula as datas, o prazo efetivo e a contagem regressiva na leitura. Não é dono do Mapa de Escopo nem da data do casamento (`wedding`), da lista de convidados (`guests`) nem de anexos (`files`): lê o que precisa por portas, nunca copia.
+**Propósito:** é dono do cronograma do casamento: fases, marcos (criar, renomear, mover de fase, excluir e restaurar), dependências entre marcos, o estado que o casal marca (`Em andamento`, `Concluído`), responsável, categoria ligada, prazo-alvo manual, janelas (início, fim e unidade, em deslocamentos antes da data do casamento), nota o histórico de estado, as tarefas avulsas e o checklist de subtarefas, e calcula as datas, o prazo efetivo e a contagem regressiva na leitura. Não é dono do Mapa de Escopo nem da data do casamento (`wedding`), da lista de convidados (`guests`) nem de anexos (`files`): lê o que precisa por portas, nunca copia.
 
 ## Superfície pública
 - `application/public.py`: ainda não existe; nasce quando outro módulo precisar ler o cronograma (o Centro de Comando, Bloco 4.2).
@@ -26,6 +26,9 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 - Marco novo nasce no fim da fase, sem estado marcado nem prazo; mudar de fase leva o marco para o fim da nova, sem tocar nas dependências. Título obrigatório (1 a 120 caracteres; fase, 1 a 60), em três camadas: domínio, `CHECK` do banco (`0011`) e teste.
 - A categoria que o casal liga vem do Mapa pela porta `CategoryReader` (id; não oculta); `category_options` no agregado lista as visíveis na ordem do Mapa, mais as ocultas que algum marco já tem ligadas. Manter a categoria já ligada, mesmo oculta, não é uma nova ligação.
 - Toda escrita envia a `version` do marco (ou da fase) que a tela viu, **exceto reordenar fases**: a lista é uma permutação exata das fases vivas, o último a gravar vence sem incoerência e uma fase criada no meio dá `invalid_phase_order` (sem 409 no contrato). Excluir e restaurar um marco sobem a `version` dos dependentes cujo conjunto de predecessores muda. Divergir dá `409 version_conflict`; autoria e perfil vêm da sessão.
+- **Tarefas avulsas (`F-CRN-06`)** são entidade própria (`schedule_tasks`), sem fase, categoria nem dependências, e **nunca passam por `derive()`**: entrariam em "libera" e nos bloqueios dos marcos. Guarda-se o título (1 a 120), responsável, nota, prazo (2000 a 2100) e o estado `A fazer`, `Em andamento` ou `Concluída` (feminino; as transições são livres e reabrir é voltar a `A fazer`). O responsável padrão é o **perfil da sessão** (`actor.profile`, só `Noivo` ou `Noiva`), decidido no caso de uso: o campo é opcional no corpo, nunca é `Ambos` por padrão e `Ambos` explícito passa. `Atrasada` e `days_left` vêm de `task_deadline` (`domain/tasks.py`), a mesma regra do marco (vencida e não concluída; negativo é passado, 0 é hoje; nulo se concluída ou sem prazo) com o dia de Brasília. Excluir é lógico e restaurar existe; não há histórico de estado das avulsas. A lista sai ordenada por (concluídas por último, sem prazo por último, prazo, título, id).
+- **Checklist (`F-CRN-07`)**: `checklist_items` tem exatamente um dono, um marco **ou** uma avulsa (`milestone_id` e `task_id`, `CHECK` `one_owner`; não é polimórfico). O item tem texto (1 a 200), `done`, posição (a partir de zero, com buracos até a próxima reordenação) e **`version` própria**: marcar, editar e remover um item **não tocam o dono** (nem a `version` nem o estado). O novo item vai para a maior posição viva mais um; no máximo 50 itens vivos por dono (`422 checklist_full`). Editar é a substituição inteira (`text`, `done`, `version`; sem mudança real não grava). Reordenar exige a permutação exata dos itens vivos do dono (`invalid_checklist_order`), sem `version`, e reatribui 0..n-1 só entre os vivos. Remover é exclusão lógica **sem restaurar**. Excluir o dono não apaga os itens: o leitor só agrupa itens de donos vivos e `require_checklist_item` dá 404 se o dono está excluído; restaurar o dono os traz de volta. A leitura carrega avulsas e itens em uma consulta cada e agrupa por dono.
+- **Concluir com itens em aberto**: o `PUT .../state` do marco e o da avulsa aceitam `ignore_open_items` (padrão `false`), que só vale ao ir para `Concluído` ou `Concluída` (com outro destino é ignorado). Ordem no marco: `version` (409), repetir o estado (não grava nem checa nada), `milestone_blocked` (422, `ignore_block`) e só então `checklist_open_items` (422). A confirmação vive na API, e não só na tela, porque o caso de uso é a superfície do agente do Nível 5 (`D-081`). O texto do erro não leva a contagem (a tela monta "há 3 itens em aberto" com `checklist_progress`). Concluir não altera os itens e o histórico de estado não ganha nada por causa deles.
 - Nada do casamento é preenchido por padrão (`AGENTS.md` §2): responsável `Ambos` e nenhum prazo na semente; as janelas sugeridas são genéricas.
 
 ## Dependências permitidas
@@ -33,16 +36,16 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 - Camadas: domínio só usa a biblioteca padrão e o `shared_kernel` (`architecture.md` §2 e §9).
 
 ## Docs
-- Features: `docs/product/features/cronograma.md` (`F-CRN-01` a `F-CRN-10`; este módulo cobre `F-CRN-01` a `F-CRN-05`).
-- Decisões: `D-031`, `D-026`, `D-067`, `D-072`, `D-080` (plano do bloco), `D-081` e `D-082` (este módulo).
+- Features: `docs/product/features/cronograma.md` (`F-CRN-01` a `F-CRN-10`; este módulo cobre `F-CRN-01` a `F-CRN-07` e os dados que `F-CRN-09` exige da API; os filtros e a lente são do front).
+- Decisões: `D-031`, `D-026`, `D-067`, `D-072`, `D-080` (plano do bloco), `D-081`, `D-082` e `D-083` (este módulo), `D-084` (as avulsas e o checklist, PR 4).
 - Arquitetura e domínio: `docs/engineering/architecture.md` §4, §5 (derivar, não duplicar) e §10 (histórico); `docs/engineering/stack.md` §4.
 - Web: `apps/web/src/features/schedule/` (nasce com o front do bloco).
 
 ## Em aberto
 - O histórico de estado é gravado, mas ainda não há rota para lê-lo.
-- Prazo das tarefas avulsas, calendário e remover a janela ou voltar à genérica não existem ainda (PRs seguintes do bloco).
+- Anexos de marcos e avulsas (`F-CRN-08`, PR 5), calendário (`F-CRN-10`, PR 6), histórico de estado das avulsas, restaurar item de checklist, mover itens entre donos e remover a janela ou voltar à genérica não existem ainda.
 
 ## Como testar
 - `make test-api` e `make lint-api` na raiz.
-- Domínio: pytest e Hypothesis (`test_windows.py`, `test_derivation.py`, `test_graph.py` e a máquina de estados, que sorteia criar, mover, excluir, restaurar, trocar dependências com e sem ciclo, definir a data do casamento, editar janelas e pedir a prévia). Aplicação: *fakes* das portas (`tests/modules/schedule/conftest.py`, com o catálogo inicial inteiro em memória). HTTP e migração: SQLite migrado de verdade, para a semente existir.
+- Domínio: pytest e Hypothesis (`test_windows.py`, `test_derivation.py`, `test_graph.py`, `test_tasks.py`, `test_checklist.py` e a máquina de estados, que sorteia criar, mover, excluir, restaurar, trocar dependências com e sem ciclo, definir a data do casamento, editar janelas, pedir a prévia, e criar, concluir, excluir e restaurar avulsas e mexer nos checklists). Aplicação: *fakes* das portas (`tests/modules/schedule/conftest.py`, com o catálogo inicial inteiro em memória). HTTP e migração: SQLite migrado de verdade, para a semente existir.
 - Contratos de import: `import-linter` no `make lint-api`.

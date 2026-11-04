@@ -14,7 +14,7 @@ from sqlalchemy import (
     text,
 )
 
-from wedding.modules.schedule.domain.values import ManualState
+from wedding.modules.schedule.domain.values import ManualState, TaskState
 from wedding.platform.db.audit import audit_columns
 from wedding.platform.db.metadata import metadata
 from wedding.shared_kernel.profile import ProfileKind
@@ -211,4 +211,94 @@ milestone_changes = Table(
     CheckConstraint("profile != 'Ambos'", name="profile_is_login"),
     Index("ix_milestone_changes_milestone_id", "milestone_id", "created_at"),
     comment="Histórico de estado dos marcos (F-CRN-03, regra 4): só se acrescenta.",
+)
+
+schedule_tasks = Table(
+    "schedule_tasks",
+    metadata,
+    *audit_columns(),
+    Column("title", String(120), nullable=False, comment="O nome da tarefa avulsa; exibido."),
+    Column(
+        "responsible",
+        _enum(ProfileKind, "task_responsible", 8),
+        nullable=False,
+        comment="Noivo, Noiva ou Ambos; por padrão, o perfil de quem criou (F-CRN-06).",
+    ),
+    Column("note", String(500), comment="Nota livre."),
+    Column(
+        "target_date",
+        Date,
+        comment=(
+            "Prazo digitado à mão; nulo se não há. O Atrasada e os dias que faltam se derivam "
+            "dele na leitura e nunca se gravam."
+        ),
+    ),
+    Column(
+        "state",
+        _enum(TaskState, "task_state", 12),
+        nullable=False,
+        comment="A fazer, Em andamento ou Concluída (feminino, diferente do Concluído do marco).",
+    ),
+    CheckConstraint("length(trim(title)) > 0", name="title_not_blank"),
+    comment=(
+        "Tarefas avulsas do cronograma (F-CRN-06): sem fase, categoria nem dependências, fora da "
+        "derivação dos marcos. Atrasada se deriva na leitura."
+    ),
+)
+
+checklist_items = Table(
+    "checklist_items",
+    metadata,
+    *audit_columns(),
+    Column(
+        "milestone_id",
+        Uuid,
+        ForeignKey("milestones.id", ondelete="RESTRICT"),
+        comment="O marco dono do item; nulo se o dono é uma tarefa avulsa.",
+    ),
+    Column(
+        "task_id",
+        Uuid,
+        ForeignKey("schedule_tasks.id", ondelete="RESTRICT"),
+        comment="A tarefa avulsa dona do item; nulo se o dono é um marco.",
+    ),
+    Column("text", String(200), nullable=False, comment="O que fazer; exibido."),
+    Column(
+        "done",
+        Boolean,
+        nullable=False,
+        server_default=sa.false(),
+        comment="Verdadeiro se o item foi feito; nunca muda o estado do dono (F-CRN-07).",
+    ),
+    Column(
+        "position",
+        Integer,
+        nullable=False,
+        comment="Ordem entre os itens vivos do dono, a partir de zero; pode ter buracos.",
+    ),
+    CheckConstraint("length(trim(text)) > 0", name="text_not_blank"),
+    CheckConstraint("position >= 0", name="position_not_negative"),
+    CheckConstraint(
+        "(milestone_id IS NOT NULL AND task_id IS NULL) "
+        "OR (milestone_id IS NULL AND task_id IS NOT NULL)",
+        name="one_owner",
+    ),
+    Index(
+        "ix_checklist_items_milestone_live",
+        "milestone_id",
+        "position",
+        sqlite_where=_LIVE,
+        postgresql_where=_LIVE,
+    ),
+    Index(
+        "ix_checklist_items_task_live",
+        "task_id",
+        "position",
+        sqlite_where=_LIVE,
+        postgresql_where=_LIVE,
+    ),
+    comment=(
+        "Itens do checklist (F-CRN-07) de um marco ou de uma tarefa avulsa: exatamente um dos "
+        "dois donos. Sair é exclusão lógica; o dono excluído esconde os itens, sem apagá-los."
+    ),
 )

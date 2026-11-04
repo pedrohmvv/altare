@@ -6,18 +6,21 @@ from typing import Protocol, Self
 from uuid import UUID
 
 from wedding.modules.schedule.domain.entities import (
+    ChecklistItem,
     Dependency,
     Milestone,
     MilestoneChange,
     MilestoneDependency,
     Phase,
+    Task,
 )
-from wedding.modules.schedule.domain.values import Standing
+from wedding.modules.schedule.domain.values import OwnerKind, Standing
 from wedding.shared_kernel.actor import Actor
 
 
 class ScheduleRepository(Protocol):
-    """Fases, marcos, dependências e histórico. Tudo o que lê já filtra a exclusão lógica."""
+    """Fases, marcos, dependências, histórico, avulsas e checklist. Tudo o que lê já filtra a
+    exclusão lógica."""
 
     def list_phases(self) -> list[Phase]: ...
 
@@ -57,6 +60,27 @@ class ScheduleRepository(Protocol):
     def add_link(self, link: MilestoneDependency) -> None: ...
 
     def add_change(self, change: MilestoneChange) -> None: ...
+
+    def list_tasks(self) -> list[Task]: ...
+
+    def get_task(self, task_id: UUID, *, include_deleted: bool = False) -> Task | None: ...
+
+    def add_task(self, task: Task) -> None: ...
+
+    def list_checklist_items(self) -> list[ChecklistItem]:
+        """Os itens vivos de todos os donos, numa só consulta. Quem os agrupa descarta os de dono
+        excluído: excluir o dono não apaga os itens (restaurar os traz de volta)."""
+        ...
+
+    def live_items_of(self, kind: OwnerKind, owner_id: UUID) -> list[ChecklistItem]:
+        """Os itens vivos do dono, na ordem do checklist (posição e id)."""
+        ...
+
+    def get_checklist_item(self, item_id: UUID) -> ChecklistItem | None:
+        """O item vivo, qualquer que seja o dono; conferir se o dono está vivo é do caso de uso."""
+        ...
+
+    def add_checklist_item(self, item: ChecklistItem) -> None: ...
 
 
 class ScheduleUnitOfWork(Protocol):

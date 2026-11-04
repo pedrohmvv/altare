@@ -4,16 +4,21 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from wedding.modules.schedule.domain.entities import (
+    ChecklistItem,
     Dependency,
     Milestone,
     MilestoneChange,
     MilestoneDependency,
     Phase,
+    Task,
 )
+from wedding.modules.schedule.domain.values import OwnerKind
 from wedding.modules.schedule.infrastructure.tables import (
+    checklist_items,
     milestone_dependencies,
     milestones,
     schedule_phases,
+    schedule_tasks,
 )
 
 
@@ -101,3 +106,42 @@ class SqlScheduleRepository:
 
     def add_change(self, change: MilestoneChange) -> None:
         self._session.add(change)
+
+    def list_tasks(self) -> list[Task]:
+        query = select(Task).where(schedule_tasks.c.deleted_at.is_(None))
+        return list(self._session.execute(query).scalars())
+
+    def get_task(self, task_id: UUID, *, include_deleted: bool = False) -> Task | None:
+        query = select(Task).where(schedule_tasks.c.id == task_id)
+        if not include_deleted:
+            query = query.where(schedule_tasks.c.deleted_at.is_(None))
+        return self._session.execute(query).scalar_one_or_none()
+
+    def add_task(self, task: Task) -> None:
+        self._session.add(task)
+
+    def list_checklist_items(self) -> list[ChecklistItem]:
+        query = select(ChecklistItem).where(checklist_items.c.deleted_at.is_(None))
+        return list(self._session.execute(query).scalars())
+
+    def live_items_of(self, kind: OwnerKind, owner_id: UUID) -> list[ChecklistItem]:
+        owner = (
+            checklist_items.c.milestone_id
+            if kind is OwnerKind.MILESTONE
+            else checklist_items.c.task_id
+        )
+        query = (
+            select(ChecklistItem)
+            .where(owner == owner_id, checklist_items.c.deleted_at.is_(None))
+            .order_by(checklist_items.c.position, checklist_items.c.id)
+        )
+        return list(self._session.execute(query).scalars())
+
+    def get_checklist_item(self, item_id: UUID) -> ChecklistItem | None:
+        query = select(ChecklistItem).where(
+            checklist_items.c.id == item_id, checklist_items.c.deleted_at.is_(None)
+        )
+        return self._session.execute(query).scalar_one_or_none()
+
+    def add_checklist_item(self, item: ChecklistItem) -> None:
+        self._session.add(item)

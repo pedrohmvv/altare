@@ -139,6 +139,9 @@ def test_o_contrato_declara_todos_os_campos_de_saida_como_obrigatorios(api):
         "RestoreOut",
         "LeftOutOut",
         "MilestoneWindowOut",
+        "TaskOut",
+        "ChecklistItemOut",
+        "ChecklistProgressOut",
     )
     for nome in saidas:
         esquema = esquemas[nome]

@@ -2,22 +2,35 @@ from collections.abc import Callable
 from threading import Lock
 from uuid import UUID
 
+from wedding.modules.schedule.application.commands.add_checklist_item import AddChecklistItem
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
+from wedding.modules.schedule.application.commands.change_task_state import ChangeTaskState
 from wedding.modules.schedule.application.commands.create_milestone import CreateMilestone
 from wedding.modules.schedule.application.commands.create_phase import CreatePhase
+from wedding.modules.schedule.application.commands.create_task import CreateTask
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
+from wedding.modules.schedule.application.commands.delete_task import DeleteTask
+from wedding.modules.schedule.application.commands.remove_checklist_item import (
+    RemoveChecklistItem,
+)
 from wedding.modules.schedule.application.commands.rename_phase import RenamePhase
+from wedding.modules.schedule.application.commands.reorder_checklist import ReorderChecklist
 from wedding.modules.schedule.application.commands.reorder_phases import ReorderPhases
 from wedding.modules.schedule.application.commands.restore_milestone import RestoreMilestone
+from wedding.modules.schedule.application.commands.restore_task import RestoreTask
 from wedding.modules.schedule.application.commands.set_milestone_dependencies import (
     SetMilestoneDependencies,
+)
+from wedding.modules.schedule.application.commands.update_checklist_item import (
+    UpdateChecklistItem,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
 from wedding.modules.schedule.application.commands.update_milestone_window import (
     UpdateMilestoneWindow,
 )
+from wedding.modules.schedule.application.commands.update_task import UpdateTask
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
 from wedding.modules.schedule.application.queries.preview_date_change import PreviewDateChange
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
@@ -123,4 +136,13 @@ class ScheduleContainer:
             create_phase=CreatePhase(uow_factory, ids, reader),
             rename_phase=RenamePhase(uow_factory, reader),
             reorder_phases=ReorderPhases(uow_factory, reader),
+            create_task=CreateTask(uow_factory, ids, reader),
+            update_task=UpdateTask(uow_factory, reader),
+            change_task_state=ChangeTaskState(uow_factory, reader),
+            delete_task=DeleteTask(uow_factory, clock, reader),
+            restore_task=RestoreTask(uow_factory, reader),
+            add_checklist_item=AddChecklistItem(uow_factory, ids, reader),
+            update_checklist_item=UpdateChecklistItem(uow_factory, reader),
+            remove_checklist_item=RemoveChecklistItem(uow_factory, clock, reader),
+            reorder_checklist=ReorderChecklist(uow_factory, reader),
         )

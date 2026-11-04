@@ -52,3 +52,26 @@ class InvalidMilestoneWindow(DomainRuleViolated):
 
 class InvalidPreviewDate(DomainRuleViolated):
     default_code = "invalid_preview_date"
+
+
+class TaskTitleRequired(DomainRuleViolated):
+    default_code = "task_title_required"
+
+
+class ChecklistTextRequired(DomainRuleViolated):
+    default_code = "checklist_text_required"
+
+
+class InvalidChecklistOrder(DomainRuleViolated):
+    default_code = "invalid_checklist_order"
+
+
+class ChecklistFull(DomainRuleViolated):
+    default_code = "checklist_full"
+
+
+class ChecklistOpenItems(DomainRuleViolated):
+    """Concluir com itens do checklist em aberto pede a confirmação (F-CRN-07, regra 5). O texto
+    não leva a contagem: a tela a monta com o progresso que a leitura já traz."""
+
+    default_code = "checklist_open_items"

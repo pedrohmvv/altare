@@ -3,8 +3,9 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
+from wedding.modules.schedule.domain.checklist import ChecklistProgress
 from wedding.modules.schedule.domain.derivation import PhaseProgress
-from wedding.modules.schedule.domain.values import BlockerKind, MilestoneState
+from wedding.modules.schedule.domain.values import BlockerKind, MilestoneState, TaskState
 from wedding.modules.schedule.domain.windows import WindowUnit
 from wedding.shared_kernel.profile import ProfileKind
 
@@ -66,6 +67,17 @@ class MilestoneWindowDto:
 
 
 @dataclass(frozen=True)
+class ChecklistItemDto:
+    """Um item vivo do checklist de um marco ou de uma avulsa (F-CRN-07), com `version` própria."""
+
+    id: UUID
+    text: str
+    done: bool
+    position: int
+    version: int
+
+
+@dataclass(frozen=True)
 class MilestoneDto:
     id: UUID
     title: str
@@ -92,6 +104,29 @@ class MilestoneDto:
     # Dias de hoje (Brasília) ao prazo efetivo: negativo é passado, 0 é hoje. Nulo se o marco está
     # concluído, arquivado ou sem prazo efetivo.
     days_left: int | None
+    # Os itens vivos na ordem do checklist e o "N de M" (F-CRN-07); não mexem no estado do marco.
+    checklist: tuple[ChecklistItemDto, ...]
+    checklist_progress: ChecklistProgress
+    version: int
+
+
+@dataclass(frozen=True)
+class TaskDto:
+    """Uma tarefa avulsa (F-CRN-06). Fora das fases e fora da derivação dos marcos: nunca bloqueia
+    nem é liberada por ninguém."""
+
+    id: UUID
+    title: str
+    responsible: ProfileKind
+    note: str | None
+    target_date: date | None
+    state: TaskState
+    # Prazo vencido e não concluída, com o dia de hoje em Brasília.
+    overdue: bool
+    # Dias de hoje ao prazo (negativo é passado, 0 é hoje); nulo se concluída ou sem prazo.
+    days_left: int | None
+    checklist: tuple[ChecklistItemDto, ...]
+    checklist_progress: ChecklistProgress
     version: int
 
 
@@ -132,6 +167,8 @@ class LeftOutDto:
 @dataclass(frozen=True)
 class ScheduleDto:
     phases: tuple[PhaseDto, ...]
+    # As avulsas vivas, fora das fases, na ordem da lista (concluídas e sem prazo por último).
+    tasks: tuple[TaskDto, ...]
     # As categorias não ocultas na ordem do Mapa, mais as ocultas que algum marco já tem ligadas.
     category_options: tuple[CategoryOptionDto, ...]
     # Modo Com Data: a data do casamento é `Definida` e exata (F-CRN-05).

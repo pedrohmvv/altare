@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from tests.modules.schedule.catalog import FASES, MARCOS, SEED_NS
 
 from wedding.platform.bootstrap.tables import load_tables
+from wedding.platform.db.engine import create_db_engine
 from wedding.platform.db.metadata import metadata
 
 API_DIR = Path(__file__).parents[2]
@@ -231,7 +232,14 @@ def test_a_migracao_do_convite_acrescenta_as_colunas_sem_perder_nada_e_desce(tmp
     assert nome == "Família Exemplo"
 
 
-CRONOGRAMA = {"schedule_phases", "milestones", "milestone_dependencies", "milestone_changes"}
+CRONOGRAMA = {
+    "schedule_phases",
+    "milestones",
+    "milestone_dependencies",
+    "milestone_changes",
+    "schedule_tasks",
+    "checklist_items",
+}
 
 
 def _ler(url: str, sql: str) -> list[Any]:
@@ -708,3 +716,242 @@ def test_a_marca_de_janela_editada_tem_default_falso_que_o_postgresql_entende(tm
         )
     engine.dispose()
     assert _ler(url, "SELECT window_edited FROM milestones WHERE title = 'Marco Exemplo'") == [(0,)]
+
+
+# --- 0013: tarefas avulsas e checklist (F-CRN-06 e F-CRN-07) ------------------------------------
+
+NOVAS = {"schedule_tasks", "checklist_items"}
+CHECKS_DAS_NOVAS = {
+    "schedule_tasks": {
+        "ck_schedule_tasks_title_not_blank",
+        "ck_schedule_tasks_task_responsible",
+        "ck_schedule_tasks_task_state",
+    },
+    "checklist_items": {
+        "ck_checklist_items_text_not_blank",
+        "ck_checklist_items_position_not_negative",
+        "ck_checklist_items_one_owner",
+    },
+}
+
+
+def _tarefa_sql(url: str, tarefa: str = "t1") -> None:
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO schedule_tasks (id, created_at, updated_at, version, title,"
+                " responsible, state) VALUES (:id, '2026-11-04', '2026-11-04', 1,"
+                " 'Tarefa Exemplo', 'Noiva', 'A fazer')"
+            ),
+            {"id": _id(f"tarefa:{tarefa}")},
+        )
+    engine.dispose()
+
+
+def _item_sql(url: str, marco: str | None, tarefa: str | None, texto="Item Exemplo", posicao=0):
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO checklist_items (id, created_at, updated_at, version, milestone_id,"
+                " task_id, text, position) VALUES (:id, '2026-11-04', '2026-11-04', 1, :m, :t,"
+                " :texto, :posicao)"
+            ),
+            {
+                "id": uuid.uuid4().hex,
+                "m": _id(f"marco:{marco}") if marco else None,
+                "t": _id(f"tarefa:{tarefa}") if tarefa else None,
+                "texto": texto,
+                "posicao": posicao,
+            },
+        )
+    engine.dispose()
+
+
+def test_a_0013_e_a_cabeca_e_sucede_a_0012():
+    script = ScriptDirectory.from_config(_config())
+    assert script.get_current_head() == "0013"
+    assert script.get_revision("0013").down_revision == "0012"
+
+
+def test_a_0013_cria_as_duas_tabelas_e_a_semente_continua_29_31_5(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    assert _estado(url)[0] >= NOVAS
+    assert _ler(url, "SELECT COUNT(*) FROM schedule_tasks") == [(0,)]
+    assert _ler(url, "SELECT COUNT(*) FROM checklist_items") == [(0,)]
+    assert _ler(url, "SELECT COUNT(*) FROM milestones") == [(29,)]
+    assert _ler(url, "SELECT COUNT(*) FROM milestone_dependencies") == [(31,)]
+    assert _ler(url, "SELECT COUNT(*) FROM schedule_phases") == [(5,)]
+
+
+def test_a_0013_desce_e_sobe_sem_perder_os_dados_dos_marcos(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "0012")
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE milestones SET note = 'nota do casal', manual_state = 'Concluído'"
+                " WHERE id = :id"
+            ),
+            {"id": _id("marco:C06")},
+        )
+    engine.dispose()
+    antes = {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()}
+    marco = _ler(url, "SELECT note, manual_state FROM milestones WHERE note IS NOT NULL")
+
+    command.upgrade(config, "head")
+    assert _estado(url)[0] >= NOVAS
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+    assert _ler(url, "SELECT note, manual_state FROM milestones WHERE note IS NOT NULL") == marco
+
+    command.downgrade(config, "0012")
+    assert NOVAS.isdisjoint(_estado(url)[0])
+    assert {chave: _ler(url, sql) for chave, sql in SQL_SEMENTE.items()} == antes
+    assert _ler(url, "SELECT note, manual_state FROM milestones WHERE note IS NOT NULL") == marco
+    assert [len(antes[c]) for c in ("marcos", "dependencias", "fases")] == [29, 31, 5]
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+    command.upgrade(config, "head")
+    assert _estado(url)[0] >= NOVAS
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+
+def test_a_0013_desce_mesmo_com_avulsas_e_itens_gravados(tmp_path):
+    """A descida apaga os itens antes das avulsas (a chave estrangeira do item aponta para elas)."""
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    config = _config(url)
+    command.upgrade(config, "head")
+    _tarefa_sql(url)
+    _item_sql(url, "C06", None)
+    _item_sql(url, None, "t1")
+    command.downgrade(config, "0012")
+    assert NOVAS.isdisjoint(_estado(url)[0])
+    assert _ler(url, "PRAGMA foreign_key_check") == []
+
+
+@pytest.mark.parametrize(
+    ("marco", "tarefa"),
+    [("C06", "t1"), (None, None)],
+    ids=["os dois donos", "nenhum dono"],
+)
+def test_o_check_de_dono_recusa_os_dois_e_nenhum(tmp_path, marco, tarefa):  # F-CRN-07
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    _tarefa_sql(url)
+    with pytest.raises(IntegrityError, match="ck_checklist_items_one_owner"):
+        _item_sql(url, marco, tarefa)
+    _item_sql(url, "C06", None)  # só o marco vale
+    _item_sql(url, None, "t1")  # só a avulsa vale
+    assert _ler(url, "SELECT COUNT(*) FROM checklist_items") == [(2,)]
+
+
+def test_a_0013_nomeia_os_checks_pela_convencao(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    for tabela, esperados in CHECKS_DAS_NOVAS.items():
+        assert _nomes_dos_checks(url, tabela) >= esperados, tabela
+
+
+def test_os_checks_da_0013_recusam_valor_invalido(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    _tarefa_sql(url)
+    for texto, posicao, erro in (
+        ("   ", 0, "text_not_blank"),
+        ("Item Exemplo", -1, "position_not_negative"),
+    ):
+        with pytest.raises(IntegrityError, match=erro):
+            _item_sql(url, "C06", None, texto, posicao)
+    engine = create_engine(url)
+    for titulo, responsavel, estado, erro in (
+        ("  ", "Noiva", "A fazer", "title_not_blank"),
+        ("Tarefa Exemplo", "Ninguém", "A fazer", "task_responsible"),
+        ("Tarefa Exemplo", "Noiva", "Concluído", "task_state"),
+    ):
+        with pytest.raises(IntegrityError, match=erro), engine.begin() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO schedule_tasks (id, created_at, updated_at, version, title,"
+                    " responsible, state) VALUES (:id, '2026-11-04', '2026-11-04', 1, :t, :r, :s)"
+                ),
+                {"id": uuid.uuid4().hex, "t": titulo, "r": responsavel, "s": estado},
+            )
+    engine.dispose()
+
+
+def test_as_chaves_dos_itens_apontam_para_marco_e_avulsa_e_nao_apagam(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    chaves = {
+        fk["referred_table"]: fk for fk in inspect(engine).get_foreign_keys("checklist_items")
+    }
+    engine.dispose()
+    assert set(chaves) == {"milestones", "schedule_tasks"}
+    assert chaves["milestones"]["constrained_columns"] == ["milestone_id"]
+    assert chaves["schedule_tasks"]["constrained_columns"] == ["task_id"]
+    for fk in chaves.values():
+        assert fk.get("options", {}).get("ondelete") == "RESTRICT"
+    _tarefa_sql(url)
+    _item_sql(url, "C06", None)
+    _item_sql(url, None, "t1")
+    # O `create_engine` puro não liga as chaves estrangeiras do SQLite; a do app, sim.
+    engine = create_db_engine(url)
+    for tabela, chave in (("milestones", _id("marco:C06")), ("schedule_tasks", _id("tarefa:t1"))):
+        with pytest.raises(IntegrityError, match="FOREIGN KEY"), engine.begin() as conn:
+            conn.execute(text(f"DELETE FROM {tabela} WHERE id = :id"), {"id": chave})
+    engine.dispose()
+
+
+def test_os_indices_do_checklist_sao_parciais_por_dono_vivo_e_nenhum_e_unico(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    engine = create_engine(url)
+    indices = inspect(engine).get_indexes("checklist_items")
+    engine.dispose()
+    assert {tuple(i["column_names"]) for i in indices} == {
+        ("milestone_id", "position"),
+        ("task_id", "position"),
+    }
+    assert not any(i["unique"] for i in indices)
+    sql = " ".join(
+        linha[0]
+        for linha in _ler(
+            url,
+            "SELECT sql FROM sqlite_master WHERE type = 'index' AND tbl_name = 'checklist_items'",
+        )
+        if linha[0]
+    )
+    assert sql.count("WHERE deleted_at IS NULL") == 2
+    # Sem índice único em (dono, posição): reordenar troca posições em passos intermediários.
+    _tarefa_sql(url)
+    _item_sql(url, "C06", None, "A", 0)
+    _item_sql(url, "C06", None, "B", 0)
+
+
+def test_toda_coluna_e_as_duas_tabelas_novas_tem_comentario(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    from wedding.modules.schedule.infrastructure.tables import checklist_items, schedule_tasks
+
+    for tabela in (schedule_tasks, checklist_items):
+        assert tabela.comment, tabela.name
+        assert [c.name for c in tabela.columns if not c.comment] == [], tabela.name
+
+
+def test_o_feito_do_item_tem_default_falso_que_o_postgresql_entende(tmp_path):
+    from sqlalchemy.dialects import postgresql
+    from sqlalchemy.schema import CreateTable
+
+    from wedding.modules.schedule.infrastructure.tables import checklist_items
+
+    ddl = str(CreateTable(checklist_items).compile(dialect=postgresql.dialect()))
+    assert "done BOOLEAN DEFAULT false NOT NULL" in ddl
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    command.upgrade(_config(url), "head")
+    _item_sql(url, "C06", None)
+    assert _ler(url, "SELECT done FROM checklist_items") == [(0,)]
