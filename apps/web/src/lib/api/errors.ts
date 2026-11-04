@@ -14,6 +14,8 @@ export class ApiError extends Error {
   readonly code: string
   readonly retryAfterSeconds: number | undefined
   readonly fieldErrors: FieldError[]
+  /** O campo `data` do problema (por exemplo, o caminho de um ciclo de dependências); só objeto. */
+  readonly data: Record<string, unknown> | undefined
 
   constructor(error: unknown, response: Response) {
     super(detailOf(error))
@@ -22,6 +24,7 @@ export class ApiError extends Error {
     this.code = problemCode(error) ?? 'http_error'
     this.retryAfterSeconds = parseSeconds(response.headers.get('retry-after'))
     this.fieldErrors = fieldErrorsOf(error)
+    this.data = dataOf(error)
   }
 }
 
@@ -39,6 +42,14 @@ function fieldErrorsOf(error: unknown): FieldError[] {
     (item): item is FieldError =>
       typeof item?.field === 'string' && typeof item?.message === 'string',
   )
+}
+
+function dataOf(error: unknown): Record<string, unknown> | undefined {
+  if (typeof error !== 'object' || error === null || !('data' in error)) return undefined
+  const { data } = error
+  return typeof data === 'object' && data !== null && !Array.isArray(data)
+    ? (data as Record<string, unknown>)
+    : undefined
 }
 
 function parseSeconds(header: string | null): number | undefined {

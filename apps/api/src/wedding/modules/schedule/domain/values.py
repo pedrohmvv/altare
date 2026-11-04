@@ -1,9 +1,15 @@
 from datetime import date
 from enum import StrEnum
 
-from wedding.modules.schedule.domain.errors import InvalidScheduleValue
+from wedding.modules.schedule.domain.errors import (
+    InvalidScheduleValue,
+    MilestoneTitleRequired,
+    PhaseTitleRequired,
+)
 
 MAX_NOTE = 500
+MAX_TITLE = 120
+MAX_PHASE_TITLE = 60
 MIN_YEAR = 2000
 MAX_YEAR = 2100
 
@@ -51,3 +57,21 @@ def clean_target_date(target: date | None) -> date | None:
     if target is not None and not MIN_YEAR <= target.year <= MAX_YEAR:
         raise InvalidScheduleValue()
     return target
+
+
+def clean_milestone_title(title: str) -> str:
+    cleaned = title.strip()
+    if not cleaned:
+        raise MilestoneTitleRequired()
+    if len(cleaned) > MAX_TITLE:
+        raise InvalidScheduleValue()
+    return cleaned
+
+
+def clean_phase_title(title: str) -> str:
+    cleaned = title.strip()
+    if not cleaned:
+        raise PhaseTitleRequired()
+    if len(cleaned) > MAX_PHASE_TITLE:
+        raise InvalidScheduleValue()
+    return cleaned

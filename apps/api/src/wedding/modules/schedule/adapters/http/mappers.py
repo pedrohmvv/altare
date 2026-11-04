@@ -1,15 +1,25 @@
 from wedding.modules.schedule.adapters.http.schemas import (
     BlockerOut,
     CategoryLinkOut,
+    CategoryOptionOut,
+    CreatedMilestoneOut,
     DependencyOut,
+    LeftOutOut,
     MilestoneOut,
     MilestoneRefOut,
     PhaseOut,
     PhaseProgressOut,
+    RestoreOut,
     ScheduleOut,
     WarningOut,
 )
-from wedding.modules.schedule.application.dto import MilestoneDto, PhaseDto, ScheduleDto
+from wedding.modules.schedule.application.dto import (
+    CreatedMilestoneDto,
+    MilestoneDto,
+    PhaseDto,
+    RestoreDto,
+    ScheduleDto,
+)
 
 
 def _to_milestone_out(milestone: MilestoneDto) -> MilestoneOut:
@@ -52,11 +62,32 @@ def _to_phase_out(phase: PhaseDto) -> PhaseOut:
         position=phase.position,
         progress=PhaseProgressOut(done=phase.progress.done, total=phase.progress.total),
         milestones=[_to_milestone_out(m) for m in phase.milestones],
+        version=phase.version,
     )
 
 
 def to_schedule_out(schedule: ScheduleDto) -> ScheduleOut:
     return ScheduleOut(
         phases=[_to_phase_out(phase) for phase in schedule.phases],
+        category_options=[
+            CategoryOptionOut(id=option.id, name=option.name)
+            for option in schedule.category_options
+        ],
         has_exact_date=schedule.has_exact_date,
+    )
+
+
+def to_restore_out(restored: RestoreDto) -> RestoreOut:
+    return RestoreOut(
+        schedule=to_schedule_out(restored.schedule),
+        left_out=[
+            LeftOutOut(milestone_id=item.milestone_id, title=item.title, direction=item.direction)
+            for item in restored.left_out
+        ],
+    )
+
+
+def to_created_milestone_out(created: CreatedMilestoneDto) -> CreatedMilestoneOut:
+    return CreatedMilestoneOut(
+        schedule=to_schedule_out(created.schedule), milestone_id=created.milestone_id
     )

@@ -2,7 +2,7 @@
 
 > Regras gerais: leia `AGENTS.md` (raiz) e os docs abaixo. Este arquivo só traz o que é específico do módulo.
 
-**Propósito:** é dono do cronograma do casamento: fases, marcos, dependências entre marcos, o estado que o casal marca (`Em andamento`, `Concluído`), responsável, prazo-alvo, nota e o histórico de estado. Não é dono do Mapa de Escopo nem da data do casamento (`wedding`), da lista de convidados (`guests`) nem de anexos (`files`): lê o que precisa por portas, nunca copia.
+**Propósito:** é dono do cronograma do casamento: fases, marcos (criar, renomear, mover de fase, excluir e restaurar), dependências entre marcos, o estado que o casal marca (`Em andamento`, `Concluído`), responsável, categoria ligada, prazo-alvo, nota e o histórico de estado. Não é dono do Mapa de Escopo nem da data do casamento (`wedding`), da lista de convidados (`guests`) nem de anexos (`files`): lê o que precisa por portas, nunca copia.
 
 ## Superfície pública
 - `application/public.py`: ainda não existe; nasce quando outro módulo precisar ler o cronograma (o Centro de Comando, Bloco 4.2).
@@ -17,7 +17,12 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 - Marcar `Em andamento` ou `Concluído` num marco com algo aguardando (calculado sem a marca manual atual, então vale também saindo de `Concluído`) exige `ignore_block` (a confirmação é da tela); sem ele, `422 milestone_blocked`. O histórico (`milestone_changes`) guarda o estado antes e depois, o perfil e se o bloqueio foi ignorado; só mudança real vira linha.
 - "Hoje" é o dia em Brasília, pelo `Clock` injetado. Sem prazo-alvo manual não há atraso (as janelas calculadas são de outro PR).
 - A ligação com o Mapa é pelo **id** da categoria (catálogo do `wedding`, ids `uuid5` fixos), nunca pelo nome; a chave estrangeira física para `scope_categories` segue o precedente de `scope_references.file_id` (FK entre módulos no banco, mas o código só cruza por `public.py`).
-- Toda escrita envia a `version` do marco que a tela viu (`409 version_conflict`); autoria e perfil vêm da sessão.
+- **O grafo de dependências é sempre acíclico** (`domain/graph.py`, função pura; `F-CRN-03`, regra 2): trocar os predecessores de um marco (`PUT .../dependencies`, que substitui o conjunto) recusa a auto-dependência (`self_dependency`) e o ciclo (`dependency_cycle`, com o caminho `C → A → B → C` em `data.path` e no texto). Repetir o conjunto atual não grava nada; a revisão das dependências (`dependencies_revision`) sobe a `version` do marco, como o `members_revision` do `guests`.
+- **Excluir marco é lógico e leva junto, com o mesmo carimbo (`deleted_at`), os vínculos em que ele aparece, nos dois sentidos.** Restaurar traz de volta o marco, no fim da fase em que estava, e só os vínculos com aquele carimbo cuja outra ponta está viva e que hoje não fecham ciclo; o que ficou de fora vem em `left_out` (id, título e sentido). Um vínculo tirado à mão tem o carimbo do instante em que saiu e nunca volta por engano. O histórico de estado permanece.
+- **Fases: criar, renomear e reordenar; não há excluir fase** (`D-080`). Reordenar exige exatamente as fases vivas (`invalid_phase_order`) e sobe a `version` só de quem mudou de posição.
+- Marco novo nasce no fim da fase, sem estado marcado nem prazo; mudar de fase leva o marco para o fim da nova, sem tocar nas dependências. Título obrigatório (1 a 120 caracteres; fase, 1 a 60), em três camadas: domínio, `CHECK` do banco (`0011`) e teste.
+- A categoria que o casal liga vem do Mapa pela porta `CategoryReader` (id; não oculta); `category_options` no agregado lista as visíveis na ordem do Mapa, mais as ocultas que algum marco já tem ligadas. Manter a categoria já ligada, mesmo oculta, não é uma nova ligação.
+- Toda escrita envia a `version` do marco (ou da fase) que a tela viu, **exceto reordenar fases**: a lista é uma permutação exata das fases vivas, o último a gravar vence sem incoerência e uma fase criada no meio dá `invalid_phase_order` (sem 409 no contrato). Excluir e restaurar um marco sobem a `version` dos dependentes cujo conjunto de predecessores muda. Divergir dá `409 version_conflict`; autoria e perfil vêm da sessão.
 - Nada do casamento é preenchido por padrão (`AGENTS.md` §2): responsável `Ambos` e nenhum prazo na semente; as janelas sugeridas são genéricas.
 
 ## Dependências permitidas
@@ -36,5 +41,5 @@ Nada além disso pode ser importado por outro módulo (`architecture.md` §4; co
 
 ## Como testar
 - `make test-api` e `make lint-api` na raiz.
-- Domínio: pytest e Hypothesis (`tests/modules/schedule/test_derivation.py` e a máquina de estados). Aplicação: *fakes* das portas (`tests/modules/schedule/conftest.py`, com o catálogo inicial inteiro em memória). HTTP e migração: SQLite migrado de verdade, para a semente existir.
+- Domínio: pytest e Hypothesis (`test_derivation.py`, `test_graph.py` e a máquina de estados, que sorteia criar, mover, excluir, restaurar e trocar dependências com e sem ciclo). Aplicação: *fakes* das portas (`tests/modules/schedule/conftest.py`, com o catálogo inicial inteiro em memória). HTTP e migração: SQLite migrado de verdade, para a semente existir.
 - Contratos de import: `import-linter` no `make lint-api`.

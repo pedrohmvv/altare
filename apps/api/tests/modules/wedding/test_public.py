@@ -1,6 +1,7 @@
 """A superfície pública do `wedding` (`application/public.py`): o que o cronograma lê."""
 
 from datetime import date
+from uuid import UUID
 
 from tests.modules.wedding.conftest import NOIVO
 
@@ -133,3 +134,39 @@ def test_categoria_do_casal_excluida_some_da_lista(world):
     assert len(casos.get_scope_standings.execute(NOIVO)) == 2
     casos.delete_scope_category.execute(DeleteScopeCategoryCommand(nova.id, nova.version), NOIVO)
     assert [i.name for i in casos.get_scope_standings.execute(NOIVO)] == ["Cerimônia civil"]
+
+
+def test_as_categorias_vem_na_ordem_do_mapa_grupo_e_depois_categoria(world):
+    from wedding.modules.wedding.domain.scope_entities import ScopeCategory, ScopeGroup
+    from wedding.modules.wedding.domain.scope_values import Origin
+
+    world.seed_catalog()  # grupo 0 com "Cerimônia civil"
+    depois = ScopeGroup(
+        id=UUID(int=9010), name="Grupo B Exemplo", position=1, origin=Origin.CATALOG
+    )
+    antes = ScopeGroup(id=UUID(int=9011), name="Grupo A Exemplo", position=0, origin=Origin.CATALOG)
+    for grupo in (depois, antes):
+        world.scope_store.groups[grupo.id] = grupo
+    for numero, (grupo, nome, posicao) in enumerate(
+        [
+            (depois, "Frente 2 Exemplo", 0),
+            (antes, "Frente Z Exemplo", 1),
+            (antes, "Frente Y Exemplo", 0),
+        ]
+    ):
+        categoria = ScopeCategory(
+            id=UUID(int=9020 + numero),
+            group_id=grupo.id,
+            name=nome,
+            position=posicao,
+            origin=Origin.COUPLE,
+        )
+        world.scope_store.categories[categoria.id] = categoria
+    nomes = [i.name for i in world.scope_use_cases().get_scope_standings.execute(NOIVO)]
+    # Os grupos de posição 0 empatam pelo nome ("Cerimônia" antes de "Grupo A"), como no Mapa.
+    assert nomes == [
+        "Cerimônia civil",
+        "Frente Y Exemplo",
+        "Frente Z Exemplo",
+        "Frente 2 Exemplo",
+    ]

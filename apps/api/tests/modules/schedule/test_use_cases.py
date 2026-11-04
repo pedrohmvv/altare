@@ -51,9 +51,16 @@ def concluir(world, *codigos, ignorar=False):
 def editar(
     world, codigo, *, responsavel=ProfileKind.AMBOS, nota=None, prazo=None, versao=None, ator=NOIVO
 ):
-    atual = versao if versao is not None else marco(ler(world), codigo).version
+    cronograma = ler(world)
+    item = marco(cronograma, codigo)
+    fase = next(f for f in cronograma.phases if item in f.milestones)
+    atual = versao if versao is not None else item.version
+    categoria = item.category.id if item.category else None
     return world.use_cases().update_milestone.execute(
-        UpdateMilestoneCommand(marco_id(codigo), responsavel, nota, prazo, atual), ator
+        UpdateMilestoneCommand(
+            marco_id(codigo), item.title, fase.id, responsavel, categoria, nota, prazo, atual
+        ),
+        ator,
     )
 
 
@@ -189,7 +196,7 @@ def test_categoria_excluida_do_mapa_arquiva_o_marco_e_nao_tem_nome(world):
 
 
 def test_o_marco_traz_a_categoria_ligada_com_o_nome_de_hoje(world):
-    world.categories[categoria_id("Espaço")] = CategoryInfo("Espaço renomeado", ENTRA)
+    world.categories[categoria_id("Espaço")] = CategoryInfo("Espaço renomeado", ENTRA, True)
     categoria = marco(ler(world), "C06").category
     assert categoria is not None
     assert categoria.name == "Espaço renomeado"
@@ -387,7 +394,10 @@ def test_marco_inexistente_e_nao_encontrado(world):
     desconhecido = UUID(int=424242)
     with pytest.raises(NotFound):
         world.use_cases().update_milestone.execute(
-            UpdateMilestoneCommand(desconhecido, ProfileKind.AMBOS, None, None, 1), NOIVO
+            UpdateMilestoneCommand(
+                desconhecido, "Marco Exemplo", UUID(int=1), ProfileKind.AMBOS, None, None, None, 1
+            ),
+            NOIVO,
         )
     with pytest.raises(NotFound):
         world.use_cases().change_milestone_state.execute(

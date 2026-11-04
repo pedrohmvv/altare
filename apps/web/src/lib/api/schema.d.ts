@@ -744,6 +744,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schedule/milestones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Milestone */
+        post: operations["create_milestone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schedule/milestones/{milestone_id}": {
         parameters: {
             query?: never;
@@ -755,6 +772,24 @@ export interface paths {
         /** Update Milestone */
         put: operations["update_milestone"];
         post?: never;
+        /** Delete Milestone */
+        delete: operations["delete_milestone"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Milestone */
+        post: operations["restore_milestone"];
         delete?: never;
         options?: never;
         head?: never;
@@ -771,6 +806,74 @@ export interface paths {
         get?: never;
         /** Change Milestone State */
         put: operations["change_milestone_state"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/dependencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Milestone Dependencies */
+        put: operations["set_milestone_dependencies"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/phases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Phase */
+        post: operations["create_phase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/phases/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder Phases */
+        put: operations["reorder_phases"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/phases/{phase_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename Phase */
+        put: operations["rename_phase"];
         post?: never;
         delete?: never;
         options?: never;
@@ -883,6 +986,16 @@ export interface components {
             id: string;
             /** Name */
             name: string | null;
+        };
+        /** CategoryOptionOut */
+        CategoryOptionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** CategoryOut */
         CategoryOut: {
@@ -1004,6 +1117,15 @@ export interface components {
         CompanionIn: {
             /** Name */
             name?: string | null;
+        };
+        /** CreatedMilestoneOut */
+        CreatedMilestoneOut: {
+            schedule: components["schemas"]["ScheduleOut"];
+            /**
+             * Milestone Id
+             * Format: uuid
+             */
+            milestone_id: string;
         };
         /** CurrentUserOut */
         CurrentUserOut: {
@@ -1497,6 +1619,23 @@ export interface components {
              */
             version: number;
         };
+        /**
+         * LeftOutDirection
+         * @description O sentido do vínculo que não voltou ao restaurar um marco, a partir do marco restaurado.
+         * @enum {string}
+         */
+        LeftOutDirection: "depends_on" | "dependency_of";
+        /** LeftOutOut */
+        LeftOutOut: {
+            /**
+             * Milestone Id
+             * Format: uuid
+             */
+            milestone_id: string;
+            /** Title */
+            title: string;
+            direction: components["schemas"]["LeftOutDirection"];
+        };
         /** LinkReferenceIn */
         LinkReferenceIn: {
             /** Url */
@@ -1519,6 +1658,41 @@ export interface components {
          * @enum {string}
          */
         ManualState: "Em andamento" | "Concluído";
+        /** MilestoneCreateIn */
+        MilestoneCreateIn: {
+            /** Title */
+            title: string;
+            /**
+             * Phase Id
+             * Format: uuid
+             */
+            phase_id: string;
+            /** @default Ambos */
+            responsible: components["schemas"]["ProfileKind"];
+            /**
+             * Category Id
+             * @description Uma categoria do Mapa de Escopo, pelo id; nenhuma se nulo.
+             */
+            category_id?: string | null;
+            /**
+             * Depends On
+             * @description Marcos vivos de que o novo depende; vale como conjunto.
+             */
+            depends_on?: string[];
+        };
+        /** MilestoneDependenciesIn */
+        MilestoneDependenciesIn: {
+            /**
+             * Depends On
+             * @description O conjunto inteiro de predecessores; substitui o atual. Repetido vale uma vez.
+             */
+            depends_on: string[];
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
         /** MilestoneOut */
         MilestoneOut: {
             /**
@@ -1586,13 +1760,36 @@ export interface components {
              */
             version: number;
         };
-        /** MilestoneUpdateIn */
+        /**
+         * MilestoneUpdateIn
+         * @description A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio
+         *     vai como nulo, para omitir um campo nunca apagar um dado em silêncio. Mudar `phase_id` leva o
+         *     marco para o fim da nova fase.
+         */
         MilestoneUpdateIn: {
+            /** Title */
+            title: string;
+            /**
+             * Phase Id
+             * Format: uuid
+             */
+            phase_id: string;
             responsible: components["schemas"]["ProfileKind"];
-            /** Note */
-            note?: string | null;
-            /** Target Date */
-            target_date?: string | null;
+            /**
+             * Category Id
+             * @description Nulo desliga a ligação com o Mapa de Escopo.
+             */
+            category_id: string | null;
+            /**
+             * Note
+             * @description Nulo ou em branco apaga a nota.
+             */
+            note: string | null;
+            /**
+             * Target Date
+             * @description Nulo apaga o prazo-alvo manual.
+             */
+            target_date: string | null;
             /**
              * Version
              * @description A versão do marco que a tela viu; divergir dá 409.
@@ -1624,6 +1821,19 @@ export interface components {
          * @enum {string}
          */
         Origin: "catalogo" | "casal";
+        /** PhaseCreateIn */
+        PhaseCreateIn: {
+            /** Title */
+            title: string;
+        };
+        /** PhaseOrderIn */
+        PhaseOrderIn: {
+            /**
+             * Ids
+             * @description Exatamente as fases vivas, sem repetir e sem faltar, na nova ordem.
+             */
+            ids: string[];
+        };
         /** PhaseOut */
         PhaseOut: {
             /**
@@ -1638,6 +1848,8 @@ export interface components {
             progress: components["schemas"]["PhaseProgressOut"];
             /** Milestones */
             milestones: components["schemas"]["MilestoneOut"][];
+            /** Version */
+            version: number;
         };
         /** PhaseProgressOut */
         PhaseProgressOut: {
@@ -1645,6 +1857,16 @@ export interface components {
             done: number;
             /** Total */
             total: number;
+        };
+        /** PhaseRenameIn */
+        PhaseRenameIn: {
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @description A versão da fase que a tela viu; divergir dá 409.
+             */
+            version: number;
         };
         /**
          * Priority
@@ -1676,6 +1898,10 @@ export interface components {
             detail: string;
             /** Errors */
             errors?: components["schemas"]["FieldError"][] | null;
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * ProfileKind
@@ -1725,10 +1951,18 @@ export interface components {
             /** Can Remove */
             can_remove: boolean;
         };
+        /** RestoreOut */
+        RestoreOut: {
+            schedule: components["schemas"]["ScheduleOut"];
+            /** Left Out */
+            left_out: components["schemas"]["LeftOutOut"][];
+        };
         /** ScheduleOut */
         ScheduleOut: {
             /** Phases */
             phases: components["schemas"]["PhaseOut"][];
+            /** Category Options */
+            category_options: components["schemas"]["CategoryOptionOut"][];
             /** Has Exact Date */
             has_exact_date: boolean;
         };
@@ -4580,6 +4814,66 @@ export interface operations {
             };
         };
     };
+    create_milestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedMilestoneOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     update_milestone: {
         parameters: {
             query?: never;
@@ -4642,6 +4936,116 @@ export interface operations {
             };
         };
     };
+    delete_milestone: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    restore_milestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     change_milestone_state: {
         parameters: {
             query?: never;
@@ -4654,6 +5058,232 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["MilestoneStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    set_milestone_dependencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneDependenciesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_phase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    reorder_phases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    rename_phase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                phase_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseRenameIn"];
             };
         };
         responses: {

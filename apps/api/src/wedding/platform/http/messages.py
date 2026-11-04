@@ -177,8 +177,34 @@ MESSAGES: dict[str, Message] = {
     "invalid_schedule_value": Message(
         "Valor não aceito",
         (
-            "Confira a nota e o prazo: a nota vai até 500 caracteres "
-            "e o prazo é uma data entre os anos 2000 e 2100."
+            "Confiram os textos e o prazo: o título do marco vai até 120 caracteres, o da fase "
+            "até 60, a nota até 500 e o prazo é uma data entre os anos 2000 e 2100."
+        ),
+    ),
+    "milestone_title_required": Message(
+        "Falta o título",
+        "Escrevam o título do marco antes de salvar.",
+    ),
+    "phase_title_required": Message(
+        "Falta o título",
+        "Escrevam o título da fase antes de salvar.",
+    ),
+    "invalid_phase_order": Message(
+        "Ordem das fases não aceita",
+        (
+            "A nova ordem precisa listar todas as fases uma só vez, sem repetir nem faltar. "
+            "Recarreguem o cronograma e tentem de novo."
+        ),
+    ),
+    "self_dependency": Message(
+        "Dependência do marco nele mesmo",
+        "Um marco não pode depender dele mesmo. Escolham outro marco.",
+    ),
+    "category_not_available": Message(
+        "Categoria indisponível",
+        (
+            "Esta categoria não está disponível no Mapa de Escopo: ela foi excluída ou está "
+            "oculta. Escolham outra ou mostrem a categoria no Mapa."
         ),
     ),
     "milestone_blocked": Message(
@@ -186,6 +212,13 @@ MESSAGES: dict[str, Message] = {
         (
             "Este marco ainda aguarda outros passos. Confirme que quer ignorar o bloqueio "
             "para marcá-lo como Em andamento ou Concluído."
+        ),
+    ),
+    "dependency_cycle": Message(
+        "Dependência em ciclo",
+        (
+            "Esta dependência fecharia um ciclo: {path}. "
+            "Removam uma dessas dependências ou escolham outro marco."
         ),
     ),
     "internal_error": Message(

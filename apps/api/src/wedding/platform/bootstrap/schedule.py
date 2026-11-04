@@ -5,6 +5,15 @@ from uuid import UUID
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
+from wedding.modules.schedule.application.commands.create_milestone import CreateMilestone
+from wedding.modules.schedule.application.commands.create_phase import CreatePhase
+from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
+from wedding.modules.schedule.application.commands.rename_phase import RenamePhase
+from wedding.modules.schedule.application.commands.reorder_phases import ReorderPhases
+from wedding.modules.schedule.application.commands.restore_milestone import RestoreMilestone
+from wedding.modules.schedule.application.commands.set_milestone_dependencies import (
+    SetMilestoneDependencies,
+)
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
@@ -41,7 +50,9 @@ class WeddingScopeCategories:
     def categories(self, actor: Actor) -> dict[UUID, CategoryInfo]:
         return {
             item.id: CategoryInfo(
-                item.name, _STANDING_BY_STATUS[item.status] if item.visible else Standing.OUT
+                item.name,
+                _STANDING_BY_STATUS[item.status] if item.visible else Standing.OUT,
+                item.visible,
             )
             for item in self._scope().get_scope_standings.execute(actor)
         }
@@ -88,15 +99,22 @@ class ScheduleContainer:
         start_mappers()
         sessions = self._database.sessions()
         clock = self._clock
-        reader = ScheduleReader(
-            WeddingScopeCategories(self._scope), WeddingDateFromBaseline(self._wedding), clock
-        )
+        categories = WeddingScopeCategories(self._scope)
+        reader = ScheduleReader(categories, WeddingDateFromBaseline(self._wedding), clock)
+        ids = UuidGenerator()
 
         def uow_factory(actor: Actor) -> SqlScheduleUnitOfWork:
             return SqlScheduleUnitOfWork(sessions, clock, actor)
 
         return ScheduleUseCases(
             read_schedule=ReadSchedule(uow_factory, reader),
-            update_milestone=UpdateMilestone(uow_factory, reader),
-            change_milestone_state=ChangeMilestoneState(uow_factory, UuidGenerator(), reader),
+            update_milestone=UpdateMilestone(uow_factory, reader, categories),
+            change_milestone_state=ChangeMilestoneState(uow_factory, ids, reader),
+            create_milestone=CreateMilestone(uow_factory, ids, reader, categories),
+            delete_milestone=DeleteMilestone(uow_factory, clock, reader),
+            restore_milestone=RestoreMilestone(uow_factory, reader),
+            set_milestone_dependencies=SetMilestoneDependencies(uow_factory, ids, clock, reader),
+            create_phase=CreatePhase(uow_factory, ids, reader),
+            rename_phase=RenamePhase(uow_factory, reader),
+            reorder_phases=ReorderPhases(uow_factory, reader),
         )

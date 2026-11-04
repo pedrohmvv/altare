@@ -3437,6 +3437,77 @@
         }
       }
     },
+    "/api/v1/schedule/milestones": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Create Milestone",
+        "operationId": "create_milestone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedMilestoneOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schedule/milestones/{milestone_id}": {
       "put": {
         "tags": [
@@ -3518,6 +3589,152 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Delete Milestone",
+        "operationId": "delete_milestone",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/restore": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Restore Milestone",
+        "operationId": "restore_milestone",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/schedule/milestones/{milestone_id}/state": {
@@ -3545,6 +3762,294 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MilestoneStateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/dependencies": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Set Milestone Dependencies",
+        "operationId": "set_milestone_dependencies",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneDependenciesIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/phases": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Create Phase",
+        "operationId": "create_phase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/phases/order": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Reorder Phases",
+        "operationId": "reorder_phases",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/phases/{phase_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Rename Phase",
+        "operationId": "rename_phase",
+        "parameters": [
+          {
+            "name": "phase_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Phase Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseRenameIn"
               }
             }
           }
@@ -3868,6 +4373,25 @@
           "name"
         ],
         "title": "CategoryLinkOut"
+      },
+      "CategoryOptionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CategoryOptionOut"
       },
       "CategoryOut": {
         "properties": {
@@ -4209,6 +4733,24 @@
         },
         "type": "object",
         "title": "CompanionIn"
+      },
+      "CreatedMilestoneOut": {
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleOut"
+          },
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Milestone Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule",
+          "milestone_id"
+        ],
+        "title": "CreatedMilestoneOut"
       },
       "CurrentUserOut": {
         "properties": {
@@ -5798,6 +6340,38 @@
         "title": "InviteIn",
         "description": "O envio do convite do núcleo (F-CNV-05): data e canal juntos. `move_drafts` é o aceite da\noferta de mover os rascunhos para `Convidado`; sem ele nenhum status muda."
       },
+      "LeftOutDirection": {
+        "type": "string",
+        "enum": [
+          "depends_on",
+          "dependency_of"
+        ],
+        "title": "LeftOutDirection",
+        "description": "O sentido do vínculo que não voltou ao restaurar um marco, a partir do marco restaurado."
+      },
+      "LeftOutOut": {
+        "properties": {
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Milestone Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/LeftOutDirection"
+          }
+        },
+        "type": "object",
+        "required": [
+          "milestone_id",
+          "title",
+          "direction"
+        ],
+        "title": "LeftOutOut"
+      },
       "LinkReferenceIn": {
         "properties": {
           "url": {
@@ -5863,6 +6437,76 @@
         ],
         "title": "ManualState",
         "description": "O que o casal marca à mão (F-CRN-03). Sem marca, o estado é derivado."
+      },
+      "MilestoneCreateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Phase Id"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind",
+            "default": "Ambos"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Uma categoria do Mapa de Escopo, pelo id; nenhuma se nulo."
+          },
+          "depends_on": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Depends On",
+            "description": "Marcos vivos de que o novo depende; vale como conjunto."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "phase_id"
+        ],
+        "title": "MilestoneCreateIn"
+      },
+      "MilestoneDependenciesIn": {
+        "properties": {
+          "depends_on": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Depends On",
+            "description": "O conjunto inteiro de predecessores; substitui o atual. Repetido vale uma vez."
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "depends_on",
+          "version"
+        ],
+        "title": "MilestoneDependenciesIn"
       },
       "MilestoneOut": {
         "properties": {
@@ -6049,8 +6693,30 @@
       },
       "MilestoneUpdateIn": {
         "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Phase Id"
+          },
           "responsible": {
             "$ref": "#/components/schemas/ProfileKind"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Nulo desliga a ligação com o Mapa de Escopo."
           },
           "note": {
             "anyOf": [
@@ -6061,7 +6727,8 @@
                 "type": "null"
               }
             ],
-            "title": "Note"
+            "title": "Note",
+            "description": "Nulo ou em branco apaga a nota."
           },
           "target_date": {
             "anyOf": [
@@ -6073,7 +6740,8 @@
                 "type": "null"
               }
             ],
-            "title": "Target Date"
+            "title": "Target Date",
+            "description": "Nulo apaga o prazo-alvo manual."
           },
           "version": {
             "type": "integer",
@@ -6084,10 +6752,16 @@
         },
         "type": "object",
         "required": [
+          "title",
+          "phase_id",
           "responsible",
+          "category_id",
+          "note",
+          "target_date",
           "version"
         ],
-        "title": "MilestoneUpdateIn"
+        "title": "MilestoneUpdateIn",
+        "description": "A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio\nvai como nulo, para omitir um campo nunca apagar um dado em silêncio. Mudar `phase_id` leva o\nmarco para o fim da nova fase."
       },
       "MonthYearSchema": {
         "properties": {
@@ -6136,6 +6810,37 @@
         ],
         "title": "Origin"
       },
+      "PhaseCreateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "PhaseCreateIn"
+      },
+      "PhaseOrderIn": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Ids",
+            "description": "Exatamente as fases vivas, sem repetir e sem faltar, na nova ordem."
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "PhaseOrderIn"
+      },
       "PhaseOut": {
         "properties": {
           "id": {
@@ -6160,6 +6865,10 @@
             },
             "type": "array",
             "title": "Milestones"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
           }
         },
         "type": "object",
@@ -6168,7 +6877,8 @@
           "title",
           "position",
           "progress",
-          "milestones"
+          "milestones",
+          "version"
         ],
         "title": "PhaseOut"
       },
@@ -6189,6 +6899,26 @@
           "total"
         ],
         "title": "PhaseProgressOut"
+      },
+      "PhaseRenameIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão da fase que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "version"
+        ],
+        "title": "PhaseRenameIn"
       },
       "Priority": {
         "type": "string",
@@ -6244,6 +6974,18 @@
               }
             ],
             "title": "Errors"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
           }
         },
         "type": "object",
@@ -6390,6 +7132,26 @@
         ],
         "title": "ReferenceOut"
       },
+      "RestoreOut": {
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleOut"
+          },
+          "left_out": {
+            "items": {
+              "$ref": "#/components/schemas/LeftOutOut"
+            },
+            "type": "array",
+            "title": "Left Out"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule",
+          "left_out"
+        ],
+        "title": "RestoreOut"
+      },
       "ScheduleOut": {
         "properties": {
           "phases": {
@@ -6399,6 +7161,13 @@
             "type": "array",
             "title": "Phases"
           },
+          "category_options": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryOptionOut"
+            },
+            "type": "array",
+            "title": "Category Options"
+          },
           "has_exact_date": {
             "type": "boolean",
             "title": "Has Exact Date"
@@ -6407,6 +7176,7 @@
         "type": "object",
         "required": [
           "phases",
+          "category_options",
           "has_exact_date"
         ],
         "title": "ScheduleOut"

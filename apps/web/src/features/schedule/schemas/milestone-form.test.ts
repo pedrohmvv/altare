@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { milestone } from '@/test/schedule-fixtures'
-import { milestoneSchema, toFormValues, toUpdateFields } from './milestone-form'
+import { milestoneSchema, NO_CATEGORY, toFormValues, toUpdateFields } from './milestone-form'
 
-const valid = { responsible: 'Ambos', target_date: '', note: '' }
+const valid = {
+  title: 'Marco Exemplo',
+  phase_id: 'fase-1',
+  category_id: NO_CATEGORY,
+  responsible: 'Ambos',
+  target_date: '',
+  note: '',
+}
 const issues = (input: object) => {
   const result = milestoneSchema.safeParse(input)
   return result.success ? [] : result.error.issues.map((issue) => issue.message)
@@ -34,16 +41,56 @@ describe('formulário do marco (F-CRN-05)', () => {
     expect(issues({ ...valid, responsible: 'Padrinho' })).toHaveLength(1)
   })
 
-  it('vai e volta do marco: sem prazo e sem nota viram campos vazios, e o contrário', () => {
+  it('o título é obrigatório, aparado, e vai até 120 caracteres', () => {
+    expect(issues({ ...valid, title: '   ' })).toEqual(['Informem o título do marco.'])
+    expect(issues({ ...valid, title: `  ${'a'.repeat(120)} ` })).toEqual([])
+    expect(issues({ ...valid, title: 'a'.repeat(121) })).toEqual(['Usem até 120 caracteres.'])
+  })
+
+  it('a fase é obrigatória', () => {
+    expect(issues({ ...valid, phase_id: '' })).toHaveLength(1)
+  })
+
+  it('vai e volta do marco: sem categoria, prazo e nota viram campos vazios, e o contrário', () => {
     const item = milestone({ id: 'm', title: 'Marco Exemplo' })
-    expect(toFormValues(item)).toEqual(valid)
-    expect(toUpdateFields({ responsible: 'Noiva', target_date: '', note: '  ' })).toEqual({
+    expect(toFormValues(item, 'fase-1')).toEqual(valid)
+    expect(
+      toFormValues(
+        milestone({ id: 'm', title: 'Marco Exemplo', category: { id: 'c1', name: 'X' } }),
+        'fase-1',
+      ).category_id,
+    ).toBe('c1')
+    expect(
+      toUpdateFields({
+        ...valid,
+        title: '  Outro  ',
+        responsible: 'Noiva',
+        target_date: '',
+        note: '  ',
+      }),
+    ).toEqual({
+      title: 'Outro',
+      phaseId: 'fase-1',
+      categoryId: null,
       responsible: 'Noiva',
       note: null,
       targetDate: null,
     })
     expect(
-      toUpdateFields({ responsible: 'Noivo', target_date: '2027-05-01', note: ' oi ' }),
-    ).toEqual({ responsible: 'Noivo', note: 'oi', targetDate: '2027-05-01' })
+      toUpdateFields({
+        ...valid,
+        category_id: 'c1',
+        responsible: 'Noivo',
+        target_date: '2027-05-01',
+        note: ' oi ',
+      }),
+    ).toEqual({
+      title: 'Marco Exemplo',
+      phaseId: 'fase-1',
+      categoryId: 'c1',
+      responsible: 'Noivo',
+      note: 'oi',
+      targetDate: '2027-05-01',
+    })
   })
 })

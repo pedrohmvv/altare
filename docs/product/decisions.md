@@ -1881,3 +1881,48 @@
 - **Em aberto (proposta, sem decidir):** subir o `maxTurns` do `altare-reviewer` e pôr no prompt "sem `git -C`, sem `&&`, `rg -e`"; confirmar o escopo do `gates.sh` por agente.
 - **Aprovado (2026-11-02):** esta decisão e o PR 1, pelo usuário ("Prossiga para o commit, push e PR").
 - **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR, que é do usuário.
+
+---
+
+## D-082 — Edição do cronograma: marcos, dependências sem ciclo e fases (Bloco 1.3, PR 2 de 7)
+- **Data:** 2026-11-04
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 2 de 7 (`D-080`)
+- **Pedido do usuário:** executar o PR 2 do Bloco 1.3 e, depois do segundo GATE 2, "aprovo tudo o recomendado" (os seis `corrija`, as sugestões recomendadas e as três decisões abaixo).
+- **Escolhido pelo usuário (2026-11-04):** o backend devolve o id do marco criado (a tela não adivinha); a confirmação destrutiva segue em `Dialog` agora e vira `AlertDialog` no PR 5, migrando as três juntas; o Desfazer fica só no aviso de 4 segundos, como na `D-072` (item 8), com a tela de excluídos adiada.
+- **Decisão:**
+  1. **Rotas** (`/api/v1/schedule`, todas devolvem o cronograma inteiro): `POST /milestones` (`create_milestone`, devolve também o `milestone_id`), `PUT /milestones/{id}` (a **substituição inteira**: título, fase, categoria, responsável, nota, prazo e `version`, todos obrigatórios, os três últimos anuláveis), `DELETE /milestones/{id}?version=`, `POST /milestones/{id}/restore` (devolve também `left_out`), `PUT /milestones/{id}/dependencies`, `POST /phases`, `PUT /phases/{id}` e `PUT /phases/order`. Não há excluir fase nem reordenar marcos dentro da fase.
+  2. **Grafo sempre acíclico** (`domain/graph.py`, funções puras com Hypothesis): a dependência de um marco nele mesmo é recusada (`self_dependency`) e a que fecharia um ciclo também, com `422 dependency_cycle` e o caminho mais curto do ciclo (`C → A → B → C`) em `data.path` e no texto.
+  3. **Excluir e restaurar.** Excluir é lógico e desativa os vínculos do marco, nos dois sentidos, com o **mesmo carimbo** dele; os dependentes mantêm as demais dependências. Restaurar traz o marco ao fim da fase e só reativa os vínculos com esse carimbo, exceto o que hoje fecharia um ciclo e o que tem a outra ponta excluída, que vêm em `left_out`. Um vínculo tirado à mão tem carimbo próprio e nunca volta. Restaurar o segundo de dois marcos excluídos não recompõe o vínculo com o primeiro (`D-080`, item 5, aplicada ao pé da letra). **Excluir e restaurar sobem a `version` dos dependentes**, para uma edição concorrente das dependências deles conflitar em vez de perder o vínculo em silêncio.
+  4. **Concorrência.** Cada marco tem a `version`, e a coluna `dependencies_revision` (migration `0011`) sobe quando o conjunto de predecessores muda, como o `members_revision` do `guests` (`D-072`, item 2). **Reordenar fases é a exceção** da regra "toda escrita envia a `version`": a lista é uma permutação exata das fases vivas (`422 invalid_phase_order` se não for), então o último a gravar vence sem deixar o cronograma incoerente.
+  5. **Categoria.** O casal liga o marco a uma categoria visível do Mapa (`category_options` no cronograma, na ordem do Mapa); a já ligada que ficou oculta continua escolhida e nunca é trocada em silêncio. Ligar uma oculta ou excluída é `422 category_not_available`. Mudar a categoria muda o efeito derivado (`F-CRN-04`).
+  6. **Migration `0011`:** acrescenta `dependencies_revision` e `CHECK (length(trim(title)) > 0)` em marcos e fases, sem mexer na semente. O SQLite recria a tabela em lote e isso falha com as chaves estrangeiras ligadas, então a migration desliga o `PRAGMA foreign_keys` antes de qualquer escrita (só no SQLite) e o religa no fim; um teste mostra que, sem ele, a subida quebra nos dois caminhos (da base e da `0010`).
+  7. **Fora do módulo.** `DomainError` ganha `data`, `detail_params` e `detail_params_keys`; o `ProblemDetails` ganha o campo opcional `data`; o texto de um erro com `{campo}` nunca vira `500` se o parâmetro faltar. O `GetScopeStandings` do `wedding` passa a devolver as categorias **na ordem do Mapa**, e a `D-081` (item 2) passa a incluir essa garantia no contrato do `public.py`.
+  8. **Web.** "Novo marco" (cabeçalho e estado vazio de cada fase), o painel que edita também título, fase e categoria, o editor de "Depende de" (adicionar e remover, com o erro de ciclo em região de alerta), "Excluir marco" com a confirmação que lista os dependentes e o aviso "Marco excluído" com Desfazer, e o diálogo de fases (renomear, subir e descer sem arrastar, nova fase). O foco é levado pela tela, porque os diálogos não têm `DialogTrigger`: ao botão de origem se cancelam, ao painel ao criar, ao título da seção depois de editar as dependências e ao `h1` depois de excluir. O `Select` ganha grupos e repassa o `ref`; o `ApiError` expõe `data`.
+  9. **Desvios do guia** (sem página do Cronograma; linhas novas no `design-system.md` §15): os diálogos de Novo marco e de Fases (centralizados no computador, folha inferior no celular); a linha de fase com campo, Salvar, Subir e Descer, empilhada no celular; "Excluir marco" em `soft-destructive` (argila, nunca vermelho); `Select` com grupos; e a confirmação destrutiva em `Dialog`, não em `AlertDialog`, que é o que o §8 pede (é a terceira, depois do núcleo e do "reabrir"; o `AlertDialog` nasce no PR 5, ao remover um anexo, e migra as três).
+  10. **Copy.** As mensagens novas falam com "vocês" ("Removam uma dessas dependências ou escolham outro marco"); o título de um aviso é curto e sem ponto ("Marco criado", "Marco excluído", "Marco restaurado"); a falha ao restaurar diz que o marco segue guardado e oferece "Tentar de novo".
+- **Ajustes em arquivos aprovados:** `cronograma.md` (a linha de status e a regra 3 da `F-CRN-01`, a categoria); `design-system.md` (§15, linhas novas); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` do módulo `schedule` (grafo acíclico, restaurar pelo carimbo, sem excluir fase, a exceção da `version`) e o `public.py` do `wedding` (a ordem).
+- **Razão:** o cronograma só é do casal se eles puderem mudá-lo, e mudar um grafo de dependências a dois exige que ele nunca fique cíclico, que desfazer uma exclusão devolva exatamente o que saiu junto e que duas pessoas editando ao mesmo tempo nunca percam uma dependência em silêncio.
+- **O que ficou rejeitado:**
+  - `PUT` parcial, em que o campo omitido continua como está: um cliente (ou o assistente do Nível 5) que omitisse a nota ou o prazo os apagaria; a substituição inteira obriga a dizer tudo.
+  - A tela achar o marco criado pelo último da fase: o servidor sabe o id, e adivinhar erra quando outra pessoa cria na mesma fase ao mesmo tempo.
+  - Recompor à força o vínculo de um marco restaurado: poderia fechar um ciclo ou ligar a um marco excluído.
+  - Arrastar para reordenar as fases: o teclado e o leitor de tela precisam do mesmo caminho (`D-068`, item 10).
+  - Uma `version` por fase só para reordenar: o resultado é sempre uma permutação válida, e o custo é uma regra a mais para explicar.
+  - Criar o `AlertDialog` agora: aumentaria este PR sem o primeiro uso novo; ele nasce no PR que o precisa.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Excluir fase; reordenar marcos dentro da fase | O primeiro pedido |
+| Tela de excluídos (restaurar a qualquer tempo) | O primeiro pedido de recuperar (`D-072`) |
+| Recompor o vínculo com o carimbo do outro marco ao restaurar o segundo | Uso real que reclame |
+| `AlertDialog` e a migração das três confirmações destrutivas | PR 5 (remover anexo) |
+| `version` por fase na reordenação | Duas pessoas reordenando e o último vencer incomodar |
+| Foco nos botões em carregamento (`aria-disabled`), avisos de status antigos que ficam na tela, ordem do foco no rodapé dos diálogos | A passada de acessibilidade do PR 7 |
+| Validar a `0011` e os `CHECK` no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
+| Conferir 320 px, zoom de 200% e VoiceOver nas telas novas | A passada do PR 7 e a do usuário |
+- **Verificação:** API com 1397 testes e web com 872, Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter` e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade) em 1440 e 390 px. A máquina de estados Hypothesis do `schedule` cobre criar, mover, excluir, restaurar, trocar dependências e as fases, com as invariantes: grafo acíclico, o excluído não aparece em lugar nenhum e "depende de" e "libera" batem entre si. O `make e2e` fica para o PR 7.
+- **Time de agentes:** os dois reviewers entregaram dentro dos 30 turnos e o hook não barrou nenhum comando com o aviso no prompt (sem `git -C`, sem `&&`, `rg -e`). O hook Stop de gates e a Skill tool dentro de subagent continuam sem observação direta.
+- **Conferido (2026-11-04):** o usuário rodou o PR 2 no banco de desenvolvimento dele, que estava na `0009`: a `0010` e a `0011` foram aplicadas (com backup antes, pela API de backup do SQLite) sem perder nenhuma linha das tabelas antigas, com `foreign_key_check` e `integrity_check` limpos; o cronograma, o "Novo marco", o editor de dependências e o diálogo de fases funcionaram ("Tudo funcionando"). O erro "Não conseguimos carregar o cronograma agora" que ele viu antes vinha de o banco ainda não ter as tabelas do cronograma, não do código: depois de cada PR com migration, o banco local precisa de `make migrate` com o `DATABASE_URL` certo.
+- **Aprovado (2026-11-04):** esta decisão e o PR 2, pelo usuário ("Prossiga com os commits e PRs").
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR, que é do usuário.

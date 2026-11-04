@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -30,9 +31,11 @@ export interface ActivePhase {
 export function MilestoneTable({
   phases,
   onOpen,
+  onNewMilestone,
 }: {
   phases: readonly ActivePhase[]
   onOpen: (milestoneId: string, opener: HTMLElement) => void
+  onNewMilestone: (phaseId: string, from: HTMLElement) => void
 }) {
   return (
     <Table label={copy.list.tableLabel} density="compact">
@@ -60,8 +63,18 @@ export function MilestoneTable({
           </tr>
           {milestones.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-ink-muted">
-                {copy.list.emptyPhase}
+              <TableCell colSpan={4}>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-ink-muted">{copy.list.emptyPhase}</span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={copy.newMilestone.inPhaseFor(phase.title)}
+                    onClick={(event) => onNewMilestone(phase.id, event.currentTarget)}
+                  >
+                    {copy.newMilestone.inPhase}
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           )}

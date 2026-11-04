@@ -10,6 +10,8 @@ export type ScheduleMilestone = Schemas['MilestoneOut']
 export type MilestoneState = Schemas['MilestoneState']
 export type ManualState = Schemas['ManualState']
 export type Responsible = Schemas['ProfileKind']
+export type CategoryOption = Schemas['CategoryOptionOut']
+export type LeftOut = Schemas['LeftOutOut']
 
 /** As três escolhas de responsável, na ordem em que o casal as lê. */
 export const RESPONSIBLES: readonly Responsible[] = ['Noivo', 'Noiva', 'Ambos']
@@ -27,3 +29,15 @@ export const scheduleQueryOptions = queryOptions({
   queryFn: async () => unwrap(await api.GET('/api/v1/schedule')),
   refetchOnWindowFocus: true,
 })
+
+/** O marco com a fase em que está: o `MilestoneOut` não traz o id da fase, quem o contém sabe. */
+export function findMilestone(
+  schedule: Schedule | undefined,
+  id: string,
+): { milestone: ScheduleMilestone; phase: SchedulePhase } | undefined {
+  for (const phase of schedule?.phases ?? []) {
+    const milestone = phase.milestones.find((item) => item.id === id)
+    if (milestone) return { milestone, phase }
+  }
+  return undefined
+}

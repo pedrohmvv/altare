@@ -1,9 +1,15 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import NamedTuple
 from uuid import UUID
 
-from wedding.modules.schedule.domain.values import ManualState, clean_note, clean_target_date
+from wedding.modules.schedule.domain.values import (
+    ManualState,
+    clean_milestone_title,
+    clean_note,
+    clean_phase_title,
+    clean_target_date,
+)
 from wedding.shared_kernel.profile import ProfileKind
 
 
@@ -15,6 +21,16 @@ class Phase:
     title: str
     position: int
     version: int = 0
+
+    def __post_init__(self) -> None:
+        self.title = clean_phase_title(self.title)
+
+    def rename(self, title: str) -> bool:
+        cleaned = clean_phase_title(title)
+        if cleaned == self.title:
+            return False
+        self.title = cleaned
+        return True
 
 
 @dataclass
@@ -32,7 +48,48 @@ class Milestone:
     note: str | None = None
     target_date: date | None = None
     manual_state: ManualState | None = None
+    # Sobe quando o conjunto de predecessores muda: duas edições das dependências do mesmo marco
+    # se conflitam (`D-072`, `members_revision`), embora a linha do marco em si não mude.
+    dependencies_revision: int = 0
+    deleted_at: datetime | None = None
+    deleted_by: UUID | None = None
     version: int = 0
+
+    def __post_init__(self) -> None:
+        self.title = clean_milestone_title(self.title)
+
+    def rename(self, title: str) -> bool:
+        cleaned = clean_milestone_title(title)
+        if cleaned == self.title:
+            return False
+        self.title = cleaned
+        return True
+
+    def link_category(self, category_id: UUID | None) -> bool:
+        """Liga o marco a outra categoria do Mapa (ou a nenhuma); muda o efeito derivado
+        (F-CRN-04), nunca o estado marcado."""
+        if category_id == self.category_id:
+            return False
+        self.category_id = category_id
+        return True
+
+    def move_to(self, phase_id: UUID, position: int) -> bool:
+        """Muda de fase, indo para a posição dada; a mesma fase não é mudança."""
+        if phase_id == self.phase_id:
+            return False
+        self.phase_id, self.position = phase_id, position
+        return True
+
+    def touch_dependencies(self) -> None:
+        self.dependencies_revision += 1
+
+    def delete(self, now: datetime, by: UUID | None) -> None:
+        self.deleted_at, self.deleted_by = now, by
+
+    def restore(self, position: int) -> None:
+        """Volta ao fim da fase em que estava; o estado marcado e o resto ficam como estavam."""
+        self.deleted_at = self.deleted_by = None
+        self.position = position
 
     def edit(self, responsible: ProfileKind, note: str | None, target_date: date | None) -> bool:
         """Troca responsável, nota e prazo-alvo manual e diz se algo mudou."""
@@ -64,6 +121,28 @@ class MilestoneChange:
     state_after: ManualState | None
     ignored_block: bool
     profile: ProfileKind
+
+
+@dataclass
+class MilestoneDependency:
+    """O vínculo gravado "`milestone_id` depende de `depends_on_id`". Sai e volta com o carimbo de
+    exclusão do marco que o levou junto (F-CRN-01, regra 1)."""
+
+    id: UUID
+    milestone_id: UUID
+    depends_on_id: UUID
+    deleted_at: datetime | None = None
+    deleted_by: UUID | None = None
+    version: int = 0
+
+    def delete(self, now: datetime, by: UUID | None) -> None:
+        self.deleted_at, self.deleted_by = now, by
+
+    def restore(self) -> None:
+        self.deleted_at = self.deleted_by = None
+
+    def as_edge(self) -> "Dependency":
+        return Dependency(self.milestone_id, self.depends_on_id)
 
 
 class Dependency(NamedTuple):

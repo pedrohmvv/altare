@@ -3,44 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { jsonResponse, problemResponse } from '@/test/fake-api'
 import { GET_SCHEDULE, PUT_MILESTONE, PUT_STATE, renderSchedule } from '@/test/render-schedule'
 import { ID, SCHEDULE, scheduleWith } from '@/test/schedule-fixtures'
-import type { Schedule, ScheduleMilestone } from '../api/schedule'
+import { activeAlert, memory, openMilestone } from '@/test/schedule-helpers'
 
-type Renderer = ReturnType<typeof renderSchedule>
-
-const painel = (name: string) => screen.findByRole('dialog', { name })
-
-/** A API falsa com memória: a leitura devolve o que a última escrita deixou, como o servidor faria. */
-function memory(initial: Schedule = SCHEDULE) {
-  const state = { schedule: initial }
-  return {
-    state,
-    get: () => jsonResponse(200, state.schedule),
-    write: (id: string, change: (item: ScheduleMilestone) => Partial<ScheduleMilestone>) => () => {
-      state.schedule = scheduleWith(id, {
-        ...change(
-          state.schedule.phases.flatMap((p) => p.milestones).find((m) => m.id === id) as never,
-        ),
-      })
-      return jsonResponse(200, state.schedule)
-    },
-  }
-}
-
-/** Há mais de uma região de aviso no painel (estado e formulário); esta é a que já tem um aviso. */
-async function activeAlert(dialog: HTMLElement) {
-  return waitFor(() => {
-    const filled = within(dialog)
-      .getAllByRole('alert')
-      .find((region) => region.textContent !== '')
-    if (!filled) throw new Error('Nenhum aviso ainda')
-    return filled
-  })
-}
-
-async function open(user: Renderer['user'], name: string) {
-  await user.click(await screen.findByRole('button', { name }))
-  return painel(name)
-}
+const open = openMilestone
 
 describe('detalhe do marco (F-CRN-09)', () => {
   it('mostra fase, estado, responsável, categoria, prazo, nota, o que ele pede e o que ele libera', async () => {
@@ -52,7 +17,9 @@ describe('detalhe do marco (F-CRN-09)', () => {
     expect(within(dialog).getByRole('combobox', { name: 'Responsável' })).toHaveTextContent('Noiva')
     expect(within(dialog).getByLabelText('Prazo-alvo')).toHaveValue('2027-03-15')
     expect(within(dialog).getByLabelText('Nota')).toHaveValue('Nota de exemplo.')
-    expect(within(dialog).getByText('Espaço Exemplo')).toBeVisible()
+    expect(within(dialog).getByRole('combobox', { name: 'Categoria' })).toHaveTextContent(
+      'Espaço Exemplo',
+    )
     const dependsOn = within(dialog).getByRole('list', { name: 'Depende de' })
     expect(within(dependsOn).getByText(/Marco Exemplo Concluído/)).toBeVisible()
     const unlocks = within(dialog).getByRole('list', { name: 'Libera' })
@@ -63,7 +30,9 @@ describe('detalhe do marco (F-CRN-09)', () => {
     const { user } = renderSchedule()
     const dialog = await open(user, 'Marco Exemplo Opcional')
 
-    expect(within(dialog).getByText('Sem categoria ligada')).toBeVisible()
+    expect(within(dialog).getByRole('combobox', { name: 'Categoria' })).toHaveTextContent(
+      'Sem categoria',
+    )
     expect(within(dialog).getByText('Não depende de nenhum marco.')).toBeVisible()
     expect(within(dialog).getByText('Não libera nenhum marco.')).toBeVisible()
   })
@@ -114,6 +83,9 @@ describe('editar responsável, prazo e nota (F-CRN-05)', () => {
 
     await waitFor(() => expect(api.callsTo(PUT_MILESTONE(ID.destravado))).toHaveLength(1))
     expect(api.callsTo(PUT_MILESTONE(ID.destravado))[0]?.body).toEqual({
+      title: 'Marco Exemplo Destravado',
+      phase_id: ID.faseUm,
+      category_id: ID.espaco,
       responsible: 'Noivo',
       note: 'Outra nota.',
       target_date: '2027-04-01',
@@ -142,6 +114,9 @@ describe('editar responsável, prazo e nota (F-CRN-05)', () => {
 
     await waitFor(() => expect(api.callsTo(PUT_MILESTONE(ID.destravado))).toHaveLength(1))
     expect(api.callsTo(PUT_MILESTONE(ID.destravado))[0]?.body).toEqual({
+      title: 'Marco Exemplo Destravado',
+      phase_id: ID.faseUm,
+      category_id: ID.espaco,
       responsible: 'Noiva',
       note: null,
       target_date: null,
