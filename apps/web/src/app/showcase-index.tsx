@@ -20,6 +20,7 @@ const PARTS = [
       ['conf-botoes', 'Botões'],
       ['conf-campos', 'Campos'],
       ['conf-segmentado', 'Seletor segmentado'],
+      ['conf-chips', 'Chips de filtro'],
       ['conf-dinheiro', 'Dinheiro'],
       ['conf-selos', 'Selos e cartões'],
       ['conf-tabelas', 'Tabelas'],

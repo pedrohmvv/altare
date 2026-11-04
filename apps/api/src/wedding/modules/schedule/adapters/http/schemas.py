@@ -4,11 +4,24 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from wedding.modules.schedule.application.dto import DateMode, LeftOutDirection, WarningKind
-from wedding.modules.schedule.domain.values import BlockerKind, ManualState, MilestoneState
+from wedding.modules.schedule.domain.values import (
+    BlockerKind,
+    ManualState,
+    MilestoneState,
+    TaskState,
+)
 from wedding.modules.schedule.domain.windows import WindowUnit
 from wedding.shared_kernel.profile import ProfileKind
 
 _VERSION = Field(ge=1, description="A versão do marco que a tela viu; divergir dá 409.")
+_IGNORE_OPEN_ITEMS = Field(
+    default=False,
+    description=(
+        "A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para "
+        "Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse "
+        "pedido responde 422 (checklist_open_items). Concluir não altera os itens."
+    ),
+)
 
 
 # Entrada: nenhum campo de autoria nem de perfil de quem age; os dois vêm sempre da sessão.
@@ -83,7 +96,57 @@ class MilestoneStateIn(BaseModel):
             "dependência não resolvida. Sem ela, esse pedido responde 422 (milestone_blocked)."
         ),
     )
+    ignore_open_items: bool = _IGNORE_OPEN_ITEMS
     version: int = _VERSION
+
+
+class TaskCreateIn(BaseModel):
+    """A avulsa nasce `A fazer`. O responsável é opcional: sem ele, é o perfil de quem está na
+    sessão (`Noivo` ou `Noiva`, nunca `Ambos` por padrão); `Ambos` só se for pedido."""
+
+    title: str
+    responsible: ProfileKind | None = Field(
+        default=None, description="Sem ele, vale o perfil da sessão; Ambos só se vier explícito."
+    )
+    note: str | None = None
+    target_date: dt.date | None = Field(default=None, description="Entre os anos 2000 e 2100.")
+
+
+class TaskUpdateIn(BaseModel):
+    """A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio
+    vai como nulo, para omitir um campo nunca apagar um dado em silêncio."""
+
+    title: str
+    responsible: ProfileKind
+    note: str | None = Field(description="Nulo ou em branco apaga a nota.")
+    target_date: dt.date | None = Field(description="Nulo apaga o prazo.")
+    version: int = Field(ge=1, description="A versão da avulsa que a tela viu; divergir dá 409.")
+
+
+class TaskStateIn(BaseModel):
+    state: TaskState = Field(
+        description="Qualquer estado vale a qualquer momento; reabrir é A fazer."
+    )
+    ignore_open_items: bool = _IGNORE_OPEN_ITEMS
+    version: int = Field(ge=1, description="A versão da avulsa que a tela viu; divergir dá 409.")
+
+
+class ChecklistItemCreateIn(BaseModel):
+    text: str = Field(description="O texto do item, de 1 a 200 caracteres.")
+
+
+class ChecklistItemUpdateIn(BaseModel):
+    """A substituição inteira do item: marcar, desmarcar e editar o texto são o mesmo pedido."""
+
+    text: str
+    done: bool
+    version: int = Field(ge=1, description="A versão do item que a tela viu; divergir dá 409.")
+
+
+class ChecklistOrderIn(BaseModel):
+    ids: list[UUID] = Field(
+        description="Exatamente os itens vivos do dono, sem repetir e sem faltar, na nova ordem."
+    )
 
 
 # Saída: nenhum valor padrão, para o contrato declarar todos os campos como obrigatórios.
@@ -120,6 +183,19 @@ class MilestoneWindowOut(BaseModel):
     end_before: int
     unit: WindowUnit
     is_suggestion: bool = Field(description="Há janela e ninguém a editou: a sugestão genérica.")
+
+
+class ChecklistItemOut(BaseModel):
+    id: UUID
+    text: str
+    done: bool
+    position: int = Field(description="Ordem no checklist, a partir de zero; pode ter buracos.")
+    version: int = Field(description="A versão do item, própria: não é a do marco nem a da avulsa.")
+
+
+class ChecklistProgressOut(BaseModel):
+    done: int
+    total: int
 
 
 class MilestoneOut(BaseModel):
@@ -161,6 +237,29 @@ class MilestoneOut(BaseModel):
             "marco está concluído, arquivado ou sem prazo efetivo."
         )
     )
+    checklist: list[ChecklistItemOut] = Field(
+        description="Os itens vivos do checklist, na ordem; não mudam o estado do marco."
+    )
+    checklist_progress: ChecklistProgressOut = Field(description='O "N de M" do checklist.')
+    version: int
+
+
+class TaskOut(BaseModel):
+    id: UUID
+    title: str
+    responsible: ProfileKind
+    note: str | None
+    target_date: dt.date | None
+    state: TaskState
+    overdue: bool = Field(description="Prazo vencido e não concluída; o dia é o de Brasília.")
+    days_left: int | None = Field(
+        description=(
+            "Dias de hoje (Brasília) ao prazo; negativo é passado e 0 é hoje. Nulo se a avulsa "
+            "está concluída ou sem prazo."
+        )
+    )
+    checklist: list[ChecklistItemOut]
+    checklist_progress: ChecklistProgressOut
     version: int
 
 
@@ -191,6 +290,12 @@ class PhaseOut(BaseModel):
 
 class ScheduleOut(BaseModel):
     phases: list[PhaseOut]
+    tasks: list[TaskOut] = Field(
+        description=(
+            "As avulsas vivas, fora das fases: concluídas e sem prazo por último, depois pelo "
+            "prazo, pelo título e pelo id."
+        )
+    )
     category_options: list[CategoryOptionOut]
     has_exact_date: bool
 

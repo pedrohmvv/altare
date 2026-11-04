@@ -2,9 +2,11 @@ from datetime import date
 from enum import StrEnum
 
 from wedding.modules.schedule.domain.errors import (
+    ChecklistTextRequired,
     InvalidScheduleValue,
     MilestoneTitleRequired,
     PhaseTitleRequired,
+    TaskTitleRequired,
 )
 
 MAX_NOTE = 500
@@ -12,6 +14,8 @@ MAX_TITLE = 120
 MAX_PHASE_TITLE = 60
 MIN_YEAR = 2000
 MAX_YEAR = 2100
+MAX_CHECKLIST_TEXT = 200
+MAX_CHECKLIST_ITEMS = 50
 
 
 class ManualState(StrEnum):
@@ -19,6 +23,22 @@ class ManualState(StrEnum):
 
     IN_PROGRESS = "Em andamento"
     DONE = "Concluído"
+
+
+class TaskState(StrEnum):
+    """O estado da tarefa avulsa (F-CRN-06): todo estado vale a qualquer momento, e reabrir é voltar
+    a `A fazer`. Note o feminino de `Concluída`, diferente do `Concluído` do marco."""
+
+    TODO = "A fazer"
+    IN_PROGRESS = "Em andamento"
+    DONE = "Concluída"
+
+
+class OwnerKind(StrEnum):
+    """Quem pode ter checklist (F-CRN-07, regra 1); o valor é o segmento da rota."""
+
+    MILESTONE = "milestones"
+    TASK = "tasks"
 
 
 class MilestoneState(StrEnum):
@@ -73,5 +93,23 @@ def clean_phase_title(title: str) -> str:
     if not cleaned:
         raise PhaseTitleRequired()
     if len(cleaned) > MAX_PHASE_TITLE:
+        raise InvalidScheduleValue()
+    return cleaned
+
+
+def clean_task_title(title: str) -> str:
+    cleaned = title.strip()
+    if not cleaned:
+        raise TaskTitleRequired()
+    if len(cleaned) > MAX_TITLE:
+        raise InvalidScheduleValue()
+    return cleaned
+
+
+def clean_checklist_text(text: str) -> str:
+    cleaned = text.strip()
+    if not cleaned:
+        raise ChecklistTextRequired()
+    if len(cleaned) > MAX_CHECKLIST_TEXT:
         raise InvalidScheduleValue()
     return cleaned

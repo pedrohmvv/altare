@@ -915,6 +915,127 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schedule/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Task */
+        post: operations["create_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Task */
+        put: operations["update_task"];
+        post?: never;
+        /** Delete Task */
+        delete: operations["delete_task"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks/{task_id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change Task State */
+        put: operations["change_task_state"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks/{task_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Task */
+        post: operations["restore_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Checklist Item */
+        post: operations["add_checklist_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder Checklist */
+        put: operations["reorder_checklist"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/checklist/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Checklist Item */
+        put: operations["update_checklist_item"];
+        post?: never;
+        /** Remove Checklist Item */
+        delete: operations["remove_checklist_item"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1140,6 +1261,66 @@ export interface components {
             kinds?: components["schemas"]["CeremonyKind"][];
             /** Detail */
             detail?: string | null;
+        };
+        /** ChecklistItemCreateIn */
+        ChecklistItemCreateIn: {
+            /**
+             * Text
+             * @description O texto do item, de 1 a 200 caracteres.
+             */
+            text: string;
+        };
+        /** ChecklistItemOut */
+        ChecklistItemOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Text */
+            text: string;
+            /** Done */
+            done: boolean;
+            /**
+             * Position
+             * @description Ordem no checklist, a partir de zero; pode ter buracos.
+             */
+            position: number;
+            /**
+             * Version
+             * @description A versão do item, própria: não é a do marco nem a da avulsa.
+             */
+            version: number;
+        };
+        /**
+         * ChecklistItemUpdateIn
+         * @description A substituição inteira do item: marcar, desmarcar e editar o texto são o mesmo pedido.
+         */
+        ChecklistItemUpdateIn: {
+            /** Text */
+            text: string;
+            /** Done */
+            done: boolean;
+            /**
+             * Version
+             * @description A versão do item que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** ChecklistOrderIn */
+        ChecklistOrderIn: {
+            /**
+             * Ids
+             * @description Exatamente os itens vivos do dono, sem repetir e sem faltar, na nova ordem.
+             */
+            ids: string[];
+        };
+        /** ChecklistProgressOut */
+        ChecklistProgressOut: {
+            /** Done */
+            done: number;
+            /** Total */
+            total: number;
         };
         /**
          * CompanionChoice
@@ -1838,6 +2019,13 @@ export interface components {
              * @description Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o marco está concluído, arquivado ou sem prazo efetivo.
              */
             days_left: number | null;
+            /**
+             * Checklist
+             * @description Os itens vivos do checklist, na ordem; não mudam o estado do marco.
+             */
+            checklist: components["schemas"]["ChecklistItemOut"][];
+            /** @description O "N de M" do checklist. */
+            checklist_progress: components["schemas"]["ChecklistProgressOut"];
             /** Version */
             version: number;
         };
@@ -1867,6 +2055,12 @@ export interface components {
              * @default false
              */
             ignore_block: boolean;
+            /**
+             * Ignore Open Items
+             * @description A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.
+             * @default false
+             */
+            ignore_open_items: boolean;
             /**
              * Version
              * @description A versão do marco que a tela viu; divergir dá 409.
@@ -2105,6 +2299,11 @@ export interface components {
         ScheduleOut: {
             /** Phases */
             phases: components["schemas"]["PhaseOut"][];
+            /**
+             * Tasks
+             * @description As avulsas vivas, fora das fases: concluídas e sem prazo por último, depois pelo prazo, pelo título e pelo id.
+             */
+            tasks: components["schemas"]["TaskOut"][];
             /** Category Options */
             category_options: components["schemas"]["CategoryOptionOut"][];
             /** Has Exact Date */
@@ -2195,6 +2394,103 @@ export interface components {
             /**
              * Version
              * @description A versão que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /**
+         * TaskCreateIn
+         * @description A avulsa nasce `A fazer`. O responsável é opcional: sem ele, é o perfil de quem está na
+         *     sessão (`Noivo` ou `Noiva`, nunca `Ambos` por padrão); `Ambos` só se for pedido.
+         */
+        TaskCreateIn: {
+            /** Title */
+            title: string;
+            /** @description Sem ele, vale o perfil da sessão; Ambos só se vier explícito. */
+            responsible?: components["schemas"]["ProfileKind"] | null;
+            /** Note */
+            note?: string | null;
+            /**
+             * Target Date
+             * @description Entre os anos 2000 e 2100.
+             */
+            target_date?: string | null;
+        };
+        /** TaskOut */
+        TaskOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            responsible: components["schemas"]["ProfileKind"];
+            /** Note */
+            note: string | null;
+            /** Target Date */
+            target_date: string | null;
+            state: components["schemas"]["TaskState"];
+            /**
+             * Overdue
+             * @description Prazo vencido e não concluída; o dia é o de Brasília.
+             */
+            overdue: boolean;
+            /**
+             * Days Left
+             * @description Dias de hoje (Brasília) ao prazo; negativo é passado e 0 é hoje. Nulo se a avulsa está concluída ou sem prazo.
+             */
+            days_left: number | null;
+            /** Checklist */
+            checklist: components["schemas"]["ChecklistItemOut"][];
+            checklist_progress: components["schemas"]["ChecklistProgressOut"];
+            /** Version */
+            version: number;
+        };
+        /**
+         * TaskState
+         * @description O estado da tarefa avulsa (F-CRN-06): todo estado vale a qualquer momento, e reabrir é voltar
+         *     a `A fazer`. Note o feminino de `Concluída`, diferente do `Concluído` do marco.
+         * @enum {string}
+         */
+        TaskState: "A fazer" | "Em andamento" | "Concluída";
+        /** TaskStateIn */
+        TaskStateIn: {
+            /** @description Qualquer estado vale a qualquer momento; reabrir é A fazer. */
+            state: components["schemas"]["TaskState"];
+            /**
+             * Ignore Open Items
+             * @description A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.
+             * @default false
+             */
+            ignore_open_items: boolean;
+            /**
+             * Version
+             * @description A versão da avulsa que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /**
+         * TaskUpdateIn
+         * @description A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio
+         *     vai como nulo, para omitir um campo nunca apagar um dado em silêncio.
+         */
+        TaskUpdateIn: {
+            /** Title */
+            title: string;
+            responsible: components["schemas"]["ProfileKind"];
+            /**
+             * Note
+             * @description Nulo ou em branco apaga a nota.
+             */
+            note: string | null;
+            /**
+             * Target Date
+             * @description Nulo apaga o prazo.
+             */
+            target_date: string | null;
+            /**
+             * Version
+             * @description A versão da avulsa que a tela viu; divergir dá 409.
              */
             version: number;
         };
@@ -5538,6 +5834,515 @@ export interface operations {
                 "application/json": components["schemas"]["PhaseRenameIn"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_task: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    change_task_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    restore_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    reorder_checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    remove_checklist_item: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

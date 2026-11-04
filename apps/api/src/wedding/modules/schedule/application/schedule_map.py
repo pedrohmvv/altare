@@ -8,12 +8,14 @@ from wedding.modules.schedule.application.dto import (
     BlockerDto,
     CategoryLinkDto,
     CategoryOptionDto,
+    ChecklistItemDto,
     DependencyDto,
     MilestoneDto,
     MilestoneRefDto,
     MilestoneWindowDto,
     PhaseDto,
     ScheduleDto,
+    TaskDto,
     WarningDto,
     WarningKind,
 )
@@ -23,6 +25,7 @@ from wedding.modules.schedule.application.ports import (
     ScheduleRepository,
     WeddingDateReader,
 )
+from wedding.modules.schedule.domain.checklist import checklist_progress
 from wedding.modules.schedule.domain.derivation import (
     Blocker,
     Derived,
@@ -30,9 +33,10 @@ from wedding.modules.schedule.domain.derivation import (
     derive,
     phase_progress,
 )
-from wedding.modules.schedule.domain.entities import Milestone, Phase
+from wedding.modules.schedule.domain.entities import ChecklistItem, Milestone, Phase, Task
 from wedding.modules.schedule.domain.errors import CategoryNotAvailable
-from wedding.modules.schedule.domain.values import BlockerKind, Standing
+from wedding.modules.schedule.domain.tasks import task_deadline, task_order_key
+from wedding.modules.schedule.domain.values import BlockerKind, OwnerKind, Standing, TaskState
 from wedding.shared_kernel.actor import Actor
 from wedding.shared_kernel.clock import Clock
 from wedding.shared_kernel.errors import NotFound
@@ -44,12 +48,16 @@ class _Loaded:
     milestones: list[Milestone]
     categories: dict[UUID, CategoryInfo]
     facts: list[MilestoneFacts]
+    tasks: list[Task]
+    # Os itens vivos agrupados pelo dono vivo, cada lista na ordem do checklist.
+    checklists: dict[tuple[OwnerKind, UUID], list[ChecklistItem]]
 
 
 class ScheduleReader:
     """Monta o cronograma inteiro, com tudo o que é derivado calculado aqui e nunca gravado
     (`architecture.md` §5): bloqueios, opcional, arquivado, datas das janelas, prazo efetivo,
-    contagem regressiva, atraso, avisos e progresso por fase."""
+    contagem regressiva, atraso, avisos e progresso por fase. As avulsas ficam fora da derivação dos
+    marcos (entrariam em "libera" e nos bloqueios): têm o prazo calculado à parte."""
 
     def __init__(
         self, categories: CategoryReader, wedding_date: WeddingDateReader, clock: Clock
@@ -81,7 +89,10 @@ class ScheduleReader:
             )
             for item in ordered
         ]
-        return _Loaded(phases, ordered, categories, facts)
+        tasks = sorted(schedule.list_tasks(), key=task_order_key)
+        return _Loaded(
+            phases, ordered, categories, facts, tasks, _group_checklists(schedule, ordered, tasks)
+        )
 
     def facts(self, schedule: ScheduleRepository, actor: Actor) -> list[MilestoneFacts]:
         """Os fatos de cada marco, na ordem do cronograma, como a derivação os recebe."""
@@ -99,7 +110,8 @@ class ScheduleReader:
     def read(self, schedule: ScheduleRepository, actor: Actor) -> ScheduleDto:
         loaded = self._load(schedule, actor)
         exact = self.exact_wedding_date(actor)
-        derived = derive(loaded.facts, self.today(), exact)
+        today = self.today()
+        derived = derive(loaded.facts, today, exact)
         titles = {item.id: item.title for item in loaded.milestones}
 
         phase_dtos = []
@@ -112,7 +124,13 @@ class ScheduleReader:
                     position=phase.position,
                     progress=phase_progress(derived[item.id] for item in members),
                     milestones=tuple(
-                        _milestone_dto(item, derived[item.id], titles, loaded.categories)
+                        _milestone_dto(
+                            item,
+                            derived[item.id],
+                            titles,
+                            loaded.categories,
+                            loaded.checklists.get((OwnerKind.MILESTONE, item.id), []),
+                        )
                         for item in members
                     ),
                     version=phase.version,
@@ -121,6 +139,10 @@ class ScheduleReader:
         linked = {item.category_id for item in loaded.milestones if item.category_id}
         return ScheduleDto(
             phases=tuple(phase_dtos),
+            tasks=tuple(
+                _task_dto(task, today, loaded.checklists.get((OwnerKind.TASK, task.id), []))
+                for task in loaded.tasks
+            ),
             category_options=tuple(
                 CategoryOptionDto(category_id, info.name)
                 for category_id, info in loaded.categories.items()
@@ -128,6 +150,47 @@ class ScheduleReader:
             ),
             has_exact_date=exact is not None,
         )
+
+
+def _group_checklists(
+    schedule: ScheduleRepository, milestones: list[Milestone], tasks: list[Task]
+) -> dict[tuple[OwnerKind, UUID], list[ChecklistItem]]:
+    """Uma consulta só para todos os itens, agrupados pelo dono. O item de um dono excluído fica de
+    fora (o dono não está entre os vivos); restaurar o dono o traz de volta."""
+    live_owners = {(OwnerKind.MILESTONE, item.id) for item in milestones}
+    live_owners |= {(OwnerKind.TASK, task.id) for task in tasks}
+    grouped: dict[tuple[OwnerKind, UUID], list[ChecklistItem]] = {}
+    for item in schedule.list_checklist_items():
+        owner = (item.owner_kind, item.owner_id)
+        if owner in live_owners:
+            grouped.setdefault(owner, []).append(item)
+    for items in grouped.values():
+        items.sort(key=lambda item: (item.position, item.id))
+    return grouped
+
+
+def _checklist_dtos(items: list[ChecklistItem]) -> tuple[ChecklistItemDto, ...]:
+    return tuple(
+        ChecklistItemDto(item.id, item.text, item.done, item.position, item.version)
+        for item in items
+    )
+
+
+def _task_dto(task: Task, today: date, items: list[ChecklistItem]) -> TaskDto:
+    deadline = task_deadline(task.target_date, task.state is TaskState.DONE, today)
+    return TaskDto(
+        id=task.id,
+        title=task.title,
+        responsible=task.responsible,
+        note=task.note,
+        target_date=task.target_date,
+        state=task.state,
+        overdue=deadline.overdue,
+        days_left=deadline.days_left,
+        checklist=_checklist_dtos(items),
+        checklist_progress=checklist_progress(items),
+        version=task.version,
+    )
 
 
 def _standing(milestone: Milestone, categories: dict[UUID, CategoryInfo]) -> Standing | None:
@@ -158,6 +221,7 @@ def _milestone_dto(
     derived: Derived,
     titles: dict[UUID, str],
     categories: dict[UUID, CategoryInfo],
+    items: list[ChecklistItem],
 ) -> MilestoneDto:
     return MilestoneDto(
         id=milestone.id,
@@ -195,6 +259,8 @@ def _milestone_dto(
         window_end=derived.window_end,
         effective_target=derived.effective_target,
         days_left=derived.days_left,
+        checklist=_checklist_dtos(items),
+        checklist_progress=checklist_progress(items),
         version=milestone.version,
     )
 
@@ -204,6 +270,36 @@ def require_milestone(schedule: ScheduleRepository, milestone_id: UUID) -> Miles
     if milestone is None:
         raise NotFound()
     return milestone
+
+
+def require_task(schedule: ScheduleRepository, task_id: UUID) -> Task:
+    task = schedule.get_task(task_id)
+    if task is None:
+        raise NotFound()
+    return task
+
+
+def require_checklist_owner(
+    schedule: ScheduleRepository, kind: OwnerKind, owner_id: UUID
+) -> Milestone | Task:
+    """O marco ou a avulsa vivos que têm o checklist; o id de um tipo não vale no outro."""
+    if kind is OwnerKind.MILESTONE:
+        return require_milestone(schedule, owner_id)
+    return require_task(schedule, owner_id)
+
+
+def require_checklist_item(schedule: ScheduleRepository, item_id: UUID) -> ChecklistItem:
+    """O item vivo cujo dono também está vivo: com o dono excluído, o item é como se não existisse
+    (404) até o dono voltar."""
+    item = schedule.get_checklist_item(item_id)
+    if item is None:
+        raise NotFound()
+    require_checklist_owner(schedule, item.owner_kind, item.owner_id)
+    return item
+
+
+def has_open_items(schedule: ScheduleRepository, kind: OwnerKind, owner_id: UUID) -> bool:
+    return any(not item.done for item in schedule.live_items_of(kind, owner_id))
 
 
 def require_phase(schedule: ScheduleRepository, phase_id: UUID) -> Phase:

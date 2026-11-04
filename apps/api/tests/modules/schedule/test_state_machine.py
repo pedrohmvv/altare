@@ -4,8 +4,14 @@ O Hypothesis sorteia classificar e ocultar categorias no Mapa de Escopo, marcar 
 mover, excluir e restaurar marcos, trocar as dependências (com e sem ciclo), criar, renomear e
 reordenar fases e passar os dias, sobre o catálogo inicial inteiro (29 marcos e as suas 31
 dependências), definir a data do casamento (qualquer uma, com e sem `Definida`), editar a janela de
-um marco (dentro e fora dos limites) e pedir a prévia de mudar a data, e confere depois de cada
-passo as invariantes: o prazo efetivo é o manual ou o fim da janela calculada, o concluído e o
+um marco (dentro e fora dos limites), pedir a prévia de mudar a data, criar, mudar de estado (com e
+sem a permissão dos itens em aberto), excluir e restaurar avulsas, e adicionar, marcar, editar,
+remover e reordenar (boa e ruim) itens do checklist de marcos e de avulsas, e confere depois de cada
+passo as invariantes: a avulsa nunca aparece em "libera", bloqueios, dependências nem avisos de
+marco algum, o item nunca muda o estado nem a `version` do dono, "feito" fica entre 0 e o total, as
+posições ficam densas depois de reordenar, `checklist_open_items` só vem com item em aberto, o
+prazo da avulsa segue a regra e a lista de avulsas segue a ordem da chave, e o resto: o prazo
+efetivo é o manual ou o fim da janela calculada, o concluído e o
 arquivado não têm contagem nem atraso, só a janela nunca editada é "sugestão", o grafo é sempre
 acíclico, marco excluído não aparece em lugar nenhum, o concluído não muda sozinho, arquivado e
 opcional nunca bloqueiam, bloqueado sempre diz o que aguarda, restaurar logo depois de excluir
@@ -13,56 +19,88 @@ devolve as mesmas dependências e a leitura é determinística.
 """
 
 from datetime import UTC, date, datetime, timedelta
+from functools import wraps
 from itertools import pairwise
 from uuid import UUID
 
+import pytest
 from hypothesis import assume, settings
 from hypothesis import strategies as st
-from hypothesis.stateful import RuleBasedStateMachine, invariant, rule
+from hypothesis.stateful import RuleBasedStateMachine, initialize, invariant, rule
 from tests.conftest import FixedClock
 from tests.modules.schedule.catalog import MARCOS, categoria_id, marco_id
 from tests.modules.schedule.conftest import NOIVA, NOIVO, World
 
+from wedding.modules.schedule.application.commands.add_checklist_item import (
+    AddChecklistItemCommand,
+)
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneStateCommand,
 )
+from wedding.modules.schedule.application.commands.change_task_state import ChangeTaskStateCommand
 from wedding.modules.schedule.application.commands.create_milestone import CreateMilestoneCommand
 from wedding.modules.schedule.application.commands.create_phase import CreatePhaseCommand
+from wedding.modules.schedule.application.commands.create_task import CreateTaskCommand
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestoneCommand
+from wedding.modules.schedule.application.commands.delete_task import DeleteTaskCommand
+from wedding.modules.schedule.application.commands.remove_checklist_item import (
+    RemoveChecklistItemCommand,
+)
 from wedding.modules.schedule.application.commands.rename_phase import RenamePhaseCommand
+from wedding.modules.schedule.application.commands.reorder_checklist import (
+    ReorderChecklistCommand,
+)
 from wedding.modules.schedule.application.commands.reorder_phases import ReorderPhasesCommand
 from wedding.modules.schedule.application.commands.restore_milestone import (
     RestoreMilestoneCommand,
 )
+from wedding.modules.schedule.application.commands.restore_task import RestoreTaskCommand
 from wedding.modules.schedule.application.commands.set_milestone_dependencies import (
     SetMilestoneDependenciesCommand,
+)
+from wedding.modules.schedule.application.commands.update_checklist_item import (
+    UpdateChecklistItemCommand,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestoneCommand
 from wedding.modules.schedule.application.commands.update_milestone_window import (
     UpdateMilestoneWindowCommand,
 )
-from wedding.modules.schedule.application.dto import MilestoneDto, ScheduleDto
+from wedding.modules.schedule.application.commands.update_task import UpdateTaskCommand
+from wedding.modules.schedule.application.dto import (
+    ChecklistItemDto,
+    MilestoneDto,
+    ScheduleDto,
+    TaskDto,
+)
 from wedding.modules.schedule.application.queries.preview_date_change import (
     PreviewDateChangeCommand,
 )
 from wedding.modules.schedule.domain.errors import (
+    ChecklistOpenItems,
     DependencyCycle,
+    InvalidChecklistOrder,
     InvalidMilestoneWindow,
     MilestoneBlocked,
     SelfDependency,
 )
 from wedding.modules.schedule.domain.values import (
+    MAX_CHECKLIST_ITEMS,
     BlockerKind,
     ManualState,
     MilestoneState,
+    OwnerKind,
     Standing,
+    TaskState,
 )
 from wedding.modules.schedule.domain.windows import WindowUnit, window_dates
+from wedding.shared_kernel.errors import NotFound
 from wedding.shared_kernel.profile import ProfileKind
 
 CATEGORIAS = sorted({m[3] for m in MARCOS if m[3]})
 ATORES = st.sampled_from([NOIVO, NOIVA])
 ESTADOS = st.sampled_from([ManualState.IN_PROGRESS, ManualState.DONE, None])
+ESTADOS_DA_AVULSA = st.sampled_from(list(TaskState))
+RESPONSAVEIS = st.sampled_from([None, ProfileKind.AMBOS, ProfileKind.NOIVO, ProfileKind.NOIVA])
 STANDINGS = st.sampled_from(list(Standing))
 ESCOLHA = st.integers(min_value=0, max_value=1000)
 ESCOLHAS = st.lists(ESCOLHA, max_size=4)
@@ -95,6 +133,22 @@ def _aciclico(depende_de: dict[UUID, set[UUID]]) -> bool:
     return True
 
 
+class _SemAlvo(Exception):
+    """O sorteio não achou o que a regra precisa (nenhuma avulsa, nenhum item): o passo não faz
+    nada. Sem isto, `assume` descartaria a sequência inteira e o Hypothesis recusaria o teste."""
+
+
+def _se_houver_alvo(regra):
+    @wraps(regra)
+    def embrulhada(self, *args, **kwargs):
+        try:
+            return regra(self, *args, **kwargs)
+        except _SemAlvo:
+            return None
+
+    return embrulhada
+
+
 class ScheduleMachine(RuleBasedStateMachine):
     def __init__(self) -> None:
         super().__init__()
@@ -108,6 +162,41 @@ class ScheduleMachine(RuleBasedStateMachine):
         self.window_edited: set[UUID] = set()
         self.history_count = 0
         self.created = 0
+        # As avulsas: o estado que o casal marcou e as excluídas.
+        self.task_state: dict[UUID, TaskState] = {}
+        self.deleted_tasks: set[UUID] = set()
+        self.tasks_created = 0
+        # O checklist de cada dono (marco ou avulsa) como o casal o deixou: os itens vivos na
+        # ordem e o texto e o "feito" de cada um. Excluir o dono não mexe aqui: restaurar o traz.
+        self.item_order: dict[UUID, list[UUID]] = {}
+        self.item_fields: dict[UUID, tuple[str, bool]] = {}
+        self.items_added = 0
+
+    @initialize()
+    def start_with_a_task_and_some_checklists(self) -> None:
+        """O ponto de partida já tem uma avulsa com dois itens e itens em três marcos (um livre e
+        dois bloqueados), para uma sequência curta chegar a concluir, reordenar e remover itens."""
+        self._tick()
+        self.tasks_created += 1
+        titulo = f"Avulsa Gerada {self.tasks_created}"
+        depois = self.uc.create_task.execute(CreateTaskCommand(titulo, None, None, None), NOIVA)
+        tarefa = depois.tasks[0]
+        self.task_state[tarefa.id] = TaskState.TODO
+        donos = [
+            (OwnerKind.TASK, tarefa.id),
+            (OwnerKind.TASK, tarefa.id),
+            *[(OwnerKind.MILESTONE, marco_id(codigo)) for codigo in ("C01", "C03", "C06")],
+        ]
+        for tipo, dono in donos:
+            self._tick()
+            self.items_added += 1
+            texto = f"Item Gerado {self.items_added}"
+            resposta = self.uc.add_checklist_item.execute(
+                AddChecklistItemCommand(tipo, dono, texto), NOIVO
+            )
+            novo = _itens_do_dono(resposta, dono)[-1]
+            self.item_order.setdefault(dono, []).append(novo.id)
+            self.item_fields[novo.id] = (texto, False)
 
     # --- ajudas ---------------------------------------------------------------------------
 
@@ -160,6 +249,12 @@ class ScheduleMachine(RuleBasedStateMachine):
     @rule(dias=st.integers(min_value=1, max_value=3))
     def pass_days(self, dias):
         self.clock.advance(days=dias)
+
+    @rule(horas=st.integers(min_value=1, max_value=23))
+    def pass_hours(self, horas):
+        """Atravessa a meia-noite de Brasília e a de UTC em instantes diferentes: o "hoje" é o dia
+        de Brasília, nunca o de UTC."""
+        self.clock.advance(hours=horas)
 
     @rule(exata=DATAS_DO_CASAMENTO | st.none(), definida=st.booleans())
     def set_wedding_date(self, exata, definida):
@@ -227,24 +322,58 @@ class ScheduleMachine(RuleBasedStateMachine):
         if exata == self.world.wedding_date.exact and self.world.wedding_date.defined:
             assert previa.changes == ()
 
-    @rule(escolha=ESCOLHA, estado=ESTADOS, ignorar=st.booleans(), ator=ATORES)
-    def mark(self, escolha, estado, ignorar, ator):
+    @rule(
+        escolha=ESCOLHA,
+        estado=ESTADOS,
+        ignorar=st.booleans(),
+        ignorar_itens=st.booleans(),
+        com_itens=st.booleans(),
+        ator=ATORES,
+    )
+    def mark(self, escolha, estado, ignorar, ignorar_itens, com_itens, ator):
         self._tick()
-        alvo = self._vivo(escolha)
-        esperava_bloqueio = estado is not None and estado is not self.manual[alvo.id]
-        esperava_bloqueio = esperava_bloqueio and self._aguarda_algo(alvo)
-        comando = ChangeMilestoneStateCommand(alvo.id, estado, ignorar, alvo.version)
+        alvo = self._marco_para_marcar(escolha, com_itens)
+        muda = estado is not self.manual[alvo.id]
+        esperava_bloqueio = estado is not None and muda and self._aguarda_algo(alvo)
+        esperava_itens = estado is ManualState.DONE and muda and self._tem_item_aberto(alvo.id)
+        comando = ChangeMilestoneStateCommand(
+            alvo.id, estado, ignorar, alvo.version, ignore_open_items=ignorar_itens
+        )
+        antes = self._cronograma()
         try:
             self.uc.change_milestone_state.execute(comando, ator)
         except MilestoneBlocked:
-            # Só recusa se havia o que aguardar e a confirmação não veio.
+            # O bloqueio vem antes dos itens: só recusa se havia o que aguardar e sem confirmação.
             assert esperava_bloqueio
             assert not ignorar
+            assert self._cronograma() == antes
+            return
+        except ChecklistOpenItems:
+            # Só com item vivo em aberto, ao concluir, sem a permissão e depois do bloqueio.
+            assert esperava_itens
+            assert not ignorar_itens
+            assert not (esperava_bloqueio and not ignorar)
+            assert self._cronograma() == antes
             return
         assert not (esperava_bloqueio and not ignorar)
-        if estado is not self.manual[alvo.id]:
+        assert not (esperava_itens and not ignorar_itens)
+        if muda:
             self.history_count += 1
         self.manual[alvo.id] = estado
+        if estado is ManualState.DONE:
+            # Concluir não altera os itens.
+            assert _por_id(self._cronograma())[alvo.id].checklist == alvo.checklist
+
+    def _marco_para_marcar(self, escolha: int, com_itens: bool) -> MilestoneDto:
+        marcos = self._marcos()
+        if com_itens:
+            com = sorted((m for m in marcos.values() if m.checklist), key=lambda m: m.id)
+            if com:
+                return com[escolha % len(com)]
+        return self._vivo(escolha)
+
+    def _tem_item_aberto(self, dono: UUID) -> bool:
+        return any(not self.item_fields[i][1] for i in self.item_order.get(dono, []))
 
     def _aguarda_algo(self, alvo: MilestoneDto) -> bool:
         """Independe da marca manual: o concluído não mostra bloqueios, mas avisa os
@@ -457,6 +586,285 @@ class ScheduleMachine(RuleBasedStateMachine):
             assert not any(_alcanca(grafo, p, alvo.id) for p in escolhidos)
             assert {d.id for d in _por_id(depois)[alvo.id].depends_on} == set(escolhidos)
 
+    # --- avulsas ----------------------------------------------------------------------------
+
+    def _tarefas(self) -> dict[UUID, TaskDto]:
+        return {t.id: t for t in self._cronograma().tasks}
+
+    def _tarefa_viva(self, escolha: int) -> TaskDto:
+        vivas = sorted(self._tarefas().values(), key=lambda t: t.id)
+        if not vivas:
+            raise _SemAlvo
+        return vivas[escolha % len(vivas)]
+
+    @rule(
+        responsavel=RESPONSAVEIS,
+        dias=st.integers(min_value=-5, max_value=5) | st.none(),
+        ator=ATORES,
+    )
+    def create_task(self, responsavel, dias, ator):
+        """O responsável padrão é o perfil da sessão, nunca `Ambos`; o explícito vale."""
+        self._tick()
+        self.tasks_created += 1
+        titulo = f"Avulsa Gerada {self.tasks_created}"
+        prazo = None if dias is None else self.clock.now().date() + timedelta(days=dias)
+        antes = set(self._tarefas())
+        depois = self.uc.create_task.execute(
+            CreateTaskCommand(titulo, responsavel, None, prazo), ator
+        )
+        (nova,) = [t for t in depois.tasks if t.id not in antes]
+        assert nova.title == titulo
+        assert nova.responsible is (responsavel or ator.profile)
+        assert nova.state is TaskState.TODO
+        assert nova.version == 1
+        assert nova.checklist == ()
+        self.task_state[nova.id] = TaskState.TODO
+
+    @rule(
+        escolha=ESCOLHA,
+        estado=ESTADOS_DA_AVULSA,
+        ignorar=st.booleans(),
+        com_itens=st.booleans(),
+        ator=ATORES,
+    )
+    @_se_houver_alvo
+    def change_task_state(self, escolha, estado, ignorar, com_itens, ator):
+        self._tick()
+        alvo = self._tarefa_viva(escolha)
+        if com_itens:
+            com = sorted((t for t in self._tarefas().values() if t.checklist), key=lambda t: t.id)
+            alvo = com[escolha % len(com)] if com else alvo
+        esperava_itens = (
+            estado is TaskState.DONE
+            and estado is not self.task_state[alvo.id]
+            and self._tem_item_aberto(alvo.id)
+        )
+        antes = self._cronograma()
+        comando = ChangeTaskStateCommand(alvo.id, estado, ignorar, alvo.version)
+        try:
+            self.uc.change_task_state.execute(comando, ator)
+        except ChecklistOpenItems:
+            assert esperava_itens
+            assert not ignorar
+            assert self._cronograma() == antes
+            return
+        assert not (esperava_itens and not ignorar)
+        self.task_state[alvo.id] = estado
+        depois = self._tarefas()[alvo.id]
+        assert depois.state is estado
+        assert depois.checklist == alvo.checklist  # concluir não altera os itens
+
+    @rule(escolha=ESCOLHA, dias=st.integers(min_value=-5, max_value=5) | st.none(), ator=ATORES)
+    @_se_houver_alvo
+    def edit_task(self, escolha, dias, ator):
+        self._tick()
+        alvo = self._tarefa_viva(escolha)
+        prazo = None if dias is None else self.clock.now().date() + timedelta(days=dias)
+        comando = UpdateTaskCommand(
+            alvo.id, alvo.title, alvo.responsible, alvo.note, prazo, alvo.version
+        )
+        depois = _tarefas_por_id(self.uc.update_task.execute(comando, ator))[alvo.id]
+        assert depois.target_date == prazo
+        assert depois.version == alvo.version + (prazo != alvo.target_date)
+        assert depois.state is alvo.state
+
+    @rule(escolha=ESCOLHA, ator=ATORES)
+    @_se_houver_alvo
+    def delete_task(self, escolha, ator):
+        self._tick()
+        alvo = self._tarefa_viva(escolha)
+        self.uc.delete_task.execute(DeleteTaskCommand(alvo.id, alvo.version), ator)
+        self.deleted_tasks.add(alvo.id)
+
+    @rule(escolha=ESCOLHA, ator=ATORES)
+    @_se_houver_alvo
+    def restore_task(self, escolha, ator):
+        self._tick()
+        if not self.deleted_tasks:
+            raise _SemAlvo
+        alvo = sorted(self.deleted_tasks)[escolha % len(self.deleted_tasks)]
+        resposta = self.uc.restore_task.execute(RestoreTaskCommand(alvo), ator)
+        self.deleted_tasks.discard(alvo)
+        volta = _tarefas_por_id(resposta)[alvo]
+        assert volta.state is self.task_state[alvo]  # o estado marcado e os itens voltam como eram
+        assert [i.id for i in volta.checklist] == self.item_order.get(alvo, [])
+
+    # --- checklist --------------------------------------------------------------------------
+
+    def _donos(self, avulsa: bool) -> dict[UUID, MilestoneDto | TaskDto]:
+        if avulsa:
+            return dict(self._tarefas())
+        return dict(self._marcos())
+
+    def _dono(
+        self, avulsa: bool, escolha: int, *, minimo_de_itens: int = 0
+    ) -> tuple[OwnerKind, MilestoneDto | TaskDto]:
+        """Sorteia o dono; com `minimo_de_itens`, prefere os que já têm tantos itens (com 29 marcos
+        os itens se espalham demais para uma sequência curta chegar a reordenar ou concluir)."""
+        donos = sorted(self._donos(avulsa).values(), key=lambda d: d.id)
+        if not donos:
+            raise _SemAlvo
+        preferidos = [d for d in donos if len(d.checklist) >= minimo_de_itens]
+        donos = preferidos or donos
+        tipo = OwnerKind.TASK if avulsa else OwnerKind.MILESTONE
+        return tipo, donos[escolha % len(donos)]
+
+    def _item_vivo(
+        self, avulsa: bool, escolha: int
+    ) -> tuple[MilestoneDto | TaskDto, ChecklistItemDto]:
+        com_itens = sorted(
+            (d for d in self._donos(avulsa).values() if d.checklist), key=lambda d: d.id
+        )
+        if not com_itens:
+            raise _SemAlvo
+        dono = com_itens[escolha % len(com_itens)]
+        return dono, dono.checklist[(escolha // 7) % len(dono.checklist)]
+
+    def _dono_por_id(self, dono: UUID) -> MilestoneDto | TaskDto:
+        return self._marcos().get(dono) or self._tarefas()[dono]
+
+    def _nao_tocou_no_dono(self, antes: MilestoneDto | TaskDto) -> None:
+        depois = self._dono_por_id(antes.id)
+        assert (depois.state, depois.version) == (antes.state, antes.version)
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, reusar=st.booleans(), ator=ATORES)
+    @_se_houver_alvo
+    def add_item(self, avulsa, escolha, reusar, ator):
+        self._tick()
+        tipo, dono = self._dono(avulsa, escolha, minimo_de_itens=1 if reusar else 0)
+        self.items_added += 1
+        texto = f"Item Gerado {self.items_added}"
+        depois = self.uc.add_checklist_item.execute(
+            AddChecklistItemCommand(tipo, dono.id, texto), ator
+        )
+        itens = _itens_do_dono(depois, dono.id)
+        novo = itens[-1]
+        assert novo.text == texto
+        assert novo.done is False
+        assert novo.version == 1
+        assert novo.position == max((i.position for i in dono.checklist), default=-1) + 1
+        assert [i.id for i in itens[:-1]] == [i.id for i in dono.checklist]
+        self._nao_tocou_no_dono(dono)
+        self.item_order.setdefault(dono.id, []).append(novo.id)
+        self.item_fields[novo.id] = (texto, False)
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, feito=st.booleans(), ator=ATORES)
+    @_se_houver_alvo
+    def mark_item(self, avulsa, escolha, feito, ator):
+        self._tick()
+        dono, item = self._item_vivo(avulsa, escolha)
+        comando = UpdateChecklistItemCommand(item.id, item.text, feito, item.version)
+        depois = self.uc.update_checklist_item.execute(comando, ator)
+        novo = next(i for i in _itens_do_dono(depois, dono.id) if i.id == item.id)
+        assert novo.done is feito
+        assert novo.version == item.version + (feito != item.done)
+        self._nao_tocou_no_dono(dono)
+        self.item_fields[item.id] = (item.text, feito)
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, numero=st.integers(1, 9), ator=ATORES)
+    @_se_houver_alvo
+    def edit_item_text(self, avulsa, escolha, numero, ator):
+        self._tick()
+        dono, item = self._item_vivo(avulsa, escolha)
+        texto = f"Texto Editado {numero}"
+        comando = UpdateChecklistItemCommand(item.id, texto, item.done, item.version)
+        depois = self.uc.update_checklist_item.execute(comando, ator)
+        novo = next(i for i in _itens_do_dono(depois, dono.id) if i.id == item.id)
+        assert (novo.text, novo.done) == (texto, item.done)
+        assert novo.version == item.version + (texto != item.text)
+        self._nao_tocou_no_dono(dono)
+        self.item_fields[item.id] = (texto, item.done)
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, ator=ATORES)
+    @_se_houver_alvo
+    def remove_item(self, avulsa, escolha, ator):
+        self._tick()
+        dono, item = self._item_vivo(avulsa, escolha)
+        depois = self.uc.remove_checklist_item.execute(
+            RemoveChecklistItemCommand(item.id, item.version), ator
+        )
+        restantes = [i.id for i in _itens_do_dono(depois, dono.id)]
+        assert restantes == [i.id for i in dono.checklist if i.id != item.id]
+        self._nao_tocou_no_dono(dono)
+        self.item_order[dono.id].remove(item.id)
+        del self.item_fields[item.id]
+
+    @rule(escolha=ESCOLHA, avulsa=st.booleans(), operacao=st.integers(0, 3))
+    @_se_houver_alvo
+    def touch_the_checklist_of_a_deleted_owner(self, escolha, avulsa, operacao):
+        """Com o dono excluído os itens somem da leitura e nenhuma operação os alcança (404), nem
+        adicionar, reordenar, editar ou remover; nada é gravado."""
+        self._tick()
+        excluidos = sorted(self.deleted_tasks if avulsa else self.deleted)
+        itens = [(d, i) for d in excluidos for i in self.item_order.get(d, [])]
+        if not excluidos:
+            raise _SemAlvo
+        dono = excluidos[escolha % len(excluidos)]
+        tipo = OwnerKind.TASK if avulsa else OwnerKind.MILESTONE
+        antes = self._cronograma()
+        item = itens[escolha % len(itens)][1] if itens else UUID(int=2**100)
+        tentativas = [
+            lambda: self.uc.add_checklist_item.execute(
+                AddChecklistItemCommand(tipo, dono, "Novo"), NOIVO
+            ),
+            lambda: self.uc.reorder_checklist.execute(
+                ReorderChecklistCommand(tipo, dono, tuple(self.item_order.get(dono, []))), NOIVO
+            ),
+            lambda: self.uc.update_checklist_item.execute(
+                UpdateChecklistItemCommand(item, "Texto", True, 1), NOIVO
+            ),
+            lambda: self.uc.remove_checklist_item.execute(
+                RemoveChecklistItemCommand(item, 1), NOIVO
+            ),
+        ]
+        with pytest.raises(NotFound):
+            tentativas[operacao]()
+        assert self._cronograma() == antes
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, ordem=st.randoms(use_true_random=False))
+    @_se_houver_alvo
+    def reorder_items(self, avulsa, escolha, ordem):
+        """Uma permutação exata dos vivos: as posições ficam 0..n-1 e só muda a version de quem
+        saiu do lugar."""
+        self._tick()
+        tipo, dono = self._dono(avulsa, escolha, minimo_de_itens=2)
+        ids = [i.id for i in dono.checklist]
+        ordem.shuffle(ids)
+        depois = self.uc.reorder_checklist.execute(
+            ReorderChecklistCommand(tipo, dono.id, tuple(ids)), NOIVO
+        )
+        itens = _itens_do_dono(depois, dono.id)
+        assert [i.id for i in itens] == ids
+        assert [i.position for i in itens] == list(range(len(ids)))
+        antes = {i.id: i for i in dono.checklist}
+        for item in itens:
+            mudou = antes[item.id].position != item.position
+            assert item.version == antes[item.id].version + mudou
+        self._nao_tocou_no_dono(dono)
+        if dono.id in self.item_order:
+            self.item_order[dono.id] = ids
+
+    @rule(avulsa=st.booleans(), escolha=ESCOLHA, defeito=st.integers(0, 3))
+    @_se_houver_alvo
+    def reorder_items_badly(self, avulsa, escolha, defeito):
+        """Lista que não é a permutação exata dos vivos é 422 e não muda nada."""
+        self._tick()
+        tipo, dono = self._dono(avulsa, escolha, minimo_de_itens=1)
+        ids = [i.id for i in dono.checklist]
+        intruso = UUID(int=2**100 + defeito)
+        ruins = [
+            [*ids, intruso],  # sobra um que não existe
+            [*ids, *ids[:1]] if ids else [intruso],  # repete (ou, sem itens, o intruso)
+            ids[:-1] if ids else [intruso],  # falta um (ou, sem itens, o intruso)
+            [*ids[:-1], intruso] if ids else [intruso, intruso],  # troca um por outro
+        ]
+        antes = self._cronograma()
+        with pytest.raises(InvalidChecklistOrder):
+            self.uc.reorder_checklist.execute(
+                ReorderChecklistCommand(tipo, dono.id, tuple(ruins[defeito])), NOIVO
+            )
+        assert self._cronograma() == antes
+
     # --- fases ------------------------------------------------------------------------------
 
     @rule(numero=st.integers(1, 50))
@@ -510,6 +918,12 @@ class ScheduleMachine(RuleBasedStateMachine):
         self.so_a_janela_nao_editada_e_sugestao(cronograma)
         self.o_progresso_da_fase_confere_com_a_recontagem(cronograma)
         self.so_a_mudanca_real_vai_para_o_historico()
+        self.a_avulsa_nunca_aparece_nos_marcos(cronograma)
+        self.as_avulsas_vivas_sao_as_que_o_casal_deixou_e_na_ordem_da_chave(cronograma)
+        self.o_prazo_da_avulsa_segue_a_regra_do_marco(cronograma)
+        self.o_checklist_e_o_que_o_casal_deixou_inclusive_depois_de_restaurar(cronograma)
+        self.o_progresso_do_checklist_confere_com_a_recontagem(cronograma)
+        self.as_posicoes_do_checklist_sao_unicas_e_a_ordem_e_a_da_posicao(cronograma)
 
     def a_leitura_e_deterministica_e_nao_mexe_em_nada(self, cronograma: ScheduleDto) -> None:
         assert self.uc.read_schedule.execute(NOIVA) == cronograma
@@ -680,6 +1094,86 @@ class ScheduleMachine(RuleBasedStateMachine):
             assert mudanca.state_before is not mudanca.state_after
             assert mudanca.profile is not ProfileKind.AMBOS
             assert not mudanca.ignored_block or mudanca.state_after is not None
+
+    def a_avulsa_nunca_aparece_nos_marcos(self, cronograma: ScheduleDto) -> None:
+        """Avulsa não passa pela derivação: nenhum marco a lista em "libera", "depende de",
+        bloqueios ou avisos (F-CRN-06, regra 1 e critério de aceite)."""
+        todas = set(self.task_state)
+        for marco in _por_id(cronograma).values():
+            referidos = {d.id for d in marco.depends_on} | {u.id for u in marco.unlocks}
+            referidos |= {w.milestone_id for w in marco.warnings}
+            referidos |= {b.milestone_id for b in marco.blocked_by if b.milestone_id}
+            assert not todas & referidos
+        assert not todas & _por_id(cronograma).keys()
+
+    def as_avulsas_vivas_sao_as_que_o_casal_deixou_e_na_ordem_da_chave(
+        self, cronograma: ScheduleDto
+    ) -> None:
+        vivas = {t.id: t for t in cronograma.tasks}
+        assert vivas.keys() == self.task_state.keys() - self.deleted_tasks
+        for tarefa in vivas.values():
+            assert tarefa.state is self.task_state[tarefa.id]
+            assert tarefa.responsible is not None
+        chave = [
+            (
+                t.state is TaskState.DONE,
+                t.target_date is None,
+                t.target_date or date.min,
+                t.title,
+                t.id,
+            )
+            for t in cronograma.tasks
+        ]
+        assert chave == sorted(chave)
+
+    def o_prazo_da_avulsa_segue_a_regra_do_marco(self, cronograma: ScheduleDto) -> None:
+        hoje = (self.clock.now() - timedelta(hours=3)).date()
+        for tarefa in cronograma.tasks:
+            concluida = tarefa.state is TaskState.DONE
+            conta = tarefa.target_date is not None and not concluida
+            vencida = tarefa.target_date is not None and tarefa.target_date < hoje
+            assert tarefa.overdue == (vencida and not concluida)
+            if conta:
+                assert tarefa.days_left == (tarefa.target_date - hoje).days  # type: ignore[operator]
+            else:
+                assert tarefa.days_left is None
+
+    def o_checklist_e_o_que_o_casal_deixou_inclusive_depois_de_restaurar(
+        self, cronograma: ScheduleDto
+    ) -> None:
+        """Excluir o dono esconde os itens sem apagar e restaurar os traz de volta: o dono vivo
+        sempre mostra exatamente os itens que o casal deixou, na ordem, com texto e "feito"."""
+        donos = [*_por_id(cronograma).values(), *cronograma.tasks]
+        for dono in donos:
+            assert [i.id for i in dono.checklist] == self.item_order.get(dono.id, [])
+            for item in dono.checklist:
+                assert (item.text, item.done) == self.item_fields[item.id]
+        vivos = [i.id for dono in donos for i in dono.checklist]
+        assert len(vivos) == len(set(vivos))
+
+    def o_progresso_do_checklist_confere_com_a_recontagem(self, cronograma: ScheduleDto) -> None:
+        for dono in [*_por_id(cronograma).values(), *cronograma.tasks]:
+            progresso = dono.checklist_progress
+            assert progresso.total == len(dono.checklist) <= MAX_CHECKLIST_ITEMS
+            assert progresso.done == sum(i.done for i in dono.checklist)
+            assert 0 <= progresso.done <= progresso.total
+
+    def as_posicoes_do_checklist_sao_unicas_e_a_ordem_e_a_da_posicao(
+        self, cronograma: ScheduleDto
+    ) -> None:
+        for dono in [*_por_id(cronograma).values(), *cronograma.tasks]:
+            posicoes = [i.position for i in dono.checklist]
+            assert posicoes == sorted(set(posicoes))
+            assert all(p >= 0 for p in posicoes)
+
+
+def _tarefas_por_id(cronograma: ScheduleDto) -> dict[UUID, TaskDto]:
+    return {t.id: t for t in cronograma.tasks}
+
+
+def _itens_do_dono(cronograma: ScheduleDto, dono: UUID) -> tuple[ChecklistItemDto, ...]:
+    donos = {**_por_id(cronograma), **_tarefas_por_id(cronograma)}
+    return donos[dono].checklist
 
 
 def _por_id(cronograma: ScheduleDto) -> dict[UUID, MilestoneDto]:

@@ -4252,6 +4252,711 @@
           }
         }
       }
+    },
+    "/api/v1/schedule/tasks": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks/{task_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Task",
+        "operationId": "update_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Delete Task",
+        "operationId": "delete_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks/{task_id}/state": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Change Task State",
+        "operationId": "change_task_state",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskStateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks/{task_id}/restore": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Restore Task",
+        "operationId": "restore_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Add Checklist Item",
+        "operationId": "add_checklist_item",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistItemCreateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist/order": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Reorder Checklist",
+        "operationId": "reorder_checklist",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistOrderIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/checklist/{item_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Checklist Item",
+        "operationId": "update_checklist_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistItemUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Remove Checklist Item",
+        "operationId": "remove_checklist_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4852,6 +5557,118 @@
         },
         "type": "object",
         "title": "CeremonyValueSchema"
+      },
+      "ChecklistItemCreateIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "O texto do item, de 1 a 200 caracteres."
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "ChecklistItemCreateIn"
+      },
+      "ChecklistItemOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position",
+            "description": "Ordem no checklist, a partir de zero; pode ter buracos."
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "description": "A versão do item, própria: não é a do marco nem a da avulsa."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "done",
+          "position",
+          "version"
+        ],
+        "title": "ChecklistItemOut"
+      },
+      "ChecklistItemUpdateIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do item que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "done",
+          "version"
+        ],
+        "title": "ChecklistItemUpdateIn",
+        "description": "A substituição inteira do item: marcar, desmarcar e editar o texto são o mesmo pedido."
+      },
+      "ChecklistOrderIn": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Ids",
+            "description": "Exatamente os itens vivos do dono, sem repetir e sem faltar, na nova ordem."
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "ChecklistOrderIn"
+      },
+      "ChecklistProgressOut": {
+        "properties": {
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "done",
+          "total"
+        ],
+        "title": "ChecklistProgressOut"
       },
       "CompanionChoice": {
         "type": "string",
@@ -6942,6 +7759,18 @@
             "title": "Days Left",
             "description": "Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o marco está concluído, arquivado ou sem prazo efetivo."
           },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemOut"
+            },
+            "type": "array",
+            "title": "Checklist",
+            "description": "Os itens vivos do checklist, na ordem; não mudam o estado do marco."
+          },
+          "checklist_progress": {
+            "$ref": "#/components/schemas/ChecklistProgressOut",
+            "description": "O \"N de M\" do checklist."
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -6969,6 +7798,8 @@
           "window_end",
           "effective_target",
           "days_left",
+          "checklist",
+          "checklist_progress",
           "version"
         ],
         "title": "MilestoneOut"
@@ -7020,6 +7851,12 @@
             "type": "boolean",
             "title": "Ignore Block",
             "description": "A confirmação de marcar Em andamento ou Concluído (inclusive saindo de Concluído) um marco que aguarda algo: a categoria ainda em discussão no Mapa de Escopo ou uma dependência não resolvida. Sem ela, esse pedido responde 422 (milestone_blocked).",
+            "default": false
+          },
+          "ignore_open_items": {
+            "type": "boolean",
+            "title": "Ignore Open Items",
+            "description": "A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.",
             "default": false
           },
           "version": {
@@ -7564,6 +8401,14 @@
             "type": "array",
             "title": "Phases"
           },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskOut"
+            },
+            "type": "array",
+            "title": "Tasks",
+            "description": "As avulsas vivas, fora das fases: concluídas e sem prazo por último, depois pelo prazo, pelo título e pelo id."
+          },
           "category_options": {
             "items": {
               "$ref": "#/components/schemas/CategoryOptionOut"
@@ -7579,6 +8424,7 @@
         "type": "object",
         "required": [
           "phases",
+          "tasks",
           "category_options",
           "has_exact_date"
         ],
@@ -7853,6 +8699,231 @@
           "version"
         ],
         "title": "StatusIn"
+      },
+      "TaskCreateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "responsible": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileKind"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sem ele, vale o perfil da sessão; Ambos só se vier explícito."
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date",
+            "description": "Entre os anos 2000 e 2100."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "TaskCreateIn",
+        "description": "A avulsa nasce `A fazer`. O responsável é opcional: sem ele, é o perfil de quem está na\nsessão (`Noivo` ou `Noiva`, nunca `Ambos` por padrão); `Ambos` só se for pedido."
+      },
+      "TaskOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TaskState"
+          },
+          "overdue": {
+            "type": "boolean",
+            "title": "Overdue",
+            "description": "Prazo vencido e não concluída; o dia é o de Brasília."
+          },
+          "days_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Left",
+            "description": "Dias de hoje (Brasília) ao prazo; negativo é passado e 0 é hoje. Nulo se a avulsa está concluída ou sem prazo."
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemOut"
+            },
+            "type": "array",
+            "title": "Checklist"
+          },
+          "checklist_progress": {
+            "$ref": "#/components/schemas/ChecklistProgressOut"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "responsible",
+          "note",
+          "target_date",
+          "state",
+          "overdue",
+          "days_left",
+          "checklist",
+          "checklist_progress",
+          "version"
+        ],
+        "title": "TaskOut"
+      },
+      "TaskState": {
+        "type": "string",
+        "enum": [
+          "A fazer",
+          "Em andamento",
+          "Concluída"
+        ],
+        "title": "TaskState",
+        "description": "O estado da tarefa avulsa (F-CRN-06): todo estado vale a qualquer momento, e reabrir é voltar\na `A fazer`. Note o feminino de `Concluída`, diferente do `Concluído` do marco."
+      },
+      "TaskStateIn": {
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/TaskState",
+            "description": "Qualquer estado vale a qualquer momento; reabrir é A fazer."
+          },
+          "ignore_open_items": {
+            "type": "boolean",
+            "title": "Ignore Open Items",
+            "description": "A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.",
+            "default": false
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão da avulsa que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "version"
+        ],
+        "title": "TaskStateIn"
+      },
+      "TaskUpdateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Nulo ou em branco apaga a nota."
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date",
+            "description": "Nulo apaga o prazo."
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão da avulsa que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "responsible",
+          "note",
+          "target_date",
+          "version"
+        ],
+        "title": "TaskUpdateIn",
+        "description": "A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio\nvai como nulo, para omitir um campo nunca apagar um dado em silêncio."
       },
       "TextFieldIn": {
         "properties": {

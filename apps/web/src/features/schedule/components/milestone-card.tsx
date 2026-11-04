@@ -2,6 +2,7 @@ import { cn } from '@/lib/cn'
 import { formatDay } from '@/lib/date'
 import type { ScheduleMilestone } from '../api/schedule'
 import { copy } from '../copy'
+import { ChecklistSummary } from './checklist-summary'
 import { OptionalBadge, OverdueBadge, StateBadge } from './milestone-badges'
 import { DeadlineDate, DeadlineDetails } from './milestone-deadline'
 import { MilestoneNotes } from './milestone-notes'
@@ -41,6 +42,7 @@ export function MilestoneCard({
         {milestone.optional && <OptionalBadge />}
       </div>
       <MilestoneNotes milestone={milestone} />
+      <ChecklistSummary progress={milestone.checklist_progress} />
       <div className="flex flex-col gap-1 text-body-sm text-ink-muted">
         <p className="flex flex-wrap items-center justify-between gap-x-3">
           <span>

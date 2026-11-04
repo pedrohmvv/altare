@@ -23,6 +23,8 @@ def test_carregar_as_tabelas_registra_as_de_cada_modulo_no_metadata():
         "milestones",
         "milestone_dependencies",
         "milestone_changes",
+        "schedule_tasks",
+        "checklist_items",
     } <= set(metadata.tables)
 
 

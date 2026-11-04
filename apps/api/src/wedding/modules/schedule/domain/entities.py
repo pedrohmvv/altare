@@ -5,10 +5,14 @@ from uuid import UUID
 
 from wedding.modules.schedule.domain.values import (
     ManualState,
+    OwnerKind,
+    TaskState,
+    clean_checklist_text,
     clean_milestone_title,
     clean_note,
     clean_phase_title,
     clean_target_date,
+    clean_task_title,
 )
 from wedding.modules.schedule.domain.windows import Window, WindowUnit, validate_window
 from wedding.shared_kernel.profile import ProfileKind
@@ -187,3 +191,113 @@ class Dependency(NamedTuple):
 
     milestone_id: UUID
     depends_on_id: UUID
+
+
+@dataclass
+class Task:
+    """Uma tarefa avulsa (F-CRN-06): livre, sem fase, categoria nem dependências, e por isso nunca
+    entra na derivação dos marcos. Guarda só fatos; se está atrasada e quantos dias faltam se
+    derivam na leitura (`domain/tasks.py`). `version` é mantido pelo mapeamento."""
+
+    id: UUID
+    title: str
+    responsible: ProfileKind
+    note: str | None = None
+    target_date: date | None = None
+    state: TaskState = TaskState.TODO
+    deleted_at: datetime | None = None
+    deleted_by: UUID | None = None
+    version: int = 0
+
+    def __post_init__(self) -> None:
+        self.title = clean_task_title(self.title)
+        self.note = clean_note(self.note)
+        self.target_date = clean_target_date(self.target_date)
+
+    def edit(
+        self, title: str, responsible: ProfileKind, note: str | None, target_date: date | None
+    ) -> bool:
+        """Substitui título, responsável, nota e prazo; valida tudo antes de gravar qualquer
+        campo e diz se algo mudou."""
+        after = (
+            clean_task_title(title),
+            responsible,
+            clean_note(note),
+            clean_target_date(target_date),
+        )
+        before = (self.title, self.responsible, self.note, self.target_date)
+        if before == after:
+            return False
+        self.title, self.responsible, self.note, self.target_date = after
+        return True
+
+    def set_state(self, state: TaskState) -> bool:
+        """Qualquer estado vale a qualquer momento; repetir o atual não é mudança."""
+        if state is self.state:
+            return False
+        self.state = state
+        return True
+
+    def delete(self, now: datetime, by: UUID | None) -> None:
+        self.deleted_at, self.deleted_by = now, by
+
+    def restore(self) -> None:
+        self.deleted_at = self.deleted_by = None
+
+
+@dataclass
+class ChecklistItem:
+    """Um item do checklist (F-CRN-07) de um marco ou de uma avulsa: exatamente um dos dois donos.
+    Marcar, editar e remover o item nunca tocam o dono. `position` é a ordem entre os itens vivos
+    do dono, a partir de zero; `version` é mantido pelo mapeamento."""
+
+    id: UUID
+    text: str
+    position: int
+    milestone_id: UUID | None = None
+    task_id: UUID | None = None
+    done: bool = False
+    deleted_at: datetime | None = None
+    deleted_by: UUID | None = None
+    version: int = 0
+
+    def __post_init__(self) -> None:
+        self.text = clean_checklist_text(self.text)
+        if (self.milestone_id is None) == (self.task_id is None):
+            raise ValueError("O item do checklist tem exatamente um dono: um marco ou uma avulsa")
+        if self.position < 0:
+            raise ValueError("A posição do item do checklist não é negativa")
+
+    @classmethod
+    def of_owner(
+        cls, item_id: UUID, kind: OwnerKind, owner_id: UUID, text: str, position: int
+    ) -> "ChecklistItem":
+        is_milestone = kind is OwnerKind.MILESTONE
+        return cls(
+            item_id,
+            text,
+            position,
+            milestone_id=owner_id if is_milestone else None,
+            task_id=None if is_milestone else owner_id,
+        )
+
+    @property
+    def owner_kind(self) -> OwnerKind:
+        return OwnerKind.MILESTONE if self.milestone_id is not None else OwnerKind.TASK
+
+    @property
+    def owner_id(self) -> UUID:
+        owner = self.milestone_id if self.milestone_id is not None else self.task_id
+        assert owner is not None
+        return owner
+
+    def edit(self, text: str, done: bool) -> bool:
+        """Substitui texto e feito; valida antes de gravar e diz se algo mudou."""
+        cleaned = clean_checklist_text(text)
+        if (cleaned, done) == (self.text, self.done):
+            return False
+        self.text, self.done = cleaned, done
+        return True
+
+    def delete(self, now: datetime, by: UUID | None) -> None:
+        self.deleted_at, self.deleted_by = now, by

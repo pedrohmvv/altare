@@ -3,6 +3,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { formatTableDay } from '@/lib/date'
 import type { Schedule, ScheduleMilestone, SchedulePhase } from '../api/schedule'
 import { copy } from '../copy'
+import { Checklist } from './checklist'
 import { OptionalBadge, OverdueBadge, StateBadge } from './milestone-badges'
 import { DeadlineDate, DeadlineDetails } from './milestone-deadline'
 import { type DeletedMilestone, DeleteMilestone } from './milestone-delete'
@@ -77,6 +78,12 @@ export function MilestoneSheet({
           phaseId={phase.id}
           phases={schedule.phases}
           categoryOptions={schedule.category_options}
+        />
+        <Checklist
+          key={`checklist-${milestone.id}`}
+          owner={{ kind: 'milestones', id: milestone.id }}
+          items={milestone.checklist}
+          progress={milestone.checklist_progress}
         />
         <MilestoneWindow
           key={`window-${milestone.id}`}

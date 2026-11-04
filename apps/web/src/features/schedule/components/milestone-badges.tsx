@@ -1,6 +1,6 @@
-import { CircleAlert, CircleCheck, CircleDot, Lock, LockOpen } from 'lucide-react'
+import { Circle, CircleAlert, CircleCheck, CircleDot, Lock, LockOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import type { MilestoneState } from '../api/schedule'
+import type { MilestoneState, TaskState } from '../api/schedule'
 import { copy } from '../copy'
 
 /**
@@ -48,4 +48,37 @@ export function OverdueBadge() {
 
 export function OptionalBadge() {
   return <Badge variant="outline">{copy.optional}</Badge>
+}
+
+/** O estado da avulsa, em texto e com ícone: `Concluída` é acordo, como o `Concluído` do marco. */
+export function TaskStateBadge({ state }: { state: TaskState }) {
+  const label = copy.task.states[state]
+  if (state === 'Concluída') {
+    return (
+      <Badge variant="consensus" icon={<CircleCheck />}>
+        {label}
+      </Badge>
+    )
+  }
+  if (state === 'Em andamento') {
+    return (
+      <Badge variant="outline" icon={<CircleDot />}>
+        {label}
+      </Badge>
+    )
+  }
+  return (
+    <Badge variant="neutral" icon={<Circle />}>
+      {label}
+    </Badge>
+  )
+}
+
+/** O atraso da avulsa, no feminino: o mesmo fato dito com calma (argila, ícone e a palavra). */
+export function TaskOverdueBadge() {
+  return (
+    <Badge variant="attention" icon={<CircleAlert />}>
+      {copy.task.overdue}
+    </Badge>
+  )
 }

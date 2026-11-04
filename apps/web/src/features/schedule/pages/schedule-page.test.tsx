@@ -119,7 +119,7 @@ describe('cronograma por fase: leitura (F-CRN-09)', () => {
 
   it('sem marcos, acolhe e diz o que virá', async () => {
     renderSchedule({
-      [GET_SCHEDULE]: jsonResponse(200, { has_exact_date: false, phases: [] }),
+      [GET_SCHEDULE]: jsonResponse(200, { has_exact_date: false, phases: [], tasks: [] }),
     })
 
     expect(await screen.findByRole('heading', { name: 'Ainda sem marcos' })).toBeVisible()
@@ -156,10 +156,11 @@ describe('cronograma por fase: desktop e celular (F-CRN-09)', () => {
     stubWideScreen()
     renderSchedule()
     const tabela = await screen.findByRole('table', {
-      name: 'Fases do cronograma e os marcos de cada uma',
+      name: 'Fases do cronograma com os seus marcos, e as avulsas.',
     })
 
-    expect(within(tabela).getAllByRole('rowheader')).toHaveLength(2)
+    // Duas fases e o grupo "Avulsas" (F-CRN-06).
+    expect(within(tabela).getAllByRole('rowheader')).toHaveLength(3)
     expect(within(tabela).getByRole('rowheader', { name: /Fase Exemplo Um/ })).toHaveAttribute(
       'scope',
       'rowgroup',
@@ -173,19 +174,23 @@ describe('cronograma por fase: desktop e celular (F-CRN-09)', () => {
   it('no computador, um título de seção (só para o leitor) fica entre o h1 e a tabela', async () => {
     stubWideScreen()
     renderSchedule()
-    await screen.findByRole('table', { name: 'Fases do cronograma e os marcos de cada uma' })
+    await screen.findByRole('table', {
+      name: 'Fases do cronograma com os seus marcos, e as avulsas.',
+    })
 
-    expect(screen.getByRole('heading', { level: 2, name: 'Marcos por fase' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Marcos por fase e avulsas' }),
+    ).toBeInTheDocument()
   })
 
   it('a tabela tem as colunas de marco, estado, responsável e prazo-alvo', async () => {
     stubWideScreen()
     renderSchedule()
     const tabela = await screen.findByRole('table', {
-      name: 'Fases do cronograma e os marcos de cada uma',
+      name: 'Fases do cronograma com os seus marcos, e as avulsas.',
     })
 
-    for (const nome of ['Marco', 'Estado', 'Responsável', 'Prazo-alvo']) {
+    for (const nome of ['Marco ou avulsa', 'Estado', 'Responsável', 'Prazo-alvo']) {
       expect(within(tabela).getByRole('columnheader', { name: nome })).toBeVisible()
     }
     expect(within(tabela).getByText('15/03/2027')).toBeVisible()

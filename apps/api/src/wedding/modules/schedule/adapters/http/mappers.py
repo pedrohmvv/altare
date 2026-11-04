@@ -2,6 +2,8 @@ from wedding.modules.schedule.adapters.http.schemas import (
     BlockerOut,
     CategoryLinkOut,
     CategoryOptionOut,
+    ChecklistItemOut,
+    ChecklistProgressOut,
     CreatedMilestoneOut,
     DateChangeOut,
     DatePreviewOut,
@@ -15,9 +17,11 @@ from wedding.modules.schedule.adapters.http.schemas import (
     PhaseProgressOut,
     RestoreOut,
     ScheduleOut,
+    TaskOut,
     WarningOut,
 )
 from wedding.modules.schedule.application.dto import (
+    ChecklistItemDto,
     CreatedMilestoneDto,
     DatePreviewDto,
     DateRangeDto,
@@ -25,7 +29,38 @@ from wedding.modules.schedule.application.dto import (
     PhaseDto,
     RestoreDto,
     ScheduleDto,
+    TaskDto,
 )
+from wedding.modules.schedule.domain.checklist import ChecklistProgress
+
+
+def _to_checklist_out(items: tuple[ChecklistItemDto, ...]) -> list[ChecklistItemOut]:
+    return [
+        ChecklistItemOut(
+            id=item.id, text=item.text, done=item.done, position=item.position, version=item.version
+        )
+        for item in items
+    ]
+
+
+def _to_progress_out(progress: ChecklistProgress) -> ChecklistProgressOut:
+    return ChecklistProgressOut(done=progress.done, total=progress.total)
+
+
+def _to_task_out(task: TaskDto) -> TaskOut:
+    return TaskOut(
+        id=task.id,
+        title=task.title,
+        responsible=task.responsible,
+        note=task.note,
+        target_date=task.target_date,
+        state=task.state,
+        overdue=task.overdue,
+        days_left=task.days_left,
+        checklist=_to_checklist_out(task.checklist),
+        checklist_progress=_to_progress_out(task.checklist_progress),
+        version=task.version,
+    )
 
 
 def _to_milestone_out(milestone: MilestoneDto) -> MilestoneOut:
@@ -71,6 +106,8 @@ def _to_milestone_out(milestone: MilestoneDto) -> MilestoneOut:
         window_end=milestone.window_end,
         effective_target=milestone.effective_target,
         days_left=milestone.days_left,
+        checklist=_to_checklist_out(milestone.checklist),
+        checklist_progress=_to_progress_out(milestone.checklist_progress),
         version=milestone.version,
     )
 
@@ -89,6 +126,7 @@ def _to_phase_out(phase: PhaseDto) -> PhaseOut:
 def to_schedule_out(schedule: ScheduleDto) -> ScheduleOut:
     return ScheduleOut(
         phases=[_to_phase_out(phase) for phase in schedule.phases],
+        tasks=[_to_task_out(task) for task in schedule.tasks],
         category_options=[
             CategoryOptionOut(id=option.id, name=option.name)
             for option in schedule.category_options

@@ -1,3 +1,4 @@
+import { Chip } from '@/components/ui/chip'
 import { Money } from '@/components/ui/money'
 import { Progress } from '@/components/ui/progress'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -6,7 +7,6 @@ import { SCOPE_STATUSES } from '../api/scope'
 import { copy } from '../copy'
 import { SLUG_BY_STATUS } from '../lib/scope-filters'
 import type { PlanningSearch } from '../search'
-import { Chip } from './chip'
 
 interface ScopeToolbarProps {
   map: ScopeMap

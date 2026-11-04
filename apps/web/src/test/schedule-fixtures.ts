@@ -1,4 +1,9 @@
-import type { Schedule, ScheduleMilestone } from '@/features/schedule/api/schedule'
+import type {
+  ChecklistItem,
+  Schedule,
+  ScheduleMilestone,
+  ScheduleTask,
+} from '@/features/schedule/api/schedule'
 
 /** Ids fixos e válidos como UUID: a URL só aceita este formato. */
 export const ID = {
@@ -23,6 +28,13 @@ export const ID = {
   atrasadoComJanela: '00000000-0000-4000-8000-0000000000a4',
   semJanela: '00000000-0000-4000-8000-0000000000a5',
   semPrazo: '00000000-0000-4000-8000-0000000000a6',
+  avulsaUm: '00000000-0000-4000-8000-0000000000b1',
+  avulsaDois: '00000000-0000-4000-8000-0000000000b2',
+  avulsaNova: '00000000-0000-4000-8000-0000000000b3',
+  itemUm: '00000000-0000-4000-8000-0000000000d1',
+  itemDois: '00000000-0000-4000-8000-0000000000d2',
+  itemTres: '00000000-0000-4000-8000-0000000000d3',
+  itemNovo: '00000000-0000-4000-8000-0000000000d4',
 } as const
 
 /**
@@ -50,14 +62,45 @@ export function milestone(over: Partial<ScheduleMilestone> & { id: string; title
     unlocks: [],
     warnings: [],
     category: null,
+    checklist: [],
+    checklist_progress: { done: 0, total: 0 },
     version: 1,
     ...over,
   } satisfies ScheduleMilestone
 }
 
+/** Um item de checklist, sem texto do casamento: os exemplos são rotulados como fictícios. */
+export function checklistItem(over: Partial<ChecklistItem> & { id: string; text: string }) {
+  return { done: false, position: 0, version: 1, ...over } satisfies ChecklistItem
+}
+
+/**
+ * Uma avulsa com os padrões de uma recém-criada: A fazer, sem prazo, sem itens. O `checklist_progress`
+ * acompanha os itens, como o servidor o calcularia.
+ */
+export function task(over: Partial<ScheduleTask> & { id: string; title: string }) {
+  const checklist = over.checklist ?? []
+  return {
+    responsible: 'Ambos',
+    note: null,
+    target_date: null,
+    state: 'A fazer',
+    overdue: false,
+    days_left: null,
+    checklist,
+    checklist_progress: {
+      done: checklist.filter((item) => item.done).length,
+      total: checklist.length,
+    },
+    version: 1,
+    ...over,
+  } satisfies ScheduleTask
+}
+
 /** Duas fases de exemplo, com um marco de cada situação que a tela precisa mostrar. */
 export const SCHEDULE: Schedule = {
   has_exact_date: false,
+  tasks: [],
   category_options: [
     { id: ID.espaco, name: 'Espaço Exemplo' },
     { id: ID.buffet, name: 'Buffet Exemplo' },
@@ -314,6 +357,180 @@ export function scheduleComData(): Schedule {
             window: suggested,
             ...calculated,
             effective_target: '2026-08-12',
+          }),
+        ],
+      },
+    ],
+  }
+}
+
+/** O cronograma de exemplo com avulsas, no fim da lista, como a API as entrega. */
+export function scheduleWithTasks(tasks: ScheduleTask[], base: Schedule = SCHEDULE): Schedule {
+  return { ...base, tasks }
+}
+
+/** Duas avulsas de exemplo: uma Noiva com prazo vencido e itens, e uma Ambos, concluída. */
+export function sampleTasks(): ScheduleTask[] {
+  return [
+    task({
+      id: ID.avulsaUm,
+      title: 'Avulsa Exemplo Atrasada',
+      responsible: 'Noiva',
+      target_date: '2020-01-15',
+      overdue: true,
+      days_left: -3,
+      checklist: [
+        checklistItem({ id: ID.itemUm, text: 'Item Exemplo Um', done: true, position: 0 }),
+        checklistItem({ id: ID.itemDois, text: 'Item Exemplo Dois', position: 1 }),
+        checklistItem({ id: ID.itemTres, text: 'Item Exemplo Três', position: 2 }),
+      ],
+    }),
+    task({
+      id: ID.avulsaDois,
+      title: 'Avulsa Exemplo Concluída',
+      state: 'Concluída',
+    }),
+  ]
+}
+
+/**
+ * O cronograma com o checklist de um dono (marco ou avulsa) trocado, como a API o devolveria: o
+ * "N de M" acompanha os itens. Os ids dos marcos e das avulsas não se confundem.
+ */
+export function scheduleWithChecklist(
+  ownerId: string,
+  checklist: ChecklistItem[],
+  base: Schedule = SCHEDULE,
+): Schedule {
+  const checklist_progress = {
+    done: checklist.filter((item) => item.done).length,
+    total: checklist.length,
+  }
+  const change = { checklist, checklist_progress }
+  return {
+    ...base,
+    tasks: base.tasks.map((item) => (item.id === ownerId ? { ...item, ...change } : item)),
+    phases: base.phases.map((phase) => ({
+      ...phase,
+      milestones: phase.milestones.map((item) =>
+        item.id === ownerId ? { ...item, ...change } : item,
+      ),
+    })),
+  }
+}
+
+/** Os itens vivos de um dono, no cronograma dado. */
+export function checklistOf(schedule: Schedule, ownerId: string): ChecklistItem[] {
+  const owner =
+    schedule.tasks.find((item) => item.id === ownerId) ??
+    schedule.phases.flatMap((phase) => phase.milestones).find((item) => item.id === ownerId)
+  return owner?.checklist ?? []
+}
+
+/** Ids do cronograma de filtros: todos válidos como UUID, para a URL aceitá-los. */
+export const FID = {
+  mNoivo: '00000000-0000-4000-8000-0000000000e1',
+  mNoiva: '00000000-0000-4000-8000-0000000000e2',
+  mAmbosAtrasado: '00000000-0000-4000-8000-0000000000e3',
+  mNoivaConcluido: '00000000-0000-4000-8000-0000000000e4',
+  mNoivaArquivado: '00000000-0000-4000-8000-0000000000e5',
+  tNoivo: '00000000-0000-4000-8000-0000000000e6',
+  tNoivaAndamento: '00000000-0000-4000-8000-0000000000e7',
+  tAmbosConcluida: '00000000-0000-4000-8000-0000000000e8',
+  tNoivaAtrasada: '00000000-0000-4000-8000-0000000000e9',
+} as const
+
+/**
+ * Um cronograma para filtros e lentes: marcos e avulsas de cada responsável, em cada estado, um
+ * atrasado de cada tipo e um marco arquivado (que nunca entra em lista nenhuma). O progresso das
+ * fases é o do servidor e não muda com filtro.
+ */
+export function scheduleForFilters(): Schedule {
+  return {
+    ...SCHEDULE,
+    tasks: [
+      task({ id: FID.tNoivo, title: 'Avulsa Exemplo do Noivo', responsible: 'Noivo' }),
+      task({
+        id: FID.tNoivaAndamento,
+        title: 'Avulsa Exemplo da Noiva em Andamento',
+        responsible: 'Noiva',
+        state: 'Em andamento',
+        target_date: '2027-03-01',
+        days_left: 20,
+      }),
+      task({
+        id: FID.tAmbosConcluida,
+        title: 'Avulsa Exemplo de Ambos Concluída',
+        responsible: 'Ambos',
+        state: 'Concluída',
+      }),
+      task({
+        id: FID.tNoivaAtrasada,
+        title: 'Avulsa Exemplo da Noiva Atrasada',
+        responsible: 'Noiva',
+        target_date: '2020-01-15',
+        days_left: -9,
+        overdue: true,
+      }),
+    ],
+    phases: [
+      {
+        id: ID.faseUm,
+        title: 'Fase Exemplo Um',
+        position: 0,
+        version: 1,
+        progress: { done: 0, total: 3 },
+        milestones: [
+          milestone({
+            id: FID.mNoivo,
+            title: 'Marco Exemplo do Noivo',
+            position: 0,
+            responsible: 'Noivo',
+            state: 'Destravado',
+          }),
+          milestone({
+            id: FID.mNoiva,
+            title: 'Marco Exemplo da Noiva',
+            position: 1,
+            responsible: 'Noiva',
+            state: 'Bloqueado',
+            blocked_by: [
+              { kind: 'milestone', milestone_id: FID.mNoivo, label: 'Marco Exemplo do Noivo' },
+            ],
+          }),
+          milestone({
+            id: FID.mAmbosAtrasado,
+            title: 'Marco Exemplo de Ambos Atrasado',
+            position: 2,
+            responsible: 'Ambos',
+            state: 'Em andamento',
+            overdue: true,
+            target_date: '2020-02-01',
+            days_left: -5,
+          }),
+        ],
+      },
+      {
+        id: ID.faseDois,
+        title: 'Fase Exemplo Dois',
+        position: 1,
+        version: 2,
+        progress: { done: 1, total: 1 },
+        milestones: [
+          milestone({
+            id: FID.mNoivaConcluido,
+            title: 'Marco Exemplo da Noiva Concluído',
+            position: 0,
+            responsible: 'Noiva',
+            state: 'Concluído',
+          }),
+          milestone({
+            id: FID.mNoivaArquivado,
+            title: 'Marco Exemplo da Noiva Arquivado',
+            position: 1,
+            responsible: 'Noiva',
+            state: 'Destravado',
+            archived: true,
           }),
         ],
       },

@@ -2,16 +2,20 @@ from sqlalchemy import inspect
 from sqlalchemy.orm import relationship
 
 from wedding.modules.schedule.domain.entities import (
+    ChecklistItem,
     Milestone,
     MilestoneChange,
     MilestoneDependency,
     Phase,
+    Task,
 )
 from wedding.modules.schedule.infrastructure.tables import (
+    checklist_items,
     milestone_changes,
     milestone_dependencies,
     milestones,
     schedule_phases,
+    schedule_tasks,
 )
 from wedding.platform.db.metadata import mapper_registry
 
@@ -59,4 +63,21 @@ def start_mappers() -> None:
             milestone_changes,
             version_id_col=milestone_changes.c.version,
             properties={"_milestone": relationship(Milestone, lazy="raise")},
+        )
+    if inspect(Task, raiseerr=False) is None:
+        mapper_registry.map_imperatively(
+            Task, schedule_tasks, version_id_col=schedule_tasks.c.version
+        )
+    if inspect(ChecklistItem, raiseerr=False) is None:
+        # Cada item tem a `version` própria: marcar, editar e remover um item não toca o dono.
+        mapper_registry.map_imperatively(
+            ChecklistItem,
+            checklist_items,
+            version_id_col=checklist_items.c.version,
+            properties={
+                "_milestone": relationship(
+                    Milestone, lazy="raise", foreign_keys=[checklist_items.c.milestone_id]
+                ),
+                "_task": relationship(Task, lazy="raise", foreign_keys=[checklist_items.c.task_id]),
+            },
         )

@@ -1,6 +1,6 @@
 # Features: Cronograma & Dependências (`features/cronograma.md`)
 
-> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`, o PR 2, a edição de marcos, dependências e fases (`F-CRN-01` completa; `F-CRN-03`, regra 2), em `D-082`, e o PR 3, as datas (`F-CRN-05`: Modos Sem e Com Data, janelas calculadas, prazo efetivo, contagem regressiva, editor de janela e a prévia ao mudar a data), em `D-083`.
+> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`, o PR 2, a edição de marcos, dependências e fases (`F-CRN-01` completa; `F-CRN-03`, regra 2), em `D-082`, o PR 3, as datas (`F-CRN-05`: Modos Sem e Com Data, janelas calculadas, prazo efetivo, contagem regressiva, editor de janela e a prévia ao mudar a data), em `D-083`, e o PR 4, as tarefas avulsas, o checklist, os filtros, a lente e "Meus próximos passos" (`F-CRN-06`, `07` e `09`), em `D-084`.
 >
 > **Fontes:** `docs/product/scope.md` §2, `docs/design/experience.md` (objeto 4), `docs/product/jobs.md` (J4, J5), `features/planejamento-e-caminhos.md` (F-PLN-01, F-PLN-07), `D-026`, `D-031`.
 >
@@ -249,7 +249,7 @@ Concretiza `F-PLN-07` para o cronograma.
 | **Lente `Minha visão`** | Itens em que sou responsável **ou** `Ambos` |
 | **Detalhe** | Painel lateral (desktop) ou folha inferior (mobile) com campos, **"Depende de"**, **"Libera"**, checklist e anexos |
 
-**Desktop:** seções de fase com tabela densa e painel lateral. **Mobile:** lista de cartões, com a seção "Meus próximos passos" no topo (itens `Destravado` ou `Em andamento` sob minha responsabilidade, ordenados por prazo).
+**Desktop:** seções de fase com tabela densa e painel lateral. **Mobile:** lista de cartões, com a seção "Meus próximos passos" no topo: os itens (marcos `Destravado` ou `Em andamento` e avulsas `A fazer` ou `Em andamento`) cujo responsável é **eu ou `Ambos`**, **qualquer que seja a lente ou o filtro**, com os atrasados primeiro, depois pelo prazo (o prazo efetivo do marco), depois os sem prazo, em até 8 com "Ver todos" (`D-084`).
 
 **Critérios de aceite**
 - Aplicar "Atrasados" altera a URL, e o botão voltar do navegador desfaz o filtro.

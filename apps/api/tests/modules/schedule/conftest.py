@@ -12,35 +12,50 @@ from tests.modules.schedule.catalog import (
 )
 from tests.modules.wedding.conftest import CSRF, SENHA, _FakeHasher
 
+from wedding.modules.schedule.application.commands.add_checklist_item import AddChecklistItem
 from wedding.modules.schedule.application.commands.change_milestone_state import (
     ChangeMilestoneState,
 )
+from wedding.modules.schedule.application.commands.change_task_state import ChangeTaskState
 from wedding.modules.schedule.application.commands.create_milestone import CreateMilestone
 from wedding.modules.schedule.application.commands.create_phase import CreatePhase
+from wedding.modules.schedule.application.commands.create_task import CreateTask
 from wedding.modules.schedule.application.commands.delete_milestone import DeleteMilestone
+from wedding.modules.schedule.application.commands.delete_task import DeleteTask
+from wedding.modules.schedule.application.commands.remove_checklist_item import (
+    RemoveChecklistItem,
+)
 from wedding.modules.schedule.application.commands.rename_phase import RenamePhase
+from wedding.modules.schedule.application.commands.reorder_checklist import ReorderChecklist
 from wedding.modules.schedule.application.commands.reorder_phases import ReorderPhases
 from wedding.modules.schedule.application.commands.restore_milestone import RestoreMilestone
+from wedding.modules.schedule.application.commands.restore_task import RestoreTask
 from wedding.modules.schedule.application.commands.set_milestone_dependencies import (
     SetMilestoneDependencies,
+)
+from wedding.modules.schedule.application.commands.update_checklist_item import (
+    UpdateChecklistItem,
 )
 from wedding.modules.schedule.application.commands.update_milestone import UpdateMilestone
 from wedding.modules.schedule.application.commands.update_milestone_window import (
     UpdateMilestoneWindow,
 )
+from wedding.modules.schedule.application.commands.update_task import UpdateTask
 from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
 from wedding.modules.schedule.application.queries.preview_date_change import PreviewDateChange
 from wedding.modules.schedule.application.queries.read_schedule import ReadSchedule
 from wedding.modules.schedule.application.schedule_map import ScheduleReader
 from wedding.modules.schedule.application.use_cases import ScheduleUseCases
 from wedding.modules.schedule.domain.entities import (
+    ChecklistItem,
     Dependency,
     Milestone,
     MilestoneChange,
     MilestoneDependency,
     Phase,
+    Task,
 )
-from wedding.modules.schedule.domain.values import Standing
+from wedding.modules.schedule.domain.values import OwnerKind, Standing
 from wedding.shared_kernel.actor import Actor
 from wedding.shared_kernel.clock import Clock
 from wedding.shared_kernel.profile import ProfileKind
@@ -62,6 +77,8 @@ class Store:
         self.milestones: dict[UUID, Milestone] = {}
         self.links: list[MilestoneDependency] = []
         self.changes: list[MilestoneChange] = []
+        self.tasks: dict[UUID, Task] = {}
+        self.items: dict[UUID, ChecklistItem] = {}
 
 
 class _Repository:
@@ -130,6 +147,38 @@ class _Repository:
     def add_change(self, change: MilestoneChange) -> None:
         self.store.changes.append(change)
 
+    def list_tasks(self) -> list[Task]:
+        return [t for t in self.store.tasks.values() if t.deleted_at is None]
+
+    def get_task(self, task_id: UUID, *, include_deleted: bool = False) -> Task | None:
+        found = self.store.tasks.get(task_id)
+        if found is None or (found.deleted_at is not None and not include_deleted):
+            return None
+        return found
+
+    def add_task(self, task: Task) -> None:
+        self.store.tasks[task.id] = task
+
+    def list_checklist_items(self) -> list[ChecklistItem]:
+        return [i for i in self.store.items.values() if i.deleted_at is None]
+
+    def live_items_of(self, kind: OwnerKind, owner_id: UUID) -> list[ChecklistItem]:
+        return sorted(
+            (
+                i
+                for i in self.list_checklist_items()
+                if i.owner_kind is kind and i.owner_id == owner_id
+            ),
+            key=lambda i: (i.position, i.id),
+        )
+
+    def get_checklist_item(self, item_id: UUID) -> ChecklistItem | None:
+        found = self.store.items.get(item_id)
+        return None if found is None or found.deleted_at is not None else found
+
+    def add_checklist_item(self, item: ChecklistItem) -> None:
+        self.store.items[item.id] = item
+
 
 class _UnitOfWork:
     """Transação de mentira: trabalha numa cópia e só a publica no commit, subindo a `version`
@@ -141,6 +190,8 @@ class _UnitOfWork:
         self._store = copy.deepcopy(world.store)
         self._before = copy.deepcopy(world.store.milestones)
         self._phases_before = copy.deepcopy(world.store.phases)
+        self._tasks_before = copy.deepcopy(world.store.tasks)
+        self._items_before = copy.deepcopy(world.store.items)
         self.schedule = _Repository(self._store)
 
     def __enter__(self) -> "_UnitOfWork":
@@ -157,11 +208,15 @@ class _UnitOfWork:
     def commit(self) -> None:
         _bump(self._store.milestones, self._before)
         _bump(self._store.phases, self._phases_before)
+        _bump(self._store.tasks, self._tasks_before)
+        _bump(self._store.items, self._items_before)
         for link in self._store.links:
             link.version = link.version or 1
         self._world.store = self._store
         self._before = copy.deepcopy(self._store.milestones)
         self._phases_before = copy.deepcopy(self._store.phases)
+        self._tasks_before = copy.deepcopy(self._store.tasks)
+        self._items_before = copy.deepcopy(self._store.items)
 
     def rollback(self) -> None:
         return None
@@ -283,6 +338,15 @@ class World:
             create_phase=CreatePhase(self.uow_factory, self.ids, reader),
             rename_phase=RenamePhase(self.uow_factory, reader),
             reorder_phases=ReorderPhases(self.uow_factory, reader),
+            create_task=CreateTask(self.uow_factory, self.ids, reader),
+            update_task=UpdateTask(self.uow_factory, reader),
+            change_task_state=ChangeTaskState(self.uow_factory, reader),
+            delete_task=DeleteTask(self.uow_factory, self.clock, reader),
+            restore_task=RestoreTask(self.uow_factory, reader),
+            add_checklist_item=AddChecklistItem(self.uow_factory, self.ids, reader),
+            update_checklist_item=UpdateChecklistItem(self.uow_factory, reader),
+            remove_checklist_item=RemoveChecklistItem(self.uow_factory, self.clock, reader),
+            reorder_checklist=ReorderChecklist(self.uow_factory, reader),
         )
 
 

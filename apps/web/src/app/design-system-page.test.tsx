@@ -52,6 +52,19 @@ describe('vitrine /design-system', () => {
     }
   })
 
+  it('mostra os chips de filtro, ligados e desligados, e um desabilitado', async () => {
+    await renderRoute('/design-system')
+    expect(await screen.findByRole('button', { name: 'Só atrasados' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.getByRole('button', { name: 'Só avulsas' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: 'Indisponível' })).toBeDisabled()
+  })
+
   it('mostra o seletor segmentado com uma opção desabilitada', async () => {
     await renderRoute('/design-system')
     const groups = await screen.findAllByRole('radiogroup', { name: /exemplo/i })

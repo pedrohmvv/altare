@@ -1,16 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api/client'
 import { unwrap } from '@/lib/api/errors'
+import type { components } from '@/lib/api/schema'
 import {
   findMilestone,
   type LeftOut,
   type ManualState,
   type Responsible,
+  SCHEDULE_WRITE_SCOPE,
   type Schedule,
   type ScheduleMilestone,
   scheduleKeys,
   type WindowUnit,
 } from './schedule'
+
+type MilestoneStateBody = components['schemas']['MilestoneStateIn']
 
 /**
  * Toda escrita devolve o cronograma inteiro: vai direto para o cache, e nunca há pedaços de versões
@@ -20,6 +24,7 @@ import {
 function useScheduleWrite<Vars>(send: (vars: Vars) => Promise<Schedule>) {
   const queryClient = useQueryClient()
   return useMutation({
+    scope: SCHEDULE_WRITE_SCOPE,
     mutationFn: send,
     onSuccess: (schedule) => queryClient.setQueryData(scheduleKeys.all, schedule),
     onError: () => void queryClient.invalidateQueries({ queryKey: scheduleKeys.all }),
@@ -87,12 +92,20 @@ export const useChangeMilestoneState = () =>
       /** `null` reabre: o marco volta ao estado derivado. */
       state: ManualState | null
       ignoreBlock: boolean
+      /** A confirmação de concluir com itens do checklist em aberto; só vai quando é verdadeira. */
+      ignoreOpenItems?: boolean
       version: number
     }) =>
       unwrap(
         await api.PUT('/api/v1/schedule/milestones/{milestone_id}/state', {
           params: { path: { milestone_id: v.milestoneId } },
-          body: { state: v.state, ignore_block: v.ignoreBlock, version: v.version },
+          // O servidor assume `false` sem o campo: só a confirmação o leva, e o pedido comum não muda.
+          body: {
+            state: v.state,
+            ignore_block: v.ignoreBlock,
+            ...(v.ignoreOpenItems ? { ignore_open_items: true } : {}),
+            version: v.version,
+          } as MilestoneStateBody,
         }),
       ),
   )
@@ -125,6 +138,7 @@ export interface Restored {
 export function useRestoreMilestone() {
   const queryClient = useQueryClient()
   return useMutation({
+    scope: SCHEDULE_WRITE_SCOPE,
     mutationFn: async (v: { milestoneId: string }): Promise<Restored> => {
       const restored = unwrap(
         await api.POST('/api/v1/schedule/milestones/{milestone_id}/restore', {
@@ -148,6 +162,7 @@ export interface Created {
 export function useCreateMilestone() {
   const queryClient = useQueryClient()
   return useMutation({
+    scope: SCHEDULE_WRITE_SCOPE,
     mutationFn: async (v: {
       title: string
       phaseId: string
