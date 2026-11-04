@@ -10,6 +10,13 @@ export const ID = {
   opcional: '00000000-0000-4000-8000-000000000006',
   aviso: '00000000-0000-4000-8000-000000000007',
   andamento: '00000000-0000-4000-8000-000000000008',
+  novo: '00000000-0000-4000-8000-000000000009',
+  faseUm: '00000000-0000-4000-8000-0000000000f1',
+  faseDois: '00000000-0000-4000-8000-0000000000f2',
+  faseVazia: '00000000-0000-4000-8000-0000000000f3',
+  espaco: '00000000-0000-4000-8000-0000000000c1',
+  buffet: '00000000-0000-4000-8000-0000000000c2',
+  musica: '00000000-0000-4000-8000-0000000000c3',
 } as const
 
 export function milestone(over: Partial<ScheduleMilestone> & { id: string; title: string }) {
@@ -35,11 +42,17 @@ export function milestone(over: Partial<ScheduleMilestone> & { id: string; title
 /** Duas fases de exemplo, com um marco de cada situação que a tela precisa mostrar. */
 export const SCHEDULE: Schedule = {
   has_exact_date: false,
+  category_options: [
+    { id: ID.espaco, name: 'Espaço Exemplo' },
+    { id: ID.buffet, name: 'Buffet Exemplo' },
+    { id: ID.musica, name: 'Música Exemplo' },
+  ],
   phases: [
     {
-      id: 'f-1',
+      id: ID.faseUm,
       title: 'Fase Exemplo Um',
       position: 0,
+      version: 1,
       progress: { done: 1, total: 3 },
       milestones: [
         milestone({
@@ -56,7 +69,7 @@ export const SCHEDULE: Schedule = {
           responsible: 'Noiva',
           target_date: '2027-03-15',
           note: 'Nota de exemplo.',
-          category: { id: 'c-espaco', name: 'Espaço Exemplo' },
+          category: { id: ID.espaco, name: 'Espaço Exemplo' },
           depends_on: [{ id: ID.concluido, title: 'Marco Exemplo Concluído', resolved: true }],
           unlocks: [{ id: ID.bloqueado, title: 'Marco Exemplo Bloqueado' }],
         }),
@@ -79,9 +92,10 @@ export const SCHEDULE: Schedule = {
       ],
     },
     {
-      id: 'f-2',
+      id: ID.faseDois,
       title: 'Fase Exemplo Dois',
       position: 1,
+      version: 2,
       progress: { done: 1, total: 4 },
       milestones: [
         milestone({
@@ -89,7 +103,7 @@ export const SCHEDULE: Schedule = {
           title: 'Marco Exemplo da Categoria',
           position: 0,
           state: 'Bloqueado',
-          category: { id: 'c-buffet', name: 'Buffet Exemplo' },
+          category: { id: ID.buffet, name: 'Buffet Exemplo' },
           blocked_by: [
             {
               kind: 'category',
@@ -145,6 +159,61 @@ export function scheduleWith(id: string, change: Partial<ScheduleMilestone>): Sc
     phases: SCHEDULE.phases.map((phase) => ({
       ...phase,
       milestones: phase.milestones.map((item) => (item.id === id ? { ...item, ...change } : item)),
+    })),
+  }
+}
+
+/** O cronograma de exemplo com uma fase a mais, sem marco nenhum. */
+export function scheduleWithEmptyPhase(): Schedule {
+  return {
+    ...SCHEDULE,
+    phases: [
+      ...SCHEDULE.phases,
+      {
+        id: ID.faseVazia,
+        title: 'Fase Exemplo Três',
+        position: 2,
+        version: 3,
+        progress: { done: 0, total: 0 },
+        milestones: [],
+      },
+    ],
+  }
+}
+
+/** O cronograma de exemplo com um marco novo no fim de uma fase, como a API o devolveria. */
+export function scheduleWithNewMilestone(
+  phaseId: string,
+  item: Partial<ScheduleMilestone> & { id: string; title: string },
+  base: Schedule = SCHEDULE,
+): Schedule {
+  return {
+    ...base,
+    phases: base.phases.map((phase) =>
+      phase.id === phaseId
+        ? { ...phase, milestones: [...phase.milestones, milestone({ ...item, position: 99 })] }
+        : phase,
+    ),
+  }
+}
+
+/** O cronograma com o marco levado para o fim de outra fase, como a API o devolveria ao mover. */
+export function scheduleWithMoved(
+  id: string,
+  toPhaseId: string,
+  change: Partial<ScheduleMilestone> = {},
+  base: Schedule = SCHEDULE,
+): Schedule {
+  const moved = base.phases.flatMap((phase) => phase.milestones).find((item) => item.id === id)
+  if (!moved) throw new Error(`Marco de exemplo inexistente: ${id}`)
+  return {
+    ...base,
+    phases: base.phases.map((phase) => ({
+      ...phase,
+      milestones:
+        phase.id === toPhaseId
+          ? [...phase.milestones.filter((item) => item.id !== id), { ...moved, ...change }]
+          : phase.milestones.filter((item) => item.id !== id),
     })),
   }
 }

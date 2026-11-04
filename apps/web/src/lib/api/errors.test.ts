@@ -49,6 +49,22 @@ describe('ApiError', () => {
     expect(erro.fieldErrors).toEqual([{ field: 'username', message: 'x' }])
   })
 
+  it('traz o campo data do problema, como o caminho de um ciclo de dependências', () => {
+    const path = [
+      { id: 'a', title: 'A' },
+      { id: 'b', title: 'B' },
+    ]
+    const erro = new ApiError(
+      { ...PROBLEM, status: 422, code: 'dependency_cycle', data: { path } },
+      response(422),
+    )
+    expect(erro.data).toEqual({ path })
+  })
+
+  it.each([undefined, null, 'texto', 42])('ignora um data que não é objeto (%j)', (data) => {
+    expect(new ApiError({ ...PROBLEM, data }, response(422)).data).toBeUndefined()
+  })
+
   it('aguenta um corpo que não é problem+json, como a página de erro de um proxy', () => {
     const erro = new ApiError('<html>Bad Gateway</html>', response(502))
     expect([erro.code, erro.status, erro.fieldErrors]).toEqual(['http_error', 502, []])

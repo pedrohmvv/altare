@@ -1,5 +1,6 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { Select as RadixSelect } from 'radix-ui'
+import type { Ref } from 'react'
 import { cn } from '@/lib/cn'
 import { Field } from './field'
 
@@ -7,6 +8,8 @@ export interface SelectOption {
   value: string
   label: string
   disabled?: boolean
+  /** Nome do grupo sob o qual a opção aparece; opções sem grupo vêm primeiro, sem título. */
+  group?: string
 }
 
 export interface SelectProps {
@@ -24,6 +27,8 @@ export interface SelectProps {
   name?: string
   id?: string
   className?: string
+  /** O botão que abre a lista: o formulário o usa para levar o foco ao campo com erro. */
+  ref?: Ref<HTMLButtonElement>
 }
 
 /** Lista de opções própria do app (Radix Select), com teclado e leitor de tela (D-047). */
@@ -37,6 +42,7 @@ export function Select({
   disabled,
   id,
   className,
+  ref,
   ...root
 }: SelectProps) {
   return (
@@ -52,6 +58,7 @@ export function Select({
         <RadixSelect.Root {...root} disabled={disabled} required={required}>
           <RadixSelect.Trigger
             {...control}
+            ref={ref}
             className={cn(
               'flex h-11 w-full items-center justify-between gap-2 rounded-control border bg-surface px-3',
               'text-left text-body text-ink transition-colors duration-fast ease-standard',
@@ -76,23 +83,22 @@ export function Select({
               )}
             >
               <RadixSelect.Viewport className="p-1">
-                {options.map((option) => (
-                  <RadixSelect.Item
-                    key={option.value}
-                    value={option.value}
-                    disabled={option.disabled}
-                    className={cn(
-                      'flex min-h-9 cursor-default items-center justify-between gap-2 rounded-control px-3 py-2',
-                      'text-body text-ink outline-none pointer-coarse:min-h-11',
-                      'data-[highlighted]:bg-surface-muted data-[state=checked]:font-medium',
-                      'data-[disabled]:opacity-40',
-                    )}
-                  >
-                    <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
-                    <RadixSelect.ItemIndicator>
-                      <Check aria-hidden className="size-4 text-primary" />
-                    </RadixSelect.ItemIndicator>
-                  </RadixSelect.Item>
+                {options
+                  .filter((option) => option.group === undefined)
+                  .map((option) => (
+                    <SelectItem key={option.value} option={option} />
+                  ))}
+                {groupNames(options).map((name) => (
+                  <RadixSelect.Group key={name}>
+                    <RadixSelect.Label className="px-3 pt-2 pb-1 text-eyebrow text-ink-muted">
+                      {name}
+                    </RadixSelect.Label>
+                    {options
+                      .filter((option) => option.group === name)
+                      .map((option) => (
+                        <SelectItem key={option.value} option={option} />
+                      ))}
+                  </RadixSelect.Group>
                 ))}
               </RadixSelect.Viewport>
             </RadixSelect.Content>
@@ -100,5 +106,29 @@ export function Select({
         </RadixSelect.Root>
       )}
     </Field>
+  )
+}
+
+const groupNames = (options: SelectOption[]) => [
+  ...new Set(options.flatMap((option) => (option.group === undefined ? [] : [option.group]))),
+]
+
+function SelectItem({ option }: { option: SelectOption }) {
+  return (
+    <RadixSelect.Item
+      value={option.value}
+      disabled={option.disabled}
+      className={cn(
+        'flex min-h-9 cursor-default items-center justify-between gap-2 rounded-control px-3 py-2',
+        'text-body text-ink outline-none pointer-coarse:min-h-11',
+        'data-[highlighted]:bg-surface-muted data-[state=checked]:font-medium',
+        'data-[disabled]:opacity-40',
+      )}
+    >
+      <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
+      <RadixSelect.ItemIndicator>
+        <Check aria-hidden className="size-4 text-primary" />
+      </RadixSelect.ItemIndicator>
+    </RadixSelect.Item>
   )
 }

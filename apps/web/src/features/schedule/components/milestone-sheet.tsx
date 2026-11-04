@@ -1,17 +1,24 @@
 import { useId } from 'react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
-import type { ScheduleMilestone } from '../api/schedule'
+import type { Schedule, ScheduleMilestone, SchedulePhase } from '../api/schedule'
 import { copy } from '../copy'
 import { OptionalBadge, OverdueBadge, StateBadge } from './milestone-badges'
+import { type DeletedMilestone, DeleteMilestone } from './milestone-delete'
+import { MilestoneDependencies } from './milestone-dependencies'
 import { MilestoneForm } from './milestone-form'
 import { MilestoneNotes } from './milestone-notes'
 import { MilestoneStateActions } from './milestone-state-actions'
 
 export interface MilestoneSheetProps {
   milestone: ScheduleMilestone
-  phaseTitle: string
+  /** A fase em que o marco está agora. */
+  phase: SchedulePhase
+  /** O cronograma inteiro: as fases e as categorias que o formulário oferece. */
+  schedule: Schedule
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Chamado quando o marco foi excluído: quem mostra a lista fecha o painel e oferece o Desfazer. */
+  onDeleted: (deleted: DeletedMilestone) => void
   /** O painel abre pela URL, sem gatilho: quem abriu diz para onde o foco volta ao fechar. */
   onCloseAutoFocus?: (event: Event) => void
 }
@@ -23,16 +30,18 @@ export interface MilestoneSheetProps {
  */
 export function MilestoneSheet({
   milestone,
-  phaseTitle,
+  phase,
+  schedule,
   open,
   onOpenChange,
+  onDeleted,
   onCloseAutoFocus,
 }: MilestoneSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         title={milestone.title}
-        description={copy.sheet.phase(phaseTitle)}
+        description={copy.sheet.phase(phase.title)}
         onCloseAutoFocus={onCloseAutoFocus}
         // O foco entra no painel, não no primeiro botão de estado: um Enter a mais não conclui nada.
         onOpenAutoFocus={(event) => {
@@ -49,61 +58,45 @@ export function MilestoneSheet({
           <MilestoneNotes milestone={milestone} />
         </div>
         <MilestoneStateActions key={`state-${milestone.id}`} milestone={milestone} />
-        <MilestoneForm key={`form-${milestone.id}`} milestone={milestone} />
-        <Links milestone={milestone} />
+        <MilestoneForm
+          key={`form-${milestone.id}`}
+          milestone={milestone}
+          phaseId={phase.id}
+          phases={schedule.phases}
+          categoryOptions={schedule.category_options}
+        />
+        <MilestoneDependencies
+          key={`deps-${milestone.id}`}
+          milestone={milestone}
+          schedule={schedule}
+        />
+        <Unlocks milestone={milestone} />
+        <DeleteMilestone milestone={milestone} onDeleted={onDeleted} />
       </SheetContent>
     </Sheet>
   )
 }
 
-function Links({ milestone }: { milestone: ScheduleMilestone }) {
+/** O "Libera" é só leitura: quem muda a ligação é o marco que depende (F-CRN-03). */
+function Unlocks({ milestone }: { milestone: ScheduleMilestone }) {
   const labels = copy.sheet.links
-  const dependsOnId = useId()
-  const unlocksId = useId()
-  const category = milestone.category
+  const titleId = useId()
   return (
-    <section aria-label={labels.title} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-body font-semibold text-ink">{labels.category}</h3>
-        <p className="text-body text-ink">
-          {category ? (category.name ?? labels.unnamedCategory) : labels.noCategory}
-        </p>
-      </div>
-      <div className="flex flex-col gap-1">
-        <h3 id={dependsOnId} className="text-body font-semibold text-ink">
-          {labels.dependsOn}
-        </h3>
-        {milestone.depends_on.length === 0 ? (
-          <p className="text-body-sm text-ink-muted">{labels.noDependsOn}</p>
-        ) : (
-          <ul aria-labelledby={dependsOnId} className="flex flex-col gap-1">
-            {milestone.depends_on.map((dependency) => (
-              <li key={dependency.id} className="text-body text-ink">
-                <span>{dependency.title}</span>{' '}
-                <span className="text-body-sm text-ink-muted">
-                  {dependency.resolved ? labels.resolved : labels.pending}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className="flex flex-col gap-1">
-        <h3 id={unlocksId} className="text-body font-semibold text-ink">
-          {labels.unlocks}
-        </h3>
-        {milestone.unlocks.length === 0 ? (
-          <p className="text-body-sm text-ink-muted">{labels.noUnlocks}</p>
-        ) : (
-          <ul aria-labelledby={unlocksId} className="flex flex-col gap-1">
-            {milestone.unlocks.map((unlocked) => (
-              <li key={unlocked.id} className="text-body text-ink">
-                {unlocked.title}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <section aria-labelledby={titleId} className="flex flex-col gap-1">
+      <h3 id={titleId} className="text-body font-semibold text-ink">
+        {labels.unlocks}
+      </h3>
+      {milestone.unlocks.length === 0 ? (
+        <p className="text-body-sm text-ink-muted">{labels.noUnlocks}</p>
+      ) : (
+        <ul aria-labelledby={titleId} className="flex flex-col gap-1">
+          {milestone.unlocks.map((unlocked) => (
+            <li key={unlocked.id} className="text-body text-ink">
+              {unlocked.title}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

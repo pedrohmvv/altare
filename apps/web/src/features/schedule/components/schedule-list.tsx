@@ -3,11 +3,19 @@ import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { type ToastOptions, useToast } from '@/components/ui/toast'
 import { useMediaQuery } from '@/lib/use-media-query'
-import { type ScheduleMilestone, type SchedulePhase, scheduleQueryOptions } from '../api/schedule'
+import {
+  type LeftOut,
+  type ScheduleMilestone,
+  type SchedulePhase,
+  scheduleQueryOptions,
+} from '../api/schedule'
+import { useRestoreMilestone } from '../api/use-milestone-mutations'
 import { copy } from '../copy'
 import type { ScheduleSearch } from '../search'
 import { MilestoneCard } from './milestone-card'
+import type { DeletedMilestone } from './milestone-delete'
 import { MilestoneSheet } from './milestone-sheet'
 import { type ActivePhase, MilestoneTable } from './milestone-table'
 import { PhaseHeader } from './phase-header'
@@ -15,6 +23,8 @@ import { PhaseHeader } from './phase-header'
 export interface ScheduleListProps {
   search: ScheduleSearch
   onSearchChange: (patch: Partial<ScheduleSearch>) => void
+  /** Pede o diálogo de novo marco; a fase de origem vai junto, e o botão para devolver o foco. */
+  onNewMilestone: (phaseId: string, from: HTMLElement) => void
 }
 
 /** Os marcos ativos de cada fase: o arquivado sai das listas (F-CRN-04). */
@@ -26,14 +36,52 @@ function activePhases(phases: readonly SchedulePhase[]): ActivePhase[] {
 }
 
 /** O cronograma por fase (F-CRN-09): tabela densa no computador, cartões no celular. */
-export function ScheduleList({ search, onSearchChange }: ScheduleListProps) {
+export function ScheduleList({ search, onSearchChange, onNewMilestone }: ScheduleListProps) {
   const query = useQuery(scheduleQueryOptions)
+  const { toast } = useToast()
+  const restore = useRestoreMilestone()
   const wide = useMediaQuery('(min-width: 768px)')
   // O último marco aberto continua montado durante a animação de saída do painel. Quem abriu o
   // painel recebe o foco de volta ao fechá-lo (o Radix só o faz com um gatilho).
   const opener = useRef<HTMLElement | null>(null)
   const [lastOpened, setLastOpened] = useState<string | undefined>(undefined)
   if (search.marco && search.marco !== lastOpened) setLastOpened(search.marco)
+
+  // O aviso de exclusão mora aqui, e não no painel, porque o painel fecha ao excluir (D-072, item 8).
+  function handleDeleted(deleted: DeletedMilestone) {
+    onSearchChange({ marco: undefined })
+    opener.current = null
+    toast({
+      title: copy.remove.done,
+      description: copy.remove.doneDescription(deleted.title),
+      action: {
+        label: copy.remove.undo,
+        altText: copy.remove.undoAlt,
+        onClick: () => restoreDeleted(deleted.id),
+      },
+    })
+  }
+
+  // Se a restauração falha, o aviso diz que o marco segue guardado e oferece a mesma ação de novo.
+  function restoreDeleted(milestoneId: string) {
+    restore.mutate(
+      { milestoneId },
+      {
+        onSuccess: ({ leftOut }) => toast(restoredToast(leftOut)),
+        onError: () =>
+          toast({
+            title: copy.remove.restoreFailed.title,
+            description: copy.remove.restoreFailed.description,
+            tone: 'attention',
+            action: {
+              label: copy.remove.restoreFailed.retry,
+              altText: copy.remove.restoreFailed.retryAlt,
+              onClick: () => restoreDeleted(milestoneId),
+            },
+          }),
+      },
+    )
+  }
 
   if (query.isPending) {
     return (
@@ -83,16 +131,18 @@ export function ScheduleList({ search, onSearchChange }: ScheduleListProps) {
       {owner && sheetMilestone && (
         <MilestoneSheet
           milestone={sheetMilestone}
-          phaseTitle={owner.phase.title}
+          phase={owner.phase}
+          schedule={query.data}
           open={Boolean(search.marco)}
           onOpenChange={(isOpen) => !isOpen && onSearchChange({ marco: undefined })}
+          onDeleted={handleDeleted}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
             // Aberto pela URL não há gatilho: o foco cai no botão do próprio marco, ou no título.
             const fallback =
               document.querySelector<HTMLElement>(`[data-milestone-id="${sheetMilestone.id}"]`) ??
               document.querySelector<HTMLElement>('h1')
-            ;(opener.current ?? fallback)?.focus()
+            ;(opener.current?.isConnected ? opener.current : fallback)?.focus()
             opener.current = null
           }}
         />
@@ -100,7 +150,7 @@ export function ScheduleList({ search, onSearchChange }: ScheduleListProps) {
       {wide ? (
         <>
           <h2 className="sr-only">{copy.list.title}</h2>
-          <MilestoneTable phases={phases} onOpen={open} />
+          <MilestoneTable phases={phases} onOpen={open} onNewMilestone={onNewMilestone} />
         </>
       ) : (
         phases.map(({ phase, milestones }, index) => (
@@ -118,7 +168,17 @@ export function ScheduleList({ search, onSearchChange }: ScheduleListProps) {
               titleId={`phase-${phase.id}`}
             />
             {milestones.length === 0 ? (
-              <p className="text-body-sm text-ink-muted">{copy.list.emptyPhase}</p>
+              <div className="flex flex-col items-start gap-2">
+                <p className="text-body-sm text-ink-muted">{copy.list.emptyPhase}</p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  aria-label={copy.newMilestone.inPhaseFor(phase.title)}
+                  onClick={(event) => onNewMilestone(phase.id, event.currentTarget)}
+                >
+                  {copy.newMilestone.inPhase}
+                </Button>
+              </div>
             ) : (
               <ul className="grid gap-3">
                 {milestones.map((milestone) => (
@@ -131,4 +191,21 @@ export function ScheduleList({ search, onSearchChange }: ScheduleListProps) {
       )}
     </div>
   )
+}
+
+/** O aviso de depois de restaurar: se alguma ligação não voltou, diz quais e em que sentido. */
+function restoredToast(leftOut: readonly LeftOut[]): ToastOptions {
+  if (leftOut.length === 0) return { title: copy.remove.restored, tone: 'success' }
+  const text = copy.remove.leftOut
+  return {
+    title: text.title,
+    description: text.description(
+      leftOut.map((link) =>
+        link.direction === 'depends_on'
+          ? text.dependsOn(link.title)
+          : text.dependencyOf(link.title),
+      ),
+    ),
+    tone: 'attention',
+  }
 }
