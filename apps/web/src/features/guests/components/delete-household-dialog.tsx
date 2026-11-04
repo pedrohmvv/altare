@@ -1,6 +1,12 @@
 import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
 import type { Household } from '../api/guests'
 import { useDeleteHousehold, useRestoreHousehold } from '../api/use-guest-mutations'
@@ -48,32 +54,35 @@ export function DeleteHouseholdDialog({
   }
 
   return (
-    <Dialog
+    <AlertDialog
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
         if (!next) setAlert(null)
       }}
     >
-      <DialogTrigger asChild>
+      <AlertDialogTrigger asChild>
         <Button variant="ghost" size="sm">
           {labels.householdButton}
         </Button>
-      </DialogTrigger>
-      <DialogContent
+      </AlertDialogTrigger>
+      <AlertDialogContent
         title={labels.householdTitle(household.name)}
         description={labels.householdDescription(household.guests.length)}
+        pending={remove.isPending}
       >
         <FormAlert alert={alert} />
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>
-            {labels.cancel}
-          </Button>
+        <AlertDialogFooter>
+          <AlertDialogCancel asChild>
+            <Button variant="ghost" disabled={remove.isPending}>
+              {labels.cancel}
+            </Button>
+          </AlertDialogCancel>
           <Button variant="soft-destructive" onClick={submit} loading={remove.isPending}>
             {labels.confirmHousehold}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

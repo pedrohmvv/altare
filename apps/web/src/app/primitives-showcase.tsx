@@ -1,5 +1,12 @@
 import { BadgeCheck, CircleAlert, HeartHandshake, Plus, Save, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -62,6 +69,7 @@ const ETAPAS = [
 // passe o mouse, clique e use Tab. Os exemplos são fictícios (AGENTS.md §2).
 export function PrimitivesShowcase() {
   const { toast } = useToast()
+  const [alertOpen, setAlertOpen] = useState(false)
   const [teto, setTeto] = useState<number | null>(2_800_000)
 
   return (
@@ -391,6 +399,24 @@ export function PrimitivesShowcase() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="soft-destructive">Excluir espaço</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent
+              title="Excluir o Espaço Exemplo A?"
+              description="Ele sai da lista, mas o registro fica guardado e pode ser restaurado."
+            >
+              <AlertDialogFooter>
+                <AlertDialogCancel asChild>
+                  <Button variant="ghost">Cancelar</Button>
+                </AlertDialogCancel>
+                <Button variant="soft-destructive" onClick={() => setAlertOpen(false)}>
+                  Excluir espaço
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="secondary">Ver nota do espaço</Button>
