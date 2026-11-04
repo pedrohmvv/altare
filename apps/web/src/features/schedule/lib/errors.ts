@@ -1,4 +1,5 @@
 import { ApiError } from '@/lib/api/errors'
+import { copy } from '../copy'
 
 export interface AlertState {
   kind: 'conflict' | 'blocked' | 'error'
@@ -25,4 +26,19 @@ export function alertFromError(error: unknown, texts: AlertTexts): AlertState {
   if (error.code === 'milestone_blocked')
     return { kind: 'blocked', text: texts.blocked ?? texts.network }
   return { kind: 'error', text: error.message }
+}
+
+/**
+ * O checklist tem os próprios sinais: o limite de 50 itens é fato dito (não há o que recarregar), e
+ * uma ordem que já não é a do servidor tem o mesmo remédio do conflito de versão.
+ */
+export function checklistAlertFromError(error: unknown): AlertState {
+  const texts = copy.checklist.errors
+  if (error instanceof ApiError && error.code === 'checklist_full') {
+    return { kind: 'error', text: texts.full }
+  }
+  if (error instanceof ApiError && error.code === 'invalid_checklist_order') {
+    return { kind: 'conflict', text: texts.conflict }
+  }
+  return alertFromError(error, { conflict: texts.conflict, network: texts.network })
 }

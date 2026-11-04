@@ -163,7 +163,7 @@ describe('novo marco (F-CRN-01)', () => {
     const mem = memory(scheduleWithEmptyPhase())
     const { user } = renderSchedule({ [GET_SCHEDULE]: mem.get })
     const tabela = await screen.findByRole('table', {
-      name: 'Fases do cronograma e os marcos de cada uma',
+      name: 'Fases do cronograma com os seus marcos, e as avulsas.',
     })
 
     await user.click(

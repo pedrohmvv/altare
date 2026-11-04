@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { meQueryOptions } from '@/features/identity'
 import { type ScheduleSearch, validateScheduleSearch } from '../search'
 import { SchedulePage } from './schedule-page'
 
@@ -8,12 +10,27 @@ import { SchedulePage } from './schedule-page'
  */
 export function ScheduleRoute() {
   const search = validateScheduleSearch(useSearch({ strict: false }) as Record<string, unknown>)
+  const lens = useSearch({
+    strict: false,
+    select: (all) => (all.lente === 'minha' ? 'minha' : 'casal'),
+  })
   const navigate = useNavigate()
+  // A guarda de sessão já garantiu o usuário; a página espera o perfil, o responsável padrão da avulsa.
+  const me = useQuery(meQueryOptions)
+  if (!me.data) return null
 
   const onSearchChange = (patch: Partial<ScheduleSearch>) => {
     void navigate({
       to: '.',
       search: ((previous: Record<string, unknown>) => ({ ...previous, ...patch })) as never,
+    })
+  }
+
+  // Tira a lente da URL e mantém o resto (filtros e painel aberto).
+  const onShowCouple = () => {
+    void navigate({
+      to: '.',
+      search: ((previous: Record<string, unknown>) => ({ ...previous, lente: undefined })) as never,
     })
   }
 
@@ -28,6 +45,13 @@ export function ScheduleRoute() {
   )
 
   return (
-    <SchedulePage search={search} onSearchChange={onSearchChange} planningLink={planningLink} />
+    <SchedulePage
+      search={search}
+      onSearchChange={onSearchChange}
+      planningLink={planningLink}
+      profile={me.data.profile}
+      lens={lens}
+      onShowCouple={onShowCouple}
+    />
   )
 }

@@ -1,8 +1,13 @@
 import { screen, waitFor, within } from '@testing-library/react'
-import type { Schedule, ScheduleMilestone } from '@/features/schedule/api/schedule'
+import type {
+  ChecklistItem,
+  Schedule,
+  ScheduleMilestone,
+  ScheduleTask,
+} from '@/features/schedule/api/schedule'
 import { jsonResponse } from './fake-api'
 import type { renderSchedule } from './render-schedule'
-import { SCHEDULE, scheduleWith } from './schedule-fixtures'
+import { checklistOf, SCHEDULE, scheduleWith, scheduleWithChecklist } from './schedule-fixtures'
 
 type Renderer = ReturnType<typeof renderSchedule>
 
@@ -22,6 +27,31 @@ export function memory(initial: Schedule = SCHEDULE) {
       state.schedule = next
       return jsonResponse(201, { schedule: next, milestone_id: milestoneId })
     },
+    /** A escrita de uma avulsa: troca os campos dela e devolve o cronograma inteiro. */
+    writeTask: (id: string, change: (item: ScheduleTask) => Partial<ScheduleTask>) => () => {
+      state.schedule = {
+        ...state.schedule,
+        tasks: state.schedule.tasks.map((item) =>
+          item.id === id ? { ...item, ...change(item) } : item,
+        ),
+      }
+      return jsonResponse(200, state.schedule)
+    },
+    /** Uma avulsa nova no fim da lista; o servidor devolve só o cronograma, sem o id. */
+    addTask: (item: ScheduleTask) => () => {
+      state.schedule = { ...state.schedule, tasks: [...state.schedule.tasks, item] }
+      return jsonResponse(201, state.schedule)
+    },
+    /** A escrita do checklist de um dono: recebe os itens de agora e devolve os de depois. */
+    writeChecklist:
+      (ownerId: string, change: (items: ChecklistItem[]) => ChecklistItem[]) => () => {
+        state.schedule = scheduleWithChecklist(
+          ownerId,
+          change(checklistOf(state.schedule, ownerId)),
+          state.schedule,
+        )
+        return jsonResponse(200, state.schedule)
+      },
     write: (id: string, change: (item: ScheduleMilestone) => Partial<ScheduleMilestone>) => () => {
       state.schedule = scheduleWith(
         id,

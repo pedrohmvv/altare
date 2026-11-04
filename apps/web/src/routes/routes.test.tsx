@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi } from '@/test/fake-api'
 import { LIST, listOf } from '@/test/guest-fixtures'
 import { FAKE_NOIVO, renderRoute } from '@/test/render-route'
-import { ID, SCHEDULE } from '@/test/schedule-fixtures'
+import { ID, SCHEDULE, scheduleForFilters } from '@/test/schedule-fixtures'
 
 const AREAS = [
   ['/', 'O momento de vocês'],
@@ -155,16 +155,77 @@ describe('lente na URL', () => {
   })
 
   it('o marco aberto mora na URL, o voltar o fecha e a lente continua (F-CRN-09)', async () => {
+    // Um marco de Ambos: a lente Minha visão (Noivo) o mostra, e o de uma só Noiva ficaria escondido.
     const router = await renderRoute('/cronograma?lente=minha', { api: scheduleApi() })
-    const gatilho = await screen.findByRole('button', { name: 'Marco Exemplo Destravado' })
+    const gatilho = await screen.findByRole('button', { name: 'Marco Exemplo Bloqueado' })
 
     await userEvent.click(gatilho)
-    expect(await screen.findByRole('dialog', { name: 'Marco Exemplo Destravado' })).toBeVisible()
-    expect(router.state.location.search).toMatchObject({ marco: ID.destravado, lente: 'minha' })
+    expect(await screen.findByRole('dialog', { name: 'Marco Exemplo Bloqueado' })).toBeVisible()
+    expect(router.state.location.search).toMatchObject({ marco: ID.bloqueado, lente: 'minha' })
 
     router.history.back()
     await waitFor(() => expect(router.state.location.search).not.toHaveProperty('marco'))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('os filtros do cronograma moram na URL, o voltar os desfaz e não há busca por texto (F-CRN-09)', async () => {
+    const api = mockApi({
+      'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+      'GET /api/v1/schedule': jsonResponse(200, scheduleForFilters()),
+    })
+    const router = await renderRoute('/cronograma?lente=minha', { api })
+    const chip = await screen.findByRole('button', { name: 'Bloqueado' }, { timeout: 4000 })
+
+    await userEvent.click(chip)
+    expect(router.state.location.search).toMatchObject({ estado: 'bloqueado', lente: 'minha' })
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+    // Mudar só o search não é troca de rota: o foco não vai ao título (D-068, item 8).
+    expect(chip).toHaveFocus()
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+    expect(Object.keys(router.state.location.search)).toEqual(
+      expect.not.arrayContaining(['busca', 'q', 'query']),
+    )
+
+    router.history.back()
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('estado'))
+    expect(await screen.findByRole('button', { name: 'Bloqueado' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(router.state.location.search).toMatchObject({ lente: 'minha' })
+  })
+
+  it('a lente Minha visão filtra pelo perfil da sessão, e um filtro explícito a vence (F-CRN-09)', async () => {
+    const api = mockApi({
+      'GET /api/v1/auth/me': jsonResponse(200, FAKE_NOIVO),
+      'GET /api/v1/schedule': jsonResponse(200, scheduleForFilters()),
+    })
+    await renderRoute('/cronograma?lente=minha', { api })
+
+    expect(
+      await screen.findByRole('button', { name: 'Marco Exemplo do Noivo' }, { timeout: 4000 }),
+    ).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Marco Exemplo da Noiva' })).not.toBeInTheDocument()
+    expect(screen.getByText('Minha visão: itens do Noivo e de Ambos.')).toBeVisible()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Noiva' }))
+    expect(await screen.findByRole('button', { name: 'Marco Exemplo da Noiva' })).toBeVisible()
+    expect(screen.getByText('Filtro de responsável ativo: a lente não se aplica.')).toBeVisible()
+  })
+
+  it('um filtro desconhecido na URL do cronograma é descartado (F-CRN-09)', async () => {
+    await renderRoute(
+      `/cronograma?estado=quase&responsavel=comum&atrasados=talvez&marco=${ID.bloqueado}`,
+      {
+        api: scheduleApi(),
+      },
+    )
+    expect(await screen.findByRole('dialog', { name: 'Marco Exemplo Bloqueado' })).toBeVisible()
+    // Nenhum chip ficou ligado por um valor que não existe, e nada foi escondido.
+    for (const chip of screen.queryAllByRole('button', { hidden: true })) {
+      expect(chip).not.toHaveAttribute('aria-pressed', 'true')
+    }
+    expect(screen.queryByText(/de \d+ itens/)).not.toBeInTheDocument()
   })
 
   it('recarregar com ?marco= reabre o painel (F-CRN-09)', async () => {

@@ -1,11 +1,11 @@
-import type { ManualState, MilestoneState, Responsible } from './api/schedule'
+import type { ManualState, MilestoneState, Responsible, TaskState } from './api/schedule'
 
 export const copy = {
   eyebrow: 'Cronograma',
   title: 'O que pode andar agora',
   description: 'O que está Destravado e o que está Bloqueado por outra decisão.',
   list: {
-    title: 'Marcos por fase',
+    title: 'Marcos por fase e avulsas',
     loading: 'Carregando o cronograma…',
     loadError: {
       title: 'Não conseguimos carregar o cronograma agora.',
@@ -16,10 +16,10 @@ export const copy = {
       title: 'Ainda sem marcos',
       description: 'Quando houver marcos, vocês veem aqui o que pode andar agora.',
     },
-    tableLabel: 'Marcos por fase',
-    tableCaption: 'Fases do cronograma e os marcos de cada uma',
+    tableLabel: 'Marcos por fase e avulsas',
+    tableCaption: 'Fases do cronograma com os seus marcos, e as avulsas.',
     columns: {
-      milestone: 'Marco',
+      milestone: 'Marco ou avulsa',
       state: 'Estado',
       responsible: 'Responsável',
       target: 'Prazo-alvo',
@@ -151,6 +151,18 @@ export const copy = {
       start: 'Marcar em andamento mesmo assim',
       done: 'Concluir mesmo assim',
     },
+    openItems: {
+      title: 'Concluir com itens em aberto?',
+      count: (open: number) =>
+        open === 1
+          ? 'Há 1 item em aberto no checklist.'
+          : `Há ${open} itens em aberto no checklist.`,
+      keep: 'Os itens continuam como estão.',
+      waiting: 'Este marco também ainda está aguardando o que está abaixo.',
+      waitingLabel: 'O que falta',
+      confirm: 'Concluir mesmo assim',
+      stale: 'Os itens do checklist mudaram. Tentem concluir de novo.',
+    },
     reopen: {
       title: 'Reabrir este marco?',
       description:
@@ -191,6 +203,7 @@ export const copy = {
   },
   header: {
     newMilestone: 'Novo marco',
+    newTask: 'Nova avulsa',
     phases: 'Fases',
   },
   newMilestone: {
@@ -261,5 +274,128 @@ export const copy = {
         'As fases foram alteradas em outra tela. Vejam a versão mais recente antes de salvar.',
       network: 'Não conseguimos salvar as fases agora. O que vocês escreveram continua aqui.',
     },
+  },
+  checklist: {
+    title: 'Checklist',
+    progress: (done: number, total: number) => `${done} de ${total}`,
+    summary: (done: number, total: number) => `Checklist: ${done} de ${total}`,
+    empty: 'Ainda sem itens. Quebrem o que falta em passos pequenos.',
+    newLabel: 'Novo item',
+    add: 'Adicionar item',
+    textLabel: 'Texto do item',
+    edit: 'Editar',
+    editFor: (text: string) => `Editar o item ${text}`,
+    save: 'Salvar',
+    saveFor: (text: string) => `Salvar o item ${text}`,
+    cancel: 'Cancelar',
+    cancelFor: (text: string) => `Cancelar a edição do item ${text}`,
+    up: 'Subir',
+    upFor: (text: string) => `Subir o item ${text}`,
+    down: 'Descer',
+    downFor: (text: string) => `Descer o item ${text}`,
+    remove: 'Remover',
+    removeFor: (text: string) => `Remover o item ${text}`,
+    added: 'Item adicionado.',
+    saved: 'Item salvo.',
+    removed: 'Item removido.',
+    moved: 'Itens reordenados.',
+    errors: {
+      textRequired: 'Informem o texto do item.',
+      tooLong: (max: number) => `Usem até ${max} caracteres.`,
+      full: 'Cada lista vai até 50 itens.',
+      conflict:
+        'Este checklist foi alterado em outra tela. Vejam a versão mais recente e tentem de novo.',
+      network: 'Não conseguimos salvar o checklist agora. O que vocês escreveram continua aqui.',
+    },
+  },
+  task: {
+    sectionTitle: 'Avulsas',
+    empty: 'Ainda não há avulsas. Criem uma para o que não tem ordem, como “pesquisar alianças”.',
+    states: {
+      'A fazer': 'A fazer',
+      'Em andamento': 'Em andamento',
+      Concluída: 'Concluída',
+    } satisfies Record<TaskState, string>,
+    overdue: 'Atrasada',
+    sheet: {
+      description: 'Tarefa avulsa: fica fora das fases e das dependências.',
+      deadline: 'Prazo:',
+    },
+    actions: {
+      start: 'Marcar em andamento',
+      done: 'Concluir',
+      reopen: 'Reabrir',
+    },
+    done: {
+      'Em andamento': 'Avulsa em andamento.',
+      Concluída: 'Avulsa concluída.',
+      reopened: 'Avulsa reaberta.',
+    } satisfies Record<Exclude<TaskState, 'A fazer'> | 'reopened', string>,
+    stateConflict:
+      'Esta avulsa foi alterada em outra tela. Vejam a versão mais recente e tentem de novo.',
+    stateNetwork: 'Não conseguimos mudar o estado agora. Tentem de novo em instantes.',
+    form: {
+      title: 'Dados da avulsa',
+      target: 'Prazo',
+      titleRequired: 'Informem o título da avulsa.',
+      conflict:
+        'Esta avulsa foi alterada em outra tela. Vejam a versão mais recente antes de salvar.',
+    },
+    create: {
+      title: 'Nova avulsa',
+      description: 'Para o que não tem ordem nem fase. Só o título é obrigatório.',
+      submit: 'Criar avulsa',
+      cancel: 'Cancelar',
+      created: 'Avulsa criada.',
+      network: 'Não conseguimos criar a avulsa agora. O que vocês escreveram continua aqui.',
+    },
+    remove: {
+      button: 'Excluir avulsa',
+      done: 'Avulsa excluída',
+      doneDescription: (title: string) => `“${title}” saiu do cronograma.`,
+      undo: 'Desfazer',
+      undoAlt: 'Desfazer a exclusão da avulsa',
+      restored: 'Avulsa restaurada',
+      conflict:
+        'Esta avulsa foi alterada em outra tela. Vejam a versão mais recente e tentem de novo.',
+      network: 'Não conseguimos excluir a avulsa agora. Tentem de novo em instantes.',
+      restoreFailed: {
+        title: 'Não conseguimos restaurar a avulsa agora.',
+        description: 'A avulsa segue guardada e pode ser restaurada.',
+        retry: 'Tentar de novo',
+        retryAlt: 'Tentar restaurar a avulsa de novo',
+      },
+    },
+  },
+  filters: {
+    label: 'Filtros do cronograma',
+    responsible: 'Responsável',
+    state: 'Estado',
+    overdue: 'Só atrasados',
+    tasksOnly: 'Só avulsas',
+    clear: 'Limpar filtros',
+    count: (shown: number, total: number) => `${shown} de ${total} itens`,
+    // O artigo vem junto de cada perfil: nada de montar o gênero por concatenação.
+    lensNote: {
+      Noivo: 'Minha visão: itens do Noivo e de Ambos.',
+      Noiva: 'Minha visão: itens da Noiva e de Ambos.',
+    },
+    lensOverridden: 'Filtro de responsável ativo: a lente não se aplica.',
+    noMatch: {
+      title: 'Nenhum item com esses filtros.',
+      lensTitle: 'Nada na Minha visão.',
+      lensOnly: {
+        Noivo: 'Na Minha visão aparecem só os itens do Noivo e os de Ambos.',
+        Noiva: 'Na Minha visão aparecem só os itens da Noiva e os de Ambos.',
+      },
+      showCouple: 'Ver a Visão do Casal',
+    },
+  },
+  nextSteps: {
+    title: 'Meus próximos passos',
+    empty: 'Nada seu pendente por agora.',
+    showAll: (count: number) => `Ver todos (${count})`,
+    showLess: 'Ver menos',
+    kind: { milestone: 'Marco', task: 'Avulsa' },
   },
 } as const

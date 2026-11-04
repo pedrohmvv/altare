@@ -1,12 +1,19 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
-import { type ManualState, type ScheduleMilestone, scheduleKeys } from '../api/schedule'
+import {
+  findMilestone,
+  type ManualState,
+  type ScheduleMilestone,
+  scheduleKeys,
+} from '../api/schedule'
 import { useChangeMilestoneState } from '../api/use-milestone-mutations'
 import { copy } from '../copy'
 import { type AlertState, alertFromError } from '../lib/errors'
+import { isOpenItemsError, openItemsCount } from '../lib/open-items'
 import { FormAlert } from './form-alert'
+import { OpenItemsConfirmation } from './open-items-confirmation'
 
 const labels = copy.sheet.actions
 type Confirmation = 'start' | 'done' | 'reopen'
@@ -36,15 +43,37 @@ export function MilestoneStateActions({ milestone }: { milestone: ScheduleMilest
   const confirmed = useRef(false)
   const waiting = milestone.blocked_by.length > 0
 
+  const openItems = openItemsCount(milestone.checklist_progress)
+  const titleId = useId()
+  // Se uma releitura zera os itens em aberto com a confirmação aberta e o marco não está bloqueado,
+  // ela já não tem o que dizer: fecha e leva o foco ao título, que fica. (Bloqueado, o diálogo passa
+  // a ser o de ignorar o bloqueio.)
+  const previousOpen = useRef(openItems)
+  useEffect(() => {
+    if (confirming === 'done' && !waiting && previousOpen.current > 0 && openItems === 0) {
+      // O Radix devolve o foco ao fechar: `confirmed` o manda ao título, e não ao botão de origem.
+      confirmed.current = true
+      setConfirming(null)
+      title.current?.focus()
+    }
+    previousOpen.current = openItems
+  }, [confirming, waiting, openItems])
+
   function send(
     state: ManualState | null,
     ignoreBlock: boolean,
-    options: { fromDialog: boolean } = { fromDialog: false },
+    options: { fromDialog: boolean; ignoreOpenItems?: boolean } = { fromDialog: false },
   ) {
     setAlert(null)
     setDone('')
     change.mutate(
-      { milestoneId: milestone.id, state, ignoreBlock, version: milestone.version },
+      {
+        milestoneId: milestone.id,
+        state,
+        ignoreBlock,
+        ignoreOpenItems: options.ignoreOpenItems,
+        version: milestone.version,
+      },
       {
         onSuccess: () => {
           if (options.fromDialog) confirmed.current = true
@@ -54,16 +83,29 @@ export function MilestoneStateActions({ milestone }: { milestone: ScheduleMilest
         },
         onError: (error) => {
           setConfirming(null)
+          if (isOpenItemsError(error)) return void askAgainAfterReading()
           setAlert(alertFromError(error, STATE_ALERTS))
         },
       },
     )
   }
 
+  // O servidor viu itens em aberto que a tela não via: lê de novo e confirma com a contagem nova.
+  async function askAgainAfterReading() {
+    await queryClient.refetchQueries({ queryKey: scheduleKeys.all })
+    const latest = findMilestone(queryClient.getQueryData(scheduleKeys.all), milestone.id)
+    if (latest && openItemsCount(latest.milestone.checklist_progress) > 0) {
+      confirmed.current = false
+      return setConfirming('done')
+    }
+    setAlert({ kind: 'error', text: copy.confirm.openItems.stale })
+  }
+
   function ask(state: ManualState | null, from: HTMLElement) {
     origin.current = from
     confirmed.current = false
-    if (state !== null && waiting) return setConfirming(state === 'Concluído' ? 'done' : 'start')
+    if (state === 'Concluído' && (waiting || openItems > 0)) return setConfirming('done')
+    if (state === 'Em andamento' && waiting) return setConfirming('start')
     if (state === null && milestone.state === 'Concluído' && milestone.unlocks.length > 0) {
       return setConfirming('reopen')
     }
@@ -88,6 +130,10 @@ export function MilestoneStateActions({ milestone }: { milestone: ScheduleMilest
     target?.focus()
   }
 
+  // Sem itens em aberto e sem bloqueio, a confirmação de concluir já não tem o que dizer: não se
+  // mostra nem por um quadro (o efeito acima a fecha e leva o foco ao título).
+  const shown = confirming === 'done' && !waiting && openItems === 0 ? null : confirming
+
   const pending = (state: ManualState | null) =>
     change.isPending && change.variables?.state === state
   const state = milestone.state
@@ -96,8 +142,8 @@ export function MilestoneStateActions({ milestone }: { milestone: ScheduleMilest
   const canReopen = state === 'Em andamento' || state === 'Concluído'
 
   return (
-    <section aria-label={copy.sheet.stateTitle} className="flex flex-col gap-3">
-      <h3 ref={title} tabIndex={-1} className="text-body font-semibold text-ink">
+    <section aria-labelledby={titleId} className="flex flex-col gap-3">
+      <h3 ref={title} tabIndex={-1} id={titleId} className="text-body font-semibold text-ink">
         {copy.sheet.stateTitle}
       </h3>
       <div className="flex flex-wrap gap-3">
@@ -135,8 +181,8 @@ export function MilestoneStateActions({ milestone }: { milestone: ScheduleMilest
       <p role="status" className="text-body-sm text-consensus-ink">
         {done}
       </p>
-      <Dialog open={confirming !== null} onOpenChange={(open) => !open && setConfirming(null)}>
-        {confirming === 'reopen' ? (
+      <Dialog open={shown !== null} onOpenChange={(open) => !open && setConfirming(null)}>
+        {shown === 'reopen' ? (
           <ReopenConfirmation
             onCloseAutoFocus={afterConfirmation}
             milestone={milestone}
@@ -144,15 +190,26 @@ export function MilestoneStateActions({ milestone }: { milestone: ScheduleMilest
             onCancel={() => setConfirming(null)}
             onConfirm={() => send(null, false, { fromDialog: true })}
           />
-        ) : confirming ? (
-          <IgnoreBlockConfirmation
+        ) : shown === 'done' && openItems > 0 ? (
+          <OpenItemsConfirmation
             onCloseAutoFocus={afterConfirmation}
-            milestone={milestone}
-            kind={confirming}
+            openItems={openItems}
+            waiting={waiting ? milestone.blocked_by.map((blocker) => blocker.label) : []}
             loading={change.isPending}
             onCancel={() => setConfirming(null)}
             onConfirm={() =>
-              send(confirming === 'done' ? 'Concluído' : 'Em andamento', true, { fromDialog: true })
+              send('Concluído', waiting, { fromDialog: true, ignoreOpenItems: true })
+            }
+          />
+        ) : shown ? (
+          <IgnoreBlockConfirmation
+            onCloseAutoFocus={afterConfirmation}
+            milestone={milestone}
+            kind={shown}
+            loading={change.isPending}
+            onCancel={() => setConfirming(null)}
+            onConfirm={() =>
+              send(shown === 'done' ? 'Concluído' : 'Em andamento', true, { fromDialog: true })
             }
           />
         ) : null}

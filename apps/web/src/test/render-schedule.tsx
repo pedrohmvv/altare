@@ -20,18 +20,48 @@ export const POST_MILESTONE = 'POST /api/v1/schedule/milestones'
 export const POST_PHASE = 'POST /api/v1/schedule/phases'
 export const PUT_PHASE = (id: string) => `PUT /api/v1/schedule/phases/${id}`
 export const PUT_PHASE_ORDER = 'PUT /api/v1/schedule/phases/order'
+export const POST_TASK = 'POST /api/v1/schedule/tasks'
+export const PUT_TASK = (id: string) => `PUT /api/v1/schedule/tasks/${id}`
+export const PUT_TASK_STATE = (id: string) => `PUT /api/v1/schedule/tasks/${id}/state`
+export const DELETE_TASK = (id: string) => `DELETE /api/v1/schedule/tasks/${id}`
+export const RESTORE_TASK = (id: string) => `POST /api/v1/schedule/tasks/${id}/restore`
+export const POST_CHECKLIST = (kind: 'milestones' | 'tasks', id: string) =>
+  `POST /api/v1/schedule/${kind}/${id}/checklist`
+export const PUT_CHECKLIST_ORDER = (kind: 'milestones' | 'tasks', id: string) =>
+  `PUT /api/v1/schedule/${kind}/${id}/checklist/order`
+export const PUT_CHECKLIST_ITEM = (id: string) => `PUT /api/v1/schedule/checklist/${id}`
+export const DELETE_CHECKLIST_ITEM = (id: string) => `DELETE /api/v1/schedule/checklist/${id}`
 
 /** A URL do teste: o que a página pediu por último, para conferir o que ficou nela. */
 export interface SearchProbe {
   current: ScheduleSearch
 }
 
-function Harness({ initial, probe }: { initial: ScheduleSearch; probe: SearchProbe }) {
+/** O que a sessão diz à página: o perfil e a lente. Sem perfil, a página não o conhece (como antes). */
+export interface ScheduleSession {
+  profile?: 'Noivo' | 'Noiva'
+  lens?: 'casal' | 'minha'
+}
+
+function Harness({
+  initial,
+  probe,
+  session,
+}: {
+  initial: ScheduleSearch
+  probe: SearchProbe
+  session: ScheduleSession
+}) {
   const [search, setSearch] = useState<ScheduleSearch>(initial)
+  // A lente mora na URL (no roteador); aqui, em estado, para "Ver a Visão do Casal" a tirar de verdade.
+  const [lens, setLens] = useState(session.lens)
   probe.current = search
   return (
     <SchedulePage
       search={search}
+      profile={session.profile}
+      lens={lens}
+      onShowCouple={() => setLens('casal')}
       onSearchChange={(patch) =>
         setSearch((previous) => {
           const next: Record<string, unknown> = { ...previous, ...patch }
@@ -47,6 +77,7 @@ function Harness({ initial, probe }: { initial: ScheduleSearch; probe: SearchPro
 export function renderSchedule(
   handlers: Parameters<typeof mockApi>[0] = {},
   initial: ScheduleSearch = {},
+  session: ScheduleSession = {},
 ) {
   const api = mockApi({ [GET_SCHEDULE]: jsonResponse(200, SCHEDULE), ...handlers })
   const probe: SearchProbe = { current: initial }
@@ -55,7 +86,7 @@ export function renderSchedule(
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
       <ToastProvider>
-        <Harness initial={initial} probe={probe} />
+        <Harness initial={initial} probe={probe} session={session} />
       </ToastProvider>
     </QueryClientProvider>,
   )

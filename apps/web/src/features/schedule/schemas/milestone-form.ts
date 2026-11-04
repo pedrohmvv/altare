@@ -13,7 +13,7 @@ const MAX_YEAR = 2100
 /** O `Select` não aceita valor vazio: "sem categoria" tem um valor que nenhum id de categoria tem. */
 export const NO_CATEGORY = 'sem-categoria'
 
-function isRealDay(value: string): boolean {
+export function isRealDay(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return false
   const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])]

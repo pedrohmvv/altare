@@ -3,8 +3,29 @@ import type { ScheduleMilestone } from '../api/schedule'
 import { copy } from '../copy'
 import { countdownText } from '../lib/countdown'
 
+/** O que o prazo e a contagem leem: o marco inteiro, ou a avulsa, que não tem janela. */
+export type DeadlineSource = Pick<
+  ScheduleMilestone,
+  'effective_target' | 'days_left' | 'window' | 'window_start' | 'window_end' | 'target_date'
+>
+
+/** A avulsa tem só prazo e contagem; o resto da janela não existe para ela. */
+export function taskDeadline(task: {
+  target_date: string | null
+  days_left: number | null
+}): DeadlineSource {
+  return {
+    effective_target: task.target_date,
+    target_date: task.target_date,
+    days_left: task.days_left,
+    window: null,
+    window_start: null,
+    window_end: null,
+  }
+}
+
 interface DeadlineParts {
-  milestone: ScheduleMilestone
+  milestone: DeadlineSource
   /** O formato da data: `dd/mm/aaaa` na tabela e no painel, `26 out 2026` no cartão. */
   format: (iso: string) => string
 }
