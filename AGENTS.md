@@ -63,6 +63,7 @@ Este arquivo é a **fonte única de verdade operacional** para qualquer agente d
 
 Todos os documentos de produto e design devem ser mantidos em **português**:
 
+- `README.md` (raiz) — Porta de entrada do repositório: o que é o Altare, stack, como rodar, comandos do `Makefile` e links para `docs/`. Não repete a fase atual nem regras operacionais; aponta para este arquivo.
 - `docs/product/vision.md` — Problema, usuários, proposta de valor, diferenciação (vs. planilha, pasta e WhatsApp) e não-objetivos.
 - `docs/product/personas.md` — O casal (noivo e noiva com perfis distintos) e papéis secundários/externos (como o cerimonialista do dia).
 - `docs/product/jobs.md` — Trabalhos a realizar (*Jobs to be Done*) e em que momento da jornada aparecem.
