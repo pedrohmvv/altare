@@ -3405,6 +3405,1817 @@
           }
         }
       }
+    },
+    "/api/v1/schedule": {
+      "get": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Read Schedule",
+        "operationId": "read_schedule",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/date-preview": {
+      "get": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Preview Date Change",
+        "operationId": "preview_date_change",
+        "parameters": [
+          {
+            "name": "exact",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A data exata que o casamento passaria a ter, já `Definida`; sem ela, o cenário é o Modo Sem Data. O ano vai de 2000 a 2100.",
+              "title": "Exact"
+            },
+            "description": "A data exata que o casamento passaria a ter, já `Definida`; sem ela, o cenário é o Modo Sem Data. O ano vai de 2000 a 2100."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatePreviewOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Create Milestone",
+        "operationId": "create_milestone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedMilestoneOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Milestone",
+        "operationId": "update_milestone",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Delete Milestone",
+        "operationId": "delete_milestone",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/window": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Milestone Window",
+        "operationId": "update_milestone_window",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneWindowIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/restore": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Restore Milestone",
+        "operationId": "restore_milestone",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/state": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Change Milestone State",
+        "operationId": "change_milestone_state",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneStateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/milestones/{milestone_id}/dependencies": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Set Milestone Dependencies",
+        "operationId": "set_milestone_dependencies",
+        "parameters": [
+          {
+            "name": "milestone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Milestone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneDependenciesIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/phases": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Create Phase",
+        "operationId": "create_phase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/phases/order": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Reorder Phases",
+        "operationId": "reorder_phases",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/phases/{phase_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Rename Phase",
+        "operationId": "rename_phase",
+        "parameters": [
+          {
+            "name": "phase_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Phase Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseRenameIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks/{task_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Task",
+        "operationId": "update_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Delete Task",
+        "operationId": "delete_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks/{task_id}/state": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Change Task State",
+        "operationId": "change_task_state",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskStateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/tasks/{task_id}/restore": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Restore Task",
+        "operationId": "restore_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Add Checklist Item",
+        "operationId": "add_checklist_item",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistItemCreateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist/order": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Reorder Checklist",
+        "operationId": "reorder_checklist",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistOrderIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/checklist/{item_id}": {
+      "put": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Update Checklist Item",
+        "operationId": "update_checklist_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistItemUpdateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Remove Checklist Item",
+        "operationId": "remove_checklist_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A versão que a tela viu; divergir dá 409.",
+              "title": "Version"
+            },
+            "description": "A versão que a tela viu; divergir dá 409."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/links": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Add Link Attachment",
+        "operationId": "add_link_attachment",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentLinkIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/files": {
+      "post": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Add File Attachment",
+        "operationId": "add_file_attachment",
+        "parameters": [
+          {
+            "name": "owner_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "milestones",
+                "tasks"
+              ],
+              "type": "string",
+              "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`).",
+              "title": "Owner Kind"
+            },
+            "description": "De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`)."
+          },
+          {
+            "name": "owner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Owner Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentFileIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/attachments/{attachment_id}": {
+      "delete": {
+        "tags": [
+          "schedule"
+        ],
+        "summary": "Remove Attachment",
+        "operationId": "remove_attachment",
+        "parameters": [
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attachment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3450,6 +5261,228 @@
           "falta"
         ],
         "title": "AlignmentState"
+      },
+      "AttachmentFileIn": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Opcional, até 120 caracteres."
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "Opcional, até 500 caracteres."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "title": "AttachmentFileIn",
+        "description": "Um arquivo já enviado por `POST /files` (PDF ou imagem; o envio valida o tipo, o tamanho e a\nassinatura). Sem campo de autoria, como o link."
+      },
+      "AttachmentFileOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "O id do arquivo, para baixar por `GET /files/{id}`."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "O nome do arquivo ao anexar (cópia)."
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type",
+            "description": "O tipo do arquivo ao anexar (cópia): PDF ou imagem."
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes",
+            "description": "O tamanho em bytes ao anexar (cópia)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "content_type",
+          "size_bytes"
+        ],
+        "title": "AttachmentFileOut"
+      },
+      "AttachmentKind": {
+        "type": "string",
+        "enum": [
+          "link",
+          "file"
+        ],
+        "title": "AttachmentKind"
+      },
+      "AttachmentLinkIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Um endereço http ou https completo; até 2000 caracteres."
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Opcional, até 120 caracteres."
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "Opcional, até 500 caracteres."
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "AttachmentLinkIn",
+        "description": "Um link. Sem campo de autoria: quem anexou é o perfil da sessão, e um `by` ou `profile` que\nvenha no corpo é ignorado."
+      },
+      "AttachmentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AttachmentKind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "O endereço do link; nulo se o anexo é um arquivo."
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain",
+            "description": "O domínio visível do link, derivado do endereço (sem `www.`); nunca lido da página."
+          },
+          "file": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentFileOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "O arquivo; nulo se o anexo é um link."
+          },
+          "by": {
+            "type": "string",
+            "enum": [
+              "Noivo",
+              "Noiva"
+            ],
+            "title": "By",
+            "description": "Quem anexou: o perfil da sessão, nunca do corpo."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At",
+            "description": "O instante em que foi anexado."
+          },
+          "can_remove": {
+            "type": "boolean",
+            "title": "Can Remove",
+            "description": "Derivado do perfil de quem lê: só o autor remove."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "comment",
+          "url",
+          "domain",
+          "file",
+          "by",
+          "at",
+          "can_remove"
+        ],
+        "title": "AttachmentOut"
       },
       "BandCountsOut": {
         "properties": {
@@ -3564,6 +5597,44 @@
         ],
         "title": "BaselineOut"
       },
+      "BlockerKind": {
+        "type": "string",
+        "enum": [
+          "category",
+          "milestone"
+        ],
+        "title": "BlockerKind"
+      },
+      "BlockerOut": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BlockerKind"
+          },
+          "milestone_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Milestone Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "milestone_id",
+          "label"
+        ],
+        "title": "BlockerOut"
+      },
       "Body_upload_file": {
         "properties": {
           "file": {
@@ -3607,6 +5678,51 @@
           "name"
         ],
         "title": "CategoryCreateIn"
+      },
+      "CategoryLinkOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CategoryLinkOut"
+      },
+      "CategoryOptionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CategoryOptionOut"
       },
       "CategoryOut": {
         "properties": {
@@ -3923,6 +6039,118 @@
         "type": "object",
         "title": "CeremonyValueSchema"
       },
+      "ChecklistItemCreateIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "O texto do item, de 1 a 200 caracteres."
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "ChecklistItemCreateIn"
+      },
+      "ChecklistItemOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position",
+            "description": "Ordem no checklist, a partir de zero; pode ter buracos."
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "description": "A versão do item, própria: não é a do marco nem a da avulsa."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "done",
+          "position",
+          "version"
+        ],
+        "title": "ChecklistItemOut"
+      },
+      "ChecklistItemUpdateIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do item que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "done",
+          "version"
+        ],
+        "title": "ChecklistItemUpdateIn",
+        "description": "A substituição inteira do item: marcar, desmarcar e editar o texto são o mesmo pedido."
+      },
+      "ChecklistOrderIn": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Ids",
+            "description": "Exatamente os itens vivos do dono, sem repetir e sem faltar, na nova ordem."
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "ChecklistOrderIn"
+      },
+      "ChecklistProgressOut": {
+        "properties": {
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "done",
+          "total"
+        ],
+        "title": "ChecklistProgressOut"
+      },
       "CompanionChoice": {
         "type": "string",
         "enum": [
@@ -3948,6 +6176,24 @@
         },
         "type": "object",
         "title": "CompanionIn"
+      },
+      "CreatedMilestoneOut": {
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleOut"
+          },
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Milestone Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule",
+          "milestone_id"
+        ],
+        "title": "CreatedMilestoneOut"
       },
       "CurrentUserOut": {
         "properties": {
@@ -3976,6 +6222,73 @@
           "profile"
         ],
         "title": "CurrentUserOut"
+      },
+      "DateChangeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "window_before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateRangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "window_after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateRangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "target_before": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Before"
+          },
+          "target_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target After"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "window_before",
+          "window_after",
+          "target_before",
+          "target_after"
+        ],
+        "title": "DateChangeOut"
       },
       "DateFieldIn": {
         "properties": {
@@ -4053,6 +6366,71 @@
         ],
         "title": "DateKind"
       },
+      "DateMode": {
+        "type": "string",
+        "enum": [
+          "sem_data",
+          "com_data"
+        ],
+        "title": "DateMode"
+      },
+      "DatePreviewOut": {
+        "properties": {
+          "mode_before": {
+            "$ref": "#/components/schemas/DateMode"
+          },
+          "mode_after": {
+            "$ref": "#/components/schemas/DateMode"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/DateChangeOut"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "Marcos ativos e não concluídos, com janela e sem prazo manual, cujas datas calculadas mudam."
+          },
+          "manual_kept": {
+            "type": "integer",
+            "title": "Manual Kept",
+            "description": "Marcos ativos e não concluídos com janela e prazo manual: o prazo não muda."
+          },
+          "newly_overdue": {
+            "type": "integer",
+            "title": "Newly Overdue",
+            "description": "Marcos que passariam a Atrasado com a data hipotética e não estavam."
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode_before",
+          "mode_after",
+          "changes",
+          "manual_kept",
+          "newly_overdue"
+        ],
+        "title": "DatePreviewOut"
+      },
+      "DateRangeOut": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "DateRangeOut"
+      },
       "DateValueSchema": {
         "properties": {
           "kind": {
@@ -4116,6 +6494,30 @@
           "Definido"
         ],
         "title": "DefinitionStatus"
+      },
+      "DependencyOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "resolved": {
+            "type": "boolean",
+            "title": "Resolved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "resolved"
+        ],
+        "title": "DependencyOut"
       },
       "EvaluationIn": {
         "properties": {
@@ -5513,6 +7915,38 @@
         "title": "InviteIn",
         "description": "O envio do convite do núcleo (F-CNV-05): data e canal juntos. `move_drafts` é o aceite da\noferta de mover os rascunhos para `Convidado`; sem ele nenhum status muda."
       },
+      "LeftOutDirection": {
+        "type": "string",
+        "enum": [
+          "depends_on",
+          "dependency_of"
+        ],
+        "title": "LeftOutDirection",
+        "description": "O sentido do vínculo que não voltou ao restaurar um marco, a partir do marco restaurado."
+      },
+      "LeftOutOut": {
+        "properties": {
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Milestone Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/LeftOutDirection"
+          }
+        },
+        "type": "object",
+        "required": [
+          "milestone_id",
+          "title",
+          "direction"
+        ],
+        "title": "LeftOutOut"
+      },
       "LinkReferenceIn": {
         "properties": {
           "url": {
@@ -5570,6 +8004,495 @@
         ],
         "title": "LoginIn"
       },
+      "ManualState": {
+        "type": "string",
+        "enum": [
+          "Em andamento",
+          "Concluído"
+        ],
+        "title": "ManualState",
+        "description": "O que o casal marca à mão (F-CRN-03). Sem marca, o estado é derivado."
+      },
+      "MilestoneCreateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Phase Id"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind",
+            "default": "Ambos"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Uma categoria do Mapa de Escopo, pelo id; nenhuma se nulo."
+          },
+          "depends_on": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Depends On",
+            "description": "Marcos vivos de que o novo depende; vale como conjunto."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "phase_id"
+        ],
+        "title": "MilestoneCreateIn"
+      },
+      "MilestoneDependenciesIn": {
+        "properties": {
+          "depends_on": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Depends On",
+            "description": "O conjunto inteiro de predecessores; substitui o atual. Repetido vale uma vez."
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "depends_on",
+          "version"
+        ],
+        "title": "MilestoneDependenciesIn"
+      },
+      "MilestoneOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date",
+            "description": "Só o prazo-alvo digitado à mão; nulo se não há. Nunca é o fim da janela calculada: esse vem em `effective_target`."
+          },
+          "state": {
+            "$ref": "#/components/schemas/MilestoneState"
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          },
+          "overdue": {
+            "type": "boolean",
+            "title": "Overdue"
+          },
+          "blocked_by": {
+            "items": {
+              "$ref": "#/components/schemas/BlockerOut"
+            },
+            "type": "array",
+            "title": "Blocked By"
+          },
+          "depends_on": {
+            "items": {
+              "$ref": "#/components/schemas/DependencyOut"
+            },
+            "type": "array",
+            "title": "Depends On"
+          },
+          "unlocks": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneRefOut"
+            },
+            "type": "array",
+            "title": "Unlocks"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningOut"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoryLinkOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MilestoneWindowOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Os deslocamentos da janela, sempre que há janela; nulo se o marco não tem."
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start",
+            "description": "Início calculado da janela; só no Modo Com Data e com janela."
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End",
+            "description": "Fim calculado da janela; só no Modo Com Data e com janela."
+          },
+          "effective_target": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Target",
+            "description": "O prazo que vale: o manual (`target_date`) ou, sem ele, o fim da janela."
+          },
+          "days_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Left",
+            "description": "Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o marco está concluído, arquivado ou sem prazo efetivo."
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemOut"
+            },
+            "type": "array",
+            "title": "Checklist",
+            "description": "Os itens vivos do checklist, na ordem; não mudam o estado do marco."
+          },
+          "checklist_progress": {
+            "$ref": "#/components/schemas/ChecklistProgressOut",
+            "description": "O \"N de M\" do checklist."
+          },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentOut"
+            },
+            "type": "array",
+            "title": "Attachments",
+            "description": "Os anexos vivos, na ordem em que foram anexados; não mudam o estado nem a `version`."
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "position",
+          "responsible",
+          "note",
+          "target_date",
+          "state",
+          "optional",
+          "archived",
+          "overdue",
+          "blocked_by",
+          "depends_on",
+          "unlocks",
+          "warnings",
+          "category",
+          "window",
+          "window_start",
+          "window_end",
+          "effective_target",
+          "days_left",
+          "checklist",
+          "checklist_progress",
+          "attachments",
+          "version"
+        ],
+        "title": "MilestoneOut"
+      },
+      "MilestoneRefOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "MilestoneRefOut"
+      },
+      "MilestoneState": {
+        "type": "string",
+        "enum": [
+          "Bloqueado",
+          "Destravado",
+          "Em andamento",
+          "Concluído"
+        ],
+        "title": "MilestoneState",
+        "description": "O estado que a tela mostra: o manual quando há, senão o derivado (F-CRN-03)."
+      },
+      "MilestoneStateIn": {
+        "properties": {
+          "state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualState"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Em andamento ou Concluído; nulo reabre e volta ao estado derivado."
+          },
+          "ignore_block": {
+            "type": "boolean",
+            "title": "Ignore Block",
+            "description": "A confirmação de marcar Em andamento ou Concluído (inclusive saindo de Concluído) um marco que aguarda algo: a categoria ainda em discussão no Mapa de Escopo ou uma dependência não resolvida. Sem ela, esse pedido responde 422 (milestone_blocked).",
+            "default": false
+          },
+          "ignore_open_items": {
+            "type": "boolean",
+            "title": "Ignore Open Items",
+            "description": "A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.",
+            "default": false
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "version"
+        ],
+        "title": "MilestoneStateIn"
+      },
+      "MilestoneUpdateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Phase Id"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Nulo desliga a ligação com o Mapa de Escopo."
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Nulo ou em branco apaga a nota."
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date",
+            "description": "Nulo apaga o prazo-alvo manual."
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "phase_id",
+          "responsible",
+          "category_id",
+          "note",
+          "target_date",
+          "version"
+        ],
+        "title": "MilestoneUpdateIn",
+        "description": "A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio\nvai como nulo, para omitir um campo nunca apagar um dado em silêncio. Mudar `phase_id` leva o\nmarco para o fim da nova fase."
+      },
+      "MilestoneWindowIn": {
+        "properties": {
+          "start_before": {
+            "type": "integer",
+            "title": "Start Before"
+          },
+          "end_before": {
+            "type": "integer",
+            "title": "End Before"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/WindowUnit"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão do marco que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_before",
+          "end_before",
+          "unit",
+          "version"
+        ],
+        "title": "MilestoneWindowIn",
+        "description": "A janela inteira, na unidade dada: do início ao fim, quantas unidades antes da data do\ncasamento. Vale em qualquer modo e para o marco que ainda não tinha janela; o início não vem\ndepois do fim, `0` e `0` é o dia do casamento e o teto é 120 meses ou 520 semanas."
+      },
+      "MilestoneWindowOut": {
+        "properties": {
+          "start_before": {
+            "type": "integer",
+            "title": "Start Before"
+          },
+          "end_before": {
+            "type": "integer",
+            "title": "End Before"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/WindowUnit"
+          },
+          "is_suggestion": {
+            "type": "boolean",
+            "title": "Is Suggestion",
+            "description": "Há janela e ninguém a editou: a sugestão genérica."
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_before",
+          "end_before",
+          "unit",
+          "is_suggestion"
+        ],
+        "title": "MilestoneWindowOut"
+      },
       "MonthYearSchema": {
         "properties": {
           "year": {
@@ -5616,6 +8539,116 @@
           "casal"
         ],
         "title": "Origin"
+      },
+      "PhaseCreateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "PhaseCreateIn"
+      },
+      "PhaseOrderIn": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Ids",
+            "description": "Exatamente as fases vivas, sem repetir e sem faltar, na nova ordem."
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "PhaseOrderIn"
+      },
+      "PhaseOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/PhaseProgressOut"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneOut"
+            },
+            "type": "array",
+            "title": "Milestones"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "position",
+          "progress",
+          "milestones",
+          "version"
+        ],
+        "title": "PhaseOut"
+      },
+      "PhaseProgressOut": {
+        "properties": {
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "done",
+          "total"
+        ],
+        "title": "PhaseProgressOut"
+      },
+      "PhaseRenameIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão da fase que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "version"
+        ],
+        "title": "PhaseRenameIn"
       },
       "Priority": {
         "type": "string",
@@ -5671,6 +8704,18 @@
               }
             ],
             "title": "Errors"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
           }
         },
         "type": "object",
@@ -5816,6 +8861,64 @@
           "can_remove"
         ],
         "title": "ReferenceOut"
+      },
+      "RestoreOut": {
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleOut"
+          },
+          "left_out": {
+            "items": {
+              "$ref": "#/components/schemas/LeftOutOut"
+            },
+            "type": "array",
+            "title": "Left Out"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule",
+          "left_out"
+        ],
+        "title": "RestoreOut"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/PhaseOut"
+            },
+            "type": "array",
+            "title": "Phases"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskOut"
+            },
+            "type": "array",
+            "title": "Tasks",
+            "description": "As avulsas vivas, fora das fases: concluídas e sem prazo por último, depois pelo prazo, pelo título e pelo id."
+          },
+          "category_options": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryOptionOut"
+            },
+            "type": "array",
+            "title": "Category Options"
+          },
+          "has_exact_date": {
+            "type": "boolean",
+            "title": "Has Exact Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phases",
+          "tasks",
+          "category_options",
+          "has_exact_date"
+        ],
+        "title": "ScheduleOut"
       },
       "ScopeMapOut": {
         "properties": {
@@ -6087,6 +9190,239 @@
         ],
         "title": "StatusIn"
       },
+      "TaskCreateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "responsible": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileKind"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sem ele, vale o perfil da sessão; Ambos só se vier explícito."
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date",
+            "description": "Entre os anos 2000 e 2100."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "TaskCreateIn",
+        "description": "A avulsa nasce `A fazer`. O responsável é opcional: sem ele, é o perfil de quem está na\nsessão (`Noivo` ou `Noiva`, nunca `Ambos` por padrão); `Ambos` só se for pedido."
+      },
+      "TaskOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TaskState"
+          },
+          "overdue": {
+            "type": "boolean",
+            "title": "Overdue",
+            "description": "Prazo vencido e não concluída; o dia é o de Brasília."
+          },
+          "days_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Left",
+            "description": "Dias de hoje (Brasília) ao prazo; negativo é passado e 0 é hoje. Nulo se a avulsa está concluída ou sem prazo."
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemOut"
+            },
+            "type": "array",
+            "title": "Checklist"
+          },
+          "checklist_progress": {
+            "$ref": "#/components/schemas/ChecklistProgressOut"
+          },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentOut"
+            },
+            "type": "array",
+            "title": "Attachments"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "responsible",
+          "note",
+          "target_date",
+          "state",
+          "overdue",
+          "days_left",
+          "checklist",
+          "checklist_progress",
+          "attachments",
+          "version"
+        ],
+        "title": "TaskOut"
+      },
+      "TaskState": {
+        "type": "string",
+        "enum": [
+          "A fazer",
+          "Em andamento",
+          "Concluída"
+        ],
+        "title": "TaskState",
+        "description": "O estado da tarefa avulsa (F-CRN-06): todo estado vale a qualquer momento, e reabrir é voltar\na `A fazer`. Note o feminino de `Concluída`, diferente do `Concluído` do marco."
+      },
+      "TaskStateIn": {
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/TaskState",
+            "description": "Qualquer estado vale a qualquer momento; reabrir é A fazer."
+          },
+          "ignore_open_items": {
+            "type": "boolean",
+            "title": "Ignore Open Items",
+            "description": "A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.",
+            "default": false
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão da avulsa que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "version"
+        ],
+        "title": "TaskStateIn"
+      },
+      "TaskUpdateIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "responsible": {
+            "$ref": "#/components/schemas/ProfileKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Nulo ou em branco apaga a nota."
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date",
+            "description": "Nulo apaga o prazo."
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version",
+            "description": "A versão da avulsa que a tela viu; divergir dá 409."
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "responsible",
+          "note",
+          "target_date",
+          "version"
+        ],
+        "title": "TaskUpdateIn",
+        "description": "A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio\nvai como nulo, para omitir um campo nunca apagar um dado em silêncio."
+      },
       "TextFieldIn": {
         "properties": {
           "status": {
@@ -6257,6 +9593,36 @@
         ],
         "title": "VisibilityIn"
       },
+      "WarningKind": {
+        "type": "string",
+        "enum": [
+          "depends_on_unresolved"
+        ],
+        "title": "WarningKind"
+      },
+      "WarningOut": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WarningKind"
+          },
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Milestone Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "milestone_id",
+          "title"
+        ],
+        "title": "WarningOut"
+      },
       "WeightsIn": {
         "properties": {
           "certain_pct": {
@@ -6302,6 +9668,14 @@
           "phase_2_pct"
         ],
         "title": "WeightsOut"
+      },
+      "WindowUnit": {
+        "type": "string",
+        "enum": [
+          "meses",
+          "semanas"
+        ],
+        "title": "WindowUnit"
       }
     }
   }

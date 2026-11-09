@@ -1631,7 +1631,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071` e a conferência visual contra as págs. 34, 38, 39 e 40 (PR 5, `D-076`).
 - **Verificação:** API com 855 testes e web com 651, `make e2e` com 59 (1 pulado de propósito), Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%) sobre a lista, o painel e o selo de status, com o usuário.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` sobre as telas desta decisão, feita pelo usuário, sem problemas.
 
 ---
 
@@ -1657,7 +1657,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071`; o `GuestCountReader` e o `GetGuestHeadcount` passam a ser os pontos de extensão do Dossiê (Bloco 4.2).
 - **Verificação:** API com 931 testes e web com 676, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** a passada manual de `altare-acessibilidade` sobre os contadores e o diálogo de pesos e idades, com o usuário.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` sobre as telas desta decisão, feita pelo usuário, sem problemas.
 
 ---
 
@@ -1683,7 +1683,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071`; subir o `Chip` para `components/ui` quando houver um terceiro uso.
 - **Verificação:** API com 965 testes e web com 719, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; cada commit é verificado isolado num worktree, com `make e2e`.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** a passada manual de `altare-acessibilidade` sobre os filtros (teclado e leitor de tela nos chips e na busca) e o diálogo do convite, com o usuário.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` sobre as telas desta decisão, feita pelo usuário, sem problemas.
 
 ---
 
@@ -1708,7 +1708,7 @@
 - **Adiado, com gatilho para retomar:** os da `D-071`; exportar o que o filtro esconderia (hoje só o que está na tela), se o casal pedir.
 - **Verificação:** API com 1031 testes e web com 727, Ruff, Pyright, Biome, `tsc`, 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença; `make e2e` com 59 passando e 1 pulado; cada commit é verificado isolado num worktree.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário.
-- **Pendente:** abrir o `.xlsx` e o `.csv` no Excel pt-BR (sem aviso de arquivo corrompido, acentos certos, `=1+1` como texto); a passada manual de `altare-acessibilidade` sobre o diálogo de exportar, com o usuário.
+- **Conferido (2026-11-01):** o `.xlsx` e o `.csv` abertos no Excel pt-BR pelo usuário, sem problemas; a passada manual de `altare-acessibilidade` sobre o diálogo de exportar também, sem problemas.
 
 ---
 
@@ -1729,4 +1729,346 @@
   - Esconder o aviso de nome vazio com um atraso: o problema é a mensagem empurrar o botão, não a hora em que ela aparece.
 - **Verificação:** API com 1031 testes e web com 729, E2E com 86 passando (2 pulados de propósito: o teto e o conflito entre perfis rodam só no desktop), Ruff, Biome, Pyright, `tsc`, 7 contratos, `make api-types` sem diferença; cada commit é verificado isolado num worktree.
 - **Aprovado (2026-11-01):** esta decisão, pelo usuário. Com ela, as `D-072` a `D-075` também estão aprovadas.
-- **Pendente:** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%, reduzir movimento) sobre a lista, o painel, os pesos e a exportação, que o usuário não confirmou como feita; abrir o `.xlsx` e o `.csv` no Excel pt-BR; o PR de release e a tag `v0.4.0`.
+- **Conferido (2026-11-01):** a passada manual de `altare-acessibilidade` (teclado, VoiceOver, zoom de 200%, reduzir movimento) sobre a lista, o painel, os pesos e a exportação, e o `.xlsx` e o `.csv` no Excel pt-BR, pelo usuário, sem problemas. O release `v0.4.0` foi publicado na mesma data.
+
+---
+
+## D-077 — Time de agentes: a sessão principal orquestra subagents com gates duros
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1 (infraestrutura de trabalho, entre os Blocos 1.2 e 1.3)
+- **Pedido do usuário:** mudar a forma de desenvolver os blocos: a sessão principal orquestra subagents, com gates duros por permissions e hooks; só a infraestrutura, sem implementar bloco.
+- **Decisão:**
+  1. **Três subagents de projeto** em `.claude/agents/`: `altare-api-dev` e `altare-web-dev` (implementam um PR aprovado, com TDD, e não commitam) e `altare-reviewer` (somente leitura, Opus, lente por chamada: corretude, seguranca-lgpd ou design-a11y). As skills `altare-*` de cada papel vêm pré-carregadas; o reviewer e o web-dev também têm a Skill tool, para ler a skill da lente e usar a `run`.
+  2. **Gates por mecanismo, não por pedido:** o reviewer só roda git de leitura, `rg`, `ls` e `wc` (hook `PreToolUse`, `readonly-git.sh`, que também recusa quebra de linha, `branch -D`, `--output` e `rg --pre`); os devs só encerram com `lint`, `typecheck` e `test` do seu lado verdes (hook `Stop`, que vira `SubagentStop`, `gates.sh api|web`, com uma segunda tentativa por `stop_hook_active` e sem rodar nada quando não há mudança em `apps`, `tools` ou `Makefile`). `permissions.ask` cobre `git commit`, `git push`, `gh pr create` e `gh pr merge`.
+  3. **Quatro gates do usuário:** plano, diff com pareceres, commit e PR. `altare-commit` e `altare-pull-request` ganham `disable-model-invocation: true`: só o usuário as invoca (`/altare-commit`). No `skills-map` do `AGENTS.md`, as linhas "Commitar" e "Abrir PR" passam a dizer isso.
+  4. **Skill orquestradora `altare-bloco`** (`/altare-bloco 1.3`), manual (fora do `skills-map`) e sem `context: fork`: roda na sessão principal. Aponta para roadmap, features e decisões; não copia o conteúdo do bloco (`D-039`).
+  5. **Subagents nunca commitam nem registram decisões.** A principal reroda os gates da raiz e lê o `git diff` real, sem confiar no relatório do agente.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 (fase, status e "Como retomar", inclusive a frase do release `v0.4.0`, já publicado em `D-076`) e §5 (precedência, tabela de skills e `skills-map`); `.claude/settings.json`; frontmatter de `altare-commit` e `altare-pull-request`.
+- **Razão:** o usuário conduzia o bloco passo a passo; faltava separar quem implementa de quem revisa e transformar as regras de processo em barreiras que não dependem de lembrar.
+- **O que ficou rejeitado:**
+  - *Agent teams*: experimental, custo alto e sem o ponto de gate humano que o fluxo precisa.
+  - *Workflows* (`Workflow`): pensados para escala e paralelismo largo; este fluxo é sequencial por PR, com decisões do usuário no meio.
+  - *Um agente por papel de empresa* (PM, QA, designer): mais entregas entre agentes e menos contexto; as skills já codificam esses papéis.
+  - *QA como subagent*: os gates são `make`; a independência vem do reviewer.
+  - *Commit e PR como subagent*: o commit atômico exige o plano aprovado pelo usuário e a skill é o único caminho (`D-039`).
+- **Verificação:** hooks testados por pipe (23 casos), `make lint typecheck test` verde (API com 1031 testes e web com 729, 7 contratos), `claude plugin validate` sem avisos (evidência fraca: não lista conteúdo) e `pnpm cursor:rules:check` em dia. Os três agentes apareceram na lista de agentes da sessão depois de criados. **Pendente:** o primeiro uso real (`/altare-bloco 1.3`), que exercita os hooks de agente, que só rodam com a pasta confiada.
+- **Aprovado (2026-11-01):** esta decisão, pelo usuário.
+
+---
+
+## D-078 — Time de agentes: o pedido do usuário é a autorização (revisa a D-077)
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1 (infraestrutura de trabalho, entre os Blocos 1.2 e 1.3)
+- **Pedido do usuário:** "Eu não quero ter que ficar autorizando comandos do claude mesmo no modo Auto. Nem quero ter que ficar escrevendo as skills para pedir algo. Se eu quiser pedir para commitar, eu peço, e você usa a skill automaticamente."
+- **Decisão:**
+  1. **O pedido é o gate.** `altare-commit`, `altare-pull-request` e `altare-bloco` voltam a poder ser invocadas pelo modelo (sai o `disable-model-invocation`): "commita", "abre o PR" e "execute o Bloco 1.3" bastam. Sem pedido, a sessão para; o plano de commits continua sendo mostrado e o merge só ocorre quando o usuário mandar (`altare-commit`, `altare-pull-request`).
+  2. **Sai o `permissions.ask`** de `git commit`, `git push`, `gh pr create` e `gh pr merge` do `.claude/settings.json`. A liberação desses comandos (`permissions.allow`), com `deny` para `git push` forçado, é configuração do próprio usuário (`/permissions` ou `settings.json`): o modo Auto barra o agente de editar as próprias permissões.
+  3. **Fica da `D-077`:** os três subagents, os hooks `readonly-git.sh` e `gates.sh` (barreiras que protegem o código, não pedem nada ao usuário) e a regra de que subagents nunca commitam nem registram decisões. O `skills-map` do `AGENTS.md` volta a listar `altare-commit` e `altare-pull-request` e passa a listar `altare-bloco`.
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e §5; `.claude/settings.json`; frontmatter de `altare-commit`, `altare-pull-request` e `altare-bloco` (a descrição desta troca o "só manual" pelo gatilho em linguagem natural); `D-077` (o item 3 e o item 4 deixam de valer na parte de bloqueio).
+- **Razão:** o bloqueio mecânico do commit e do PR cobrava do usuário digitar comandos e confirmar prompts a cada passo, sem proteger nada que o pedido explícito dele já não proteja. O que de fato evita dano (reviewer só de leitura, gates verdes) continua mecânico.
+- **O que ficou rejeitado:**
+  - Manter o `disable-model-invocation` só em `altare-commit` e `altare-pull-request`: continua exigindo o usuário digitar a skill.
+  - Manter o `permissions.ask` só para o merge: o merge já depende de ordem explícita na skill, e o prompt volta a interromper o fluxo no modo Auto.
+  - O agente gravar o `permissions.allow` no repositório: o classificador do modo Auto o barrou como autoalteração de permissões, e a decisão de liberar comandos é do usuário.
+- **Verificação:** `pnpm cursor:rules:check` em dia; `settings.json` válido, com o `SessionStart` preservado. **Pendente:** o usuário liberar os comandos nas próprias permissões e conferir, em sessão nova, que "commita" dispara a skill sem prompt.
+- **Aprovado (2026-11-01):** esta decisão, pelo usuário. As permissões `allow` e `deny` de commit, push, PR e merge foram adicionadas por ele em `~/.claude/settings.json`.
+
+---
+
+## D-079 — Ajustes do time de agentes: o reviewer lê o trabalho não commitado e o AGENTS.md volta a refletir a D-078
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1 (infraestrutura de trabalho, entre os Blocos 1.2 e 1.3)
+- **Pedido do usuário:** ler a sessão do Bloco 1.3 para ver se o time de agentes funciona como esperado, corrigir o que não funciona e reiniciar o bloco em sessão nova.
+- **Decisão:**
+  1. **O `altare-reviewer` revisa antes do commit.** O GATE 2 (diff e pareceres) vem antes do GATE 3 (commit), então `git diff develop...HEAD` chegava vazio. O procedimento passa a usar `git diff develop --stat` (índice e árvore) e `git status --porcelain --untracked-files=all` (arquivos novos, lidos com Read), e mantém `develop...HEAD` para a branch que já tem commits. O `readonly-git.sh` já aceita esses comandos. A `altare-bloco` avisa o reviewer de que o trabalho não está commitado.
+  2. **O `AGENTS.md` volta a refletir a `D-078`.** O commit da D-078 chegou à `develop` sem as edições do `AGENTS.md` (o arquivo foi sobrescrito por uma versão antiga e reformatada do editor, que também tirou os espaços ao redor de código inline). O arquivo é restaurado da versão anterior à reformatação e as edições da D-078 são reaplicadas: `skills-map` (commit e PR sem restrição, `altare-bloco` listada), §5, fase e "Como retomar".
+- **Ajustes em arquivos aprovados:** `AGENTS.md` §1 e §5; `.claude/agents/altare-reviewer.md`; `.claude/skills/altare-bloco/SKILL.md`; `D-077` (o procedimento do reviewer) e `D-078` (o que ela afirma ter ajustado no `AGENTS.md`).
+- **Razão:** a primeira execução real achou dois defeitos que só aparecem em uso: um desenho que revisava o diff errado e uma documentação que contradizia o mecanismo e era injetada em toda sessão.
+- **O que ficou rejeitado:**
+  - Pedir ao orquestrador que faça `git add -N` antes da revisão: altera o índice sem necessidade, e o reviewer já lê arquivo novo com Read.
+  - Mover o GATE 2 para depois do commit: o usuário perderia a chance de ver o diff antes de o histórico existir (`altare-commit`).
+  - Manter o `AGENTS.md` reformatado e só adicionar a D-078: carregaria os espaços perdidos em código inline.
+- **Verificação:** `readonly-git.sh` testado com os dois comandos novos; `AGENTS.md` conferido contra reformatação. **Pendente:** o primeiro dev e o primeiro reviewer de verdade, na sessão nova do Bloco 1.3.
+
+---
+
+## D-080 — Bloco 1.3: plano em 7 PRs, por fatias verticais
+- **Data:** 2026-11-01
+- **Fase:** Implementação — Nível 1, Bloco 1.3 (plano)
+- **Pedido do usuário:** executar o Bloco 1.3 (Cronograma com Dependências Explícitas) com o time de agentes (`D-077` a `D-079`), a partir do `roadmap.md` e de `features/cronograma.md` (`F-CRN`, aprovada em `D-031`); o plano primeiro, sem código antes da aprovação; depois, "execute o plano".
+- **Escolhido pelo usuário (2026-11-01), nas ambiguidades da `F-CRN`** (as propostas reversíveis do plano, aprovadas com ele):
+  1. **Lente `Minha visão`:** filtra no navegador, como em Convidados (`D-074`, item 4), mostrando os itens com responsável "eu ou `Ambos`"; um filtro explícito de responsável prevalece sobre a lente; bloqueios e progresso continuam calculados sobre todos os itens; lembrar a lente por usuário continua adiado (`D-059`, `D-061`).
+  2. **C05 "Definir a data":** a conclusão continua **manual**; a regra 6 da `F-CRN-03` só lista conclusões automáticas por decisão.
+  3. **Modo Com Data:** só com a data em `Definido` **e** na forma exata; uma janela `Definida` continua em Modo Sem Data (`F-PLN-01`: "só a data exata muda o cronograma").
+  4. **Grupo oculto e categoria do casal excluída:** contam como `Fica de fora` (o marco é arquivado), pela mesma lógica do `is_visible` do Mapa; uma categoria criada depois pelo casal não ganha marco automático.
+  5. **Restaurar um marco:** excluir desativa as dependências nos dois sentidos com o mesmo carimbo e restaurar as reativa; a que hoje fecharia um ciclo, ou cuja outra ponta foi excluída, não volta, e a tela diz quais ficaram de fora.
+  6. **Anexos:** tabela genérica `attachments` (`owner_type`, `owner_id`), com PDF e imagem; as `scope_references` ficam como estão, só com imagem.
+  7. **Progresso por fase:** os opcionais (`Talvez`) contam; só os arquivados saem.
+  8. **Fases:** não há excluir fase (a feature só prevê renomear, reordenar e criar).
+- **Decisão:**
+  1. **Sete PRs para a `develop`, nesta ordem, cada um com os gates verdes e usável:**
+     - **PR 1, `feat/cronograma-marcos`:** o módulo `schedule`, a semente do catálogo, os estados derivados, a ligação com o Mapa de Escopo, o estado manual e a tela "Por fase" com o detalhe do marco (`F-CRN-02`, `03` e `04`; parte da `01` e da `09`; `D-081`).
+     - **PR 2, `feat/cronograma-edicao`:** criar, renomear, mover de fase e excluir marco (com os dependentes listados e a restauração), dependências sem ciclo e fases editáveis (`F-CRN-01`; `F-CRN-03`, regra 2).
+     - **PR 3, `feat/cronograma-datas`:** Modo Sem Data e Modo Com Data, janelas calculadas, prazo manual com "voltar à sugestão", contagem regressiva e a prévia ao mudar a data (`F-CRN-05`); conclui a pendência da `D-067` ("Definido recalcula o cronograma").
+     - **PR 4, `feat/cronograma-avulsas-e-filtros`:** tarefas avulsas, checklist, filtros na URL, a lente e "Meus próximos passos" (`F-CRN-06`, `07` e `09`); o `Chip` sobe para `components/ui`, a terceira feature que o usa (`D-074`, item 7).
+     - **PR 5, `feat/cronograma-anexos`:** a tabela `attachments`, arquivo (PDF ou imagem) e link (`F-CRN-08`).
+     - **PR 6, `feat/cronograma-calendario`:** o calendário mensal pelo prazo-alvo (`F-CRN-10`).
+     - **PR 7, `test/e2e-cronograma`:** E2E do bloco nos dois perfis, conferência visual e de acessibilidade e o fechamento (modelo das `D-070` e `D-076`); depois o PR `develop → main` e, com o merge do usuário, a tag `v0.5.0` (`D-059`: `MINOR` por bloco).
+  2. **Um módulo só, `schedule`** (`architecture.md` §4 e §13), sem `wedding_id` (`D-002`), com `CLAUDE.md` desde o primeiro commit (`D-039`). Lê o Mapa de Escopo e a data do casamento por portas que o `bootstrap` liga ao `wedding`, que ganha o `application/public.py` no PR 1.
+  3. **Derivado na leitura, nunca gravado** (`architecture.md` §5): `Bloqueado`, `Destravado`, `Atrasado`, `Opcional`, arquivado, "Libera", avisos e progresso por fase. Gravam-se os fatos: a marca manual, o responsável, o prazo, a nota e as dependências.
+  4. **Semente por migration, com ids fixos** (como as `0004` e `0005`): as 5 fases e os 29 marcos de `F-CRN-02`. A categoria liga pelo **id fixo** da categoria do catálogo, nunca pelo nome ("Música" do catálogo de marcos é "Música (DJ, banda)" no Mapa). As janelas sugeridas ficam guardadas desde o PR 1, mas só o PR 3 as calcula e mostra.
+  5. **Visitas a fornecedores** (`F-CTT-06`) ficam fora do calendário até o Bloco 3.1, quando o módulo `vendors` existir.
+  6. **Como o bloco roda:** o time de agentes, um PR por vez; cada correção pedida na revisão começa por um teste que falha; revisão independente com `corretude` sempre, mais `design-a11y` nos PRs com tela e `seguranca-lgpd` onde houver dado de terceiros, upload ou exportação.
+- **Razão:** o cronograma é o primeiro lugar em que o estado de um item depende do estado de outros e do Mapa de Escopo; fatiar por camada não entregaria nada usável, e cada PR vertical já responde "o que podemos fazer agora".
+- **O que ficou rejeitado:**
+  - Fatiar por camada (API inteira e depois a tela): nada ficaria usável até o fim.
+  - Gravar o estado `Bloqueado`: seria a segunda verdade a sincronizar com o Mapa (`architecture.md` §5).
+  - Ligar a categoria pelo nome: renomear a categoria quebraria o marco (`F-CRN-02`, regra 1).
+  - Um evento para propagar a mudança do Mapa: o *dispatcher* só nasce com o primeiro evento de domínio (`D-060`) e a derivação na leitura não precisa dele.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Conclusão automática por decisão (C04 e os "Fechar …") | Blocos 2.2, 3.2 e 3.3 (`F-CRN-03`, regra 6) |
+| Visitas agendadas no calendário | Bloco 3.1 (`F-CTT-06`) |
+| Evento de mudança do Mapa e o *dispatcher* | O primeiro evento de domínio (`D-060`) |
+| Excluir fase | O primeiro pedido |
+| Lembrar a lente por usuário | Uma segunda tela que filtre pela lente e o pedido de lembrar |
+| Sincronização com calendários, lembretes e notificações | v1.1+ (`D-013`) |
+- **Aprovado (2026-11-01):** o plano, pelo usuário ("Execute o plano"), com as oito respostas acima.
+- **Pendente:** a aprovação das decisões de cada PR (`D-082` em diante), uma a uma; a `D-081` está aprovada.
+
+---
+
+## D-081 — Marcos, bloqueios e estados: módulo `schedule`, migration `0010`, rotas e a tela "Por fase" (Bloco 1.3, PR 1 de 7)
+- **Data:** 2026-11-02
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 1 de 7 (`D-080`)
+- **Pedido do usuário:** executar o PR 1 do plano, e depois aplicar os ajustes da revisão ("os 4 corrija de corretude, os 6 de a11y e as 3 sugestões", mais o foco ao cancelar, a descrição do contrato, o `derive` reaproveitando `_waiting` e um teste do `key`), com um teste que falha antes de cada correção.
+- **Escolhido pelo usuário (2026-11-02):** manter o rótulo "Fase N", o `?marco=` na URL mesmo quando o marco sumiu, "Reabrir" também em `Em andamento`, `ignore_block` em inglês, alterar um marco arquivado permitido e nenhuma rota de histórico por ora.
+- **Decisão:**
+  1. **Modelo.** Quatro tabelas em `schedule`: `schedule_phases`, `milestones` (marca manual, responsável, prazo-alvo, nota, categoria por id, deslocamentos da janela), `milestone_dependencies` e `milestone_changes` (histórico de estado com o antes, o depois, o perfil e se o bloqueio foi ignorado). A migration `0010` semeia as 5 fases, os 29 marcos e as 31 dependências de `F-CRN-02`, com ids `uuid5` fixos no mesmo espaço da `0005` (prefixos `fase:`, `marco:` e `dependencia:`), responsável `Ambos` e nenhum prazo. A categoria liga pelo id fixo do catálogo do Mapa (C11, a "Música (DJ, banda)"), com chave estrangeira física `RESTRICT` para `scope_categories`, como `scope_references.file_id` já cruza módulos no banco; o código só cruza por `public.py`.
+  2. **Contrato entre módulos.** Nasce `wedding/application/public.py` com `GetScopeStandings` (status e visibilidade das categorias por id) e `GetWeddingDate` (status, forma e data exata). O `schedule` as lê pelas portas `CategoryReader` e `WeddingDateReader`, ligadas em `platform/bootstrap/schedule.py`, que dobra "oculta, grupo oculto ou excluída" em `Fica de fora`; o `schedule` não importa o `wedding`. Mudar os campos do `public.py` exige uma `D-xxx`.
+  3. **Derivado na leitura** (`domain/derivation.py`, funções puras, Hypothesis): a dependência "A depende de B" está resolvida com B `Concluído`, arquivado ou opcional (não transitiva); a categoria `Em discussão` bloqueia com "Aguardando classificar a categoria no Mapa de Escopo"; `Atrasado` é prazo anterior a hoje (o dia em Brasília, pelo `Clock`), não concluído e **não arquivado**; o progresso por fase conta os opcionais e tira os arquivados; "Libera" **não lista arquivados**. O `Em andamento` guarda a marca, mas a lista do que falta continua; o `Concluído` tem, em vez dela, o aviso `depends_on_unresolved` ("Concluído antes de: …") para todo predecessor não resolvido, **reaberto ou nunca concluído**.
+  4. **Estado manual.** `PUT /schedule/milestones/{id}/state` com `state` nulo reabrindo. Marcar `Em andamento` ou `Concluído` num marco que aguarda algo exige `ignore_block` (a confirmação é da tela); sem ele, `422 milestone_blocked`. **O que ele aguarda se calcula sem a marca manual atual** (`waiting_on`), então vale também ao sair de `Concluído`; um teste de propriedade exige `waiting_on == blockers` da derivação. O histórico grava só mudança real e `ignored_block` só quando havia o que aguardar; perfil e autoria vêm da sessão, nunca do corpo.
+  5. **Rotas** (`/api/v1/schedule`): `GET` (`read_schedule`), `PUT /milestones/{id}` (responsável, nota até 500 caracteres, prazo entre 2000 e 2100, limites propostos e ajustáveis) e `PUT /milestones/{id}/state`. Toda escrita devolve o cronograma inteiro, as saídas não têm valor padrão e a `version` é por marco (`409 version_conflict`); alterar um marco arquivado é permitido.
+  6. **Web.** `/cronograma` vira a tela "Por fase": uma tabela com `tbody` por fase no computador e um cartão por marco no celular; o que o marco aguarda é texto abaixo do título; o detalhe abre no `Sheet` pela URL (`?marco=`, validado à mão, valor inválido descartado), com estado, responsável, prazo, nota, "Depende de" e "Libera". Nada é otimista (o servidor recalcula o estado dos dependentes). "Ignorar o bloqueio" e "reabrir" pedem confirmação com a lista do que falta ou do que pode voltar a ficar bloqueado; o feedback é uma região de status dentro do painel. Foco: ao painel ao abrir, ao título "Estado" depois de mudar o estado e ao botão de origem se a confirmação é cancelada ou falha (o diálogo não tem `DialogTrigger`, então a tela leva o foco); com o painel aberto pela URL, ao fechar vai ao botão do marco ou ao `h1`. Trocar o `?marco=` com o painel aberto não reaproveita o formulário do marco anterior.
+  7. **Desvios do guia** (não há página do Cronograma; bases: págs. 34, 38, 39 e 40; linhas novas no `design-system.md` §15): `Em andamento` em `Badge` `outline` com `circle-dot`, `Concluído` em sálvia com `circle-check` e `Atrasado` em argila com `circle-alert` (o guia não desenha os três); o motivo do bloqueio em **texto**, não em `Popover`, o que **revisa o `DependencyStatus` do §9** (o `Tooltip` nunca é a única fonte); o `Destravado` com contorno `consensus-ink` no cartão e título em negrito na tabela, destaque proposto além do selo; "Fase N" no `PhaseHeader` é a posição de exibição, não um campo, e no celular o progresso usa o `Progress` com barra e o rótulo em sans (o guia pede mono e não desenha a barra); responsável em texto simples, sem `ProfileChip`; o aviso "Concluído antes de: …" em argila com `circle-alert`, com ícone e texto.
+  8. **Decisões de revisão.** O aviso do `Concluído` se chama "predecessor não resolvido" e não "reaberto", porque o estado é derivado e não guarda se houve reabertura; a confirmação de ignorar o bloqueio vale para qualquer marca de partida; `SchedulePage` não recebe `profile` nem `lens` (voltam no PR 4, que é quando a lente filtra).
+- **Ajustes em arquivos aprovados:** `cronograma.md` (regras 4 e 5 da `F-CRN-03`, um critério de aceite e a linha de status); `design-system.md` (§9, `DependencyStatus`; §15, quatro linhas novas); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` dos módulos `schedule` (novo) e `wedding` (o `public.py`).
+- **Razão:** o cronograma só é útil se o "o que podemos fazer agora" estiver sempre certo, e ele depende do Mapa de Escopo, que o casal muda a qualquer hora; derivar na leitura evita uma segunda verdade, e calcular o que o marco aguarda sem a marca manual impede que a porta do futuro assistente pule a confirmação que a tela exige.
+- **O que ficou rejeitado:**
+  - Guardar se um marco foi reaberto para distinguir os avisos: mais um fato a sincronizar sem ganho para o casal; o texto neutro basta.
+  - Confirmar só no front: o caso de uso é a superfície que o agente do Nível 5 vai usar (`D-008`), então a regra vive na API.
+  - `Popover` com "Aguardando: …" (como o §9 dizia): esconde a informação de quem usa teclado ou toque.
+  - Atualização otimista ao marcar um estado: o servidor recalcula o estado de quem depende, e recalcular no navegador criaria a segunda verdade.
+  - Ligar a categoria sem chave estrangeira no banco, só por convenção: a integridade é do banco, e o precedente do `scope_references` já cruza módulos assim.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Rota de leitura do histórico de estado (`milestone_changes`) | O primeiro pedido de ver quem mudou o quê |
+| Conferir a versão antes de tratar o retry do mesmo estado como no-op | Um retry de rede ou o assistente repetir o pedido (`D-042`) |
+| Estreitar o tipo do `bootstrap` para só os casos de uso públicos do `wedding` | A próxima mudança em `platform/bootstrap/schedule.py` |
+| Leitura dupla dos fatos em cada mudança de estado | A leitura das categorias ficar cara |
+| Fase excluída logicamente quebraria a leitura (`schedule_map.py`) | PR 2 (`F-CRN-01`, fases editáveis) |
+| `today_in_brazil` copiado do `guests` (2ª ocorrência) | A terceira, quando sobe para o `shared_kernel` |
+| Cópia do `form-alert` (3ª ocorrência do padrão) | PR 4, junto com a promoção do `Chip` |
+| Alvo de toque de 44 px na linha da tabela, hover do cartão `Destravado`, `circle-check` nas mensagens de sucesso, "Sem prazo" em sans, posição do selo `Opcional`, `aria-labelledby` da seção "Estado" | A passada de acessibilidade e a conferência visual do PR 7 |
+| Contraste de `attention-ink` e `consensus-ink` sobre `surface` na tabela de `identity.md` §3.4 | A passada de acessibilidade do PR 7 |
+| A pílula flutuante do Assistente cobre uma linha do celular na rolagem (efeito da casca) | A conferência visual do PR 7 |
+- **Verificação:** API com 1195 testes e web com 790, Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter`, `compare_metadata` limpo e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade) em 1440 e 390 px. O `make e2e` e a conferência em 768 e 320 px ficam para o PR 7. Os testes do domínio incluem uma máquina de estados Hypothesis (invariantes: o `Concluído` não muda sozinho, arquivado e opcional nunca bloqueiam, todo `Bloqueado` lista um motivo, "Libera" não tem arquivado).
+- **Time de agentes (a pendência da `D-079`, primeira execução real):** o reviewer leu o diff e os arquivos novos (`git diff develop` e `git status --untracked-files=all`) nas duas rodadas. Os dois reviewers estouraram o limite de 30 turnos na primeira rodada, sem parecer, e entregaram quando retomados; o `readonly-git.sh` barrou `git -C`, comandos encadeados e `rg` com `|` no padrão. O hook Stop de gates e a Skill tool dentro de subagent não puderam ser observados (os agentes encerram por *hand-back*), então os gates foram rodados pela sessão principal.
+- **Em aberto (proposta, sem decidir):** subir o `maxTurns` do `altare-reviewer` e pôr no prompt "sem `git -C`, sem `&&`, `rg -e`"; confirmar o escopo do `gates.sh` por agente.
+- **Aprovado (2026-11-02):** esta decisão e o PR 1, pelo usuário ("Prossiga para o commit, push e PR").
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR, que é do usuário.
+
+---
+
+## D-082 — Edição do cronograma: marcos, dependências sem ciclo e fases (Bloco 1.3, PR 2 de 7)
+- **Data:** 2026-11-04
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 2 de 7 (`D-080`)
+- **Pedido do usuário:** executar o PR 2 do Bloco 1.3 e, depois do segundo GATE 2, "aprovo tudo o recomendado" (os seis `corrija`, as sugestões recomendadas e as três decisões abaixo).
+- **Escolhido pelo usuário (2026-11-04):** o backend devolve o id do marco criado (a tela não adivinha); a confirmação destrutiva segue em `Dialog` agora e vira `AlertDialog` no PR 5, migrando as três juntas; o Desfazer fica só no aviso de 4 segundos, como na `D-072` (item 8), com a tela de excluídos adiada.
+- **Decisão:**
+  1. **Rotas** (`/api/v1/schedule`, todas devolvem o cronograma inteiro): `POST /milestones` (`create_milestone`, devolve também o `milestone_id`), `PUT /milestones/{id}` (a **substituição inteira**: título, fase, categoria, responsável, nota, prazo e `version`, todos obrigatórios, os três últimos anuláveis), `DELETE /milestones/{id}?version=`, `POST /milestones/{id}/restore` (devolve também `left_out`), `PUT /milestones/{id}/dependencies`, `POST /phases`, `PUT /phases/{id}` e `PUT /phases/order`. Não há excluir fase nem reordenar marcos dentro da fase.
+  2. **Grafo sempre acíclico** (`domain/graph.py`, funções puras com Hypothesis): a dependência de um marco nele mesmo é recusada (`self_dependency`) e a que fecharia um ciclo também, com `422 dependency_cycle` e o caminho mais curto do ciclo (`C → A → B → C`) em `data.path` e no texto.
+  3. **Excluir e restaurar.** Excluir é lógico e desativa os vínculos do marco, nos dois sentidos, com o **mesmo carimbo** dele; os dependentes mantêm as demais dependências. Restaurar traz o marco ao fim da fase e só reativa os vínculos com esse carimbo, exceto o que hoje fecharia um ciclo e o que tem a outra ponta excluída, que vêm em `left_out`. Um vínculo tirado à mão tem carimbo próprio e nunca volta. Restaurar o segundo de dois marcos excluídos não recompõe o vínculo com o primeiro (`D-080`, item 5, aplicada ao pé da letra). **Excluir e restaurar sobem a `version` dos dependentes**, para uma edição concorrente das dependências deles conflitar em vez de perder o vínculo em silêncio.
+  4. **Concorrência.** Cada marco tem a `version`, e a coluna `dependencies_revision` (migration `0011`) sobe quando o conjunto de predecessores muda, como o `members_revision` do `guests` (`D-072`, item 2). **Reordenar fases é a exceção** da regra "toda escrita envia a `version`": a lista é uma permutação exata das fases vivas (`422 invalid_phase_order` se não for), então o último a gravar vence sem deixar o cronograma incoerente.
+  5. **Categoria.** O casal liga o marco a uma categoria visível do Mapa (`category_options` no cronograma, na ordem do Mapa); a já ligada que ficou oculta continua escolhida e nunca é trocada em silêncio. Ligar uma oculta ou excluída é `422 category_not_available`. Mudar a categoria muda o efeito derivado (`F-CRN-04`).
+  6. **Migration `0011`:** acrescenta `dependencies_revision` e `CHECK (length(trim(title)) > 0)` em marcos e fases, sem mexer na semente. O SQLite recria a tabela em lote e isso falha com as chaves estrangeiras ligadas, então a migration desliga o `PRAGMA foreign_keys` antes de qualquer escrita (só no SQLite) e o religa no fim; um teste mostra que, sem ele, a subida quebra nos dois caminhos (da base e da `0010`).
+  7. **Fora do módulo.** `DomainError` ganha `data`, `detail_params` e `detail_params_keys`; o `ProblemDetails` ganha o campo opcional `data`; o texto de um erro com `{campo}` nunca vira `500` se o parâmetro faltar. O `GetScopeStandings` do `wedding` passa a devolver as categorias **na ordem do Mapa**, e a `D-081` (item 2) passa a incluir essa garantia no contrato do `public.py`.
+  8. **Web.** "Novo marco" (cabeçalho e estado vazio de cada fase), o painel que edita também título, fase e categoria, o editor de "Depende de" (adicionar e remover, com o erro de ciclo em região de alerta), "Excluir marco" com a confirmação que lista os dependentes e o aviso "Marco excluído" com Desfazer, e o diálogo de fases (renomear, subir e descer sem arrastar, nova fase). O foco é levado pela tela, porque os diálogos não têm `DialogTrigger`: ao botão de origem se cancelam, ao painel ao criar, ao título da seção depois de editar as dependências e ao `h1` depois de excluir. O `Select` ganha grupos e repassa o `ref`; o `ApiError` expõe `data`.
+  9. **Desvios do guia** (sem página do Cronograma; linhas novas no `design-system.md` §15): os diálogos de Novo marco e de Fases (centralizados no computador, folha inferior no celular); a linha de fase com campo, Salvar, Subir e Descer, empilhada no celular; "Excluir marco" em `soft-destructive` (argila, nunca vermelho); `Select` com grupos; e a confirmação destrutiva em `Dialog`, não em `AlertDialog`, que é o que o §8 pede (é a terceira, depois do núcleo e do "reabrir"; o `AlertDialog` nasce no PR 5, ao remover um anexo, e migra as três).
+  10. **Copy.** As mensagens novas falam com "vocês" ("Removam uma dessas dependências ou escolham outro marco"); o título de um aviso é curto e sem ponto ("Marco criado", "Marco excluído", "Marco restaurado"); a falha ao restaurar diz que o marco segue guardado e oferece "Tentar de novo".
+- **Ajustes em arquivos aprovados:** `cronograma.md` (a linha de status e a regra 3 da `F-CRN-01`, a categoria); `design-system.md` (§15, linhas novas); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` do módulo `schedule` (grafo acíclico, restaurar pelo carimbo, sem excluir fase, a exceção da `version`) e o `public.py` do `wedding` (a ordem).
+- **Razão:** o cronograma só é do casal se eles puderem mudá-lo, e mudar um grafo de dependências a dois exige que ele nunca fique cíclico, que desfazer uma exclusão devolva exatamente o que saiu junto e que duas pessoas editando ao mesmo tempo nunca percam uma dependência em silêncio.
+- **O que ficou rejeitado:**
+  - `PUT` parcial, em que o campo omitido continua como está: um cliente (ou o assistente do Nível 5) que omitisse a nota ou o prazo os apagaria; a substituição inteira obriga a dizer tudo.
+  - A tela achar o marco criado pelo último da fase: o servidor sabe o id, e adivinhar erra quando outra pessoa cria na mesma fase ao mesmo tempo.
+  - Recompor à força o vínculo de um marco restaurado: poderia fechar um ciclo ou ligar a um marco excluído.
+  - Arrastar para reordenar as fases: o teclado e o leitor de tela precisam do mesmo caminho (`D-068`, item 10).
+  - Uma `version` por fase só para reordenar: o resultado é sempre uma permutação válida, e o custo é uma regra a mais para explicar.
+  - Criar o `AlertDialog` agora: aumentaria este PR sem o primeiro uso novo; ele nasce no PR que o precisa.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Excluir fase; reordenar marcos dentro da fase | O primeiro pedido |
+| Tela de excluídos (restaurar a qualquer tempo) | O primeiro pedido de recuperar (`D-072`) |
+| Recompor o vínculo com o carimbo do outro marco ao restaurar o segundo | Uso real que reclame |
+| `AlertDialog` e a migração das três confirmações destrutivas | PR 5 (remover anexo) |
+| `version` por fase na reordenação | Duas pessoas reordenando e o último vencer incomodar |
+| Foco nos botões em carregamento (`aria-disabled`), avisos de status antigos que ficam na tela, ordem do foco no rodapé dos diálogos | A passada de acessibilidade do PR 7 |
+| Validar a `0011` e os `CHECK` no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
+| Conferir 320 px, zoom de 200% e VoiceOver nas telas novas | A passada do PR 7 e a do usuário |
+- **Verificação:** API com 1397 testes e web com 872, Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter` e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade) em 1440 e 390 px. A máquina de estados Hypothesis do `schedule` cobre criar, mover, excluir, restaurar, trocar dependências e as fases, com as invariantes: grafo acíclico, o excluído não aparece em lugar nenhum e "depende de" e "libera" batem entre si. O `make e2e` fica para o PR 7.
+- **Time de agentes:** os dois reviewers entregaram dentro dos 30 turnos e o hook não barrou nenhum comando com o aviso no prompt (sem `git -C`, sem `&&`, `rg -e`). O hook Stop de gates e a Skill tool dentro de subagent continuam sem observação direta.
+- **Conferido (2026-11-04):** o usuário rodou o PR 2 no banco de desenvolvimento dele, que estava na `0009`: a `0010` e a `0011` foram aplicadas (com backup antes, pela API de backup do SQLite) sem perder nenhuma linha das tabelas antigas, com `foreign_key_check` e `integrity_check` limpos; o cronograma, o "Novo marco", o editor de dependências e o diálogo de fases funcionaram ("Tudo funcionando"). O erro "Não conseguimos carregar o cronograma agora" que ele viu antes vinha de o banco ainda não ter as tabelas do cronograma, não do código: depois de cada PR com migration, o banco local precisa de `make migrate` com o `DATABASE_URL` certo.
+- **Aprovado (2026-11-04):** esta decisão e o PR 2, pelo usuário ("Prossiga com os commits e PRs").
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR, que é do usuário.
+
+---
+
+## D-083 — Datas do cronograma: janelas calculadas, prazo efetivo, contagem regressiva e a prévia ao mudar a data (Bloco 1.3, PR 3 de 7)
+- **Data:** 2026-11-04
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 3 de 7 (`D-080`)
+- **Pedido do usuário:** "Planeje o PR 3 do Bloco 1.3" e, aprovado o plano, a execução do PR; depois do segundo GATE 2, "Aprovo" (os três `corrija`, as dez sugestões recomendadas e as duas propostas abaixo).
+- **Escolhido pelo usuário (2026-11-04), no plano:** a prévia aparece só ao mudar uma data **já definida** (a primeira definição e o voltar a `Em definição` seguem sem confirmação, como na `F-PLN-01` e na `D-067`); o editor de janela pode dar janela a um marco que não tem (`C01` a `C05` e os do casal), em Modo Com Data; um PR só, como na `D-080`. **No GATE 2:** não oferecer a ação de "assumir a sugestão" sem mudar um número.
+- **Decisão:**
+  1. **Modos.** Modo Com Data é a data do casamento `Definido` **e** exata; uma janela `Definida` continua em Modo Sem Data (`D-080`, resposta 3). Nada de datas é gravado: tudo se deriva na leitura (`architecture.md` §5), então mudar a data do casamento não escreve no cronograma e voltar ao Modo Sem Data apaga as datas calculadas sem tocar nos prazos manuais.
+  2. **Janela e prazo efetivo.** A janela é guardada em deslocamentos antes da data (a semente da `0010`); no Modo Com Data, início e fim são a data menos os deslocamentos (meses respeitam o fim do mês, 31/05 menos 3 meses é 28/02 ou 29/02; semanas são 7 dias), e o **prazo efetivo** é o manual ou, sem ele, o **fim da janela**. `target_date` continua sendo **só o prazo manual** (o `PUT` de substituição inteira nunca transforma uma sugestão em prazo manual). O cálculo é total: uma data que estoura o calendário não calcula janela e não derruba a leitura.
+  3. **`Atrasado` e contagem.** Pelo prazo efetivo (a janela vencida e não concluída é atraso, `F-CRN-05`), só para marco ativo e não concluído. `days_left` vem do servidor, com o dia de Brasília do `overdue` (negativo é passado, 0 é hoje); o navegador nunca calcula "hoje". A tela diz "faltam N dias", "falta 1 dia", "é hoje" e "venceu há N dias" (a redação da feature prevalece sobre o "em N dias" do guia), com a data exata no `title` e também visível. **Efeito esperado:** ao definir a data real, os marcos cuja janela já passou aparecem `Atrasado` de uma vez; a prévia conta quantos.
+  4. **"Marcos não editados à mão"** (`F-CRN-05`, regra 4) refere-se ao **prazo**: as janelas, sendo deslocamentos, acompanham sempre a data; só o prazo manual fica parado.
+  5. **Editar a janela.** `PUT /schedule/milestones/{id}/window` (início, fim, unidade e a `version` do marco): `0 <= fim <= início`, no máximo 120 meses ou 520 semanas, `422 invalid_window`; vale em qualquer modo (a tela só oferece o editor no Modo Com Data), em marco arquivado e em marco sem janela, e nunca mexe no prazo manual. `window_edited` (migration `0012`, `BOOLEAN NOT NULL`, padrão `false`) é a única coluna nova: sem ele a janela é a "sugestão genérica" da semente e a tela a rotula assim. A primeira edição conta mesmo com os mesmos deslocamentos; repetir uma janela já editada não grava. "Voltar à sugestão" é **limpar o prazo manual** no formulário (e salvar).
+  6. **A prévia** (`GET /schedule/date-preview?exact=`, só leitura; sem `exact` é o cenário Sem Data; ano fora de 2000 a 2100 é `422 invalid_preview_date`) deriva o cronograma com a data atual e a hipotética e compara. Só marcos **ativos e não concluídos** entram: `changes` são os com janela e **sem** prazo manual cujas datas mudam; `manual_kept` conta os com prazo manual (o prazo não muda, a janela calculada acompanha), literalmente, mesmo quando nada muda; `newly_overdue` conta os que passam a `Atrasado`. O diálogo de Definições Base chama a prévia pelo contrato OpenAPI **sem importar `features/schedule`**, com o `exact` do **formulário** (estado depois da mudança), só quando a confirmação abre; mostra o resumo por transição, até 5 marcos ("e mais N marcos") e, em erro, um texto honesto ("Não conseguimos calcular agora o que muda no cronograma. Ao confirmar, as janelas são recalculadas.") sem bloquear o confirmar.
+  7. **Web.** Banner "Sem data definida" (vale também com a data só em janela `Definida`); o prazo efetivo, a janela calculada, "sugestão genérica" e a contagem na tabela, no cartão e no painel; a seção "Janela" do painel com o editor (e "Definir janela" nos marcos sem janela); a etiqueta "prazo definido por vocês". Foco: "Voltar à sugestão" e "Tirar o prazo" levam ao campo, salvar a janela leva ao título "Janela" e a confirmação da prévia leva ao seu título. O `Input` passou a **somar** o `aria-describedby` do chamador ao do próprio campo (antes o descartava). `formatTableDay` subiu para `lib/date.ts`, porque o `wedding` também o usa.
+  8. **Desvios do guia** (sem página do Cronograma; linhas novas no `design-system.md` §15): o aviso "Sem data definida" em `Card` `muted` com ícone e link; a segunda linha do prazo com a janela em `text-ui-sm`; a seção "Janela" do painel; a prévia no diálogo existente, com a lista em mono; o **rodapé fixo** da confirmação no celular (borda superior e fundo `surface`, abaixo de 768 px, o ponto de quebra do `Dialog`); e a regra tipográfica "data **como dado** em mono (tabela, cartão e painel), data **dentro de frase** em sans ("Janela: …", "Sugestão: …")".
+- **Ajustes em arquivos aprovados:** `cronograma.md` (a linha de status e a regra 4 da `F-CRN-05`, esclarecida); `design-system.md` (§15, linhas novas); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` do módulo `schedule` (prazo efetivo, janela e prévia).
+- **Razão:** o cronograma só diz "o que fazer agora" se os prazos acompanham a data do casamento e se o casal vê, antes de mudá-la, o que muda; derivar tudo na leitura evita uma segunda verdade, e a prévia no diálogo da data fecha a pendência da `D-067` ("Definido recalcula o cronograma").
+- **O que ficou rejeitado:**
+  - Gravar as datas calculadas: seria a segunda verdade a sincronizar a cada mudança da data (`architecture.md` §5).
+  - Calcular o "hoje" e a contagem no navegador: divergiria do `Atrasado` do servidor perto da meia-noite de Brasília e exigiria relógio falso nos testes.
+  - Estender o `PUT` de substituição inteira com a janela: cada salvamento de título ou nota reenviaria a janela e uma sugestão viraria "editada" por acidente.
+  - `wedding` importar `schedule` para a prévia: arrastaria a página do cronograma para o pedaço carregado do `wedding` e abriria uma dependência entre as duas features; o contrato OpenAPI já é a fronteira.
+  - Pedir confirmação na primeira definição da data e no voltar a `Em definição`: muda a regra aprovada da `F-PLN-01` e os testes das Definições Base.
+  - Uma coluna `target_is_manual`: é `target_date != null`.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Prévia (e confirmação) na primeira definição da data e ao voltar a `Em definição` | Surpresa do casal ao ligar ou desligar o Modo Com Data, ou o pedido |
+| Remover a janela de um marco; "voltar à janela genérica" | O primeiro pedido |
+| Ação de "assumir a sugestão" sem mudar um número (a API aceita, a tela não oferece) | O primeiro pedido |
+| Revalidar os campos da janela quando a unidade muda (o erro já exibido continua dizendo "de 0 a 120") | A passada de acessibilidade do PR 7 |
+| Alvo de 44 px do link do aviso "Sem data definida" (decisão do primitivo `Button`) | A passada de acessibilidade do PR 7 |
+| Ler os marcos uma só vez na prévia (hoje há uma segunda leitura sem escrita no meio) | A leitura ficar cara |
+| Conferir 320 px, 768 px, zoom de 200% e VoiceOver nas telas novas; o anúncio da região viva da prévia | A passada do PR 7 e a do usuário |
+| E2E do diálogo da data e do cronograma com data | PR 7 (nenhum E2E toca hoje o diálogo da data) |
+| Validar a `0012` (`DEFAULT false`, batch do downgrade) no PostgreSQL | Antes do primeiro deploy (`stack.md` §4) |
+| Levar o foco a um controle (e não ao contêiner do diálogo) depois do "Voltar" da confirmação da prévia; espaços ao redor do ` · ` escondido para o leitor de tela não juntar as palavras; um teste do `Input` com erro e `aria-describedby` juntos; um comentário ligando o rodapé fixo ao `p-5` do `DialogContent` (sugestões da revisão focada de a11y) | A passada de acessibilidade do PR 7, ou o segundo uso do rodapé fixo |
+- **Verificação:** API com 1538 testes e web com 971, Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter` e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade) em 1440 e 390 px, Sem Data e Com Data. A migration `0012` tem teste de subir e descer, de a semente e os dados sobreviverem (29 marcos, 31 dependências, uma linha de histórico) e de o downgrade preservar os três `CHECK` da janela. Domínio com Hypothesis (aritmética de meses e semanas) e a máquina de estados do `schedule` estendida com definir a data, editar a janela e pedir a prévia.
+- **Time de agentes:** os dois reviewers entregaram dentro do limite e o hook barrou um único comando (um `rg` com `<` no padrão). A segunda rodada de revisão foi focada só em a11y; a corretude não foi repetida porque o backend não mudou. O hook Stop de gates e a Skill tool dentro de subagent seguem sem observação direta.
+- **Aprovado (2026-11-04):** esta decisão e o PR 3, pelo usuário ("Invoque", o pedido de commit, push e PR).
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR, que é do usuário; e rodar `make migrate` no banco de desenvolvimento dele (a `0012`) antes de abrir o cronograma.
+
+---
+
+## D-084 — Avulsas, checklist, filtros, lente e "Meus próximos passos" (Bloco 1.3, PR 4 de 7)
+- **Data:** 2026-11-04
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 4 de 7 (`D-080`)
+- **Pedido do usuário:** "Planeje o PR 4 do Bloco 1.3" e, aprovado o plano, a execução; depois do segundo GATE 2, "Aprovo" (os oito `corrija`, as sugestões recomendadas e a ação "Ver a Visão do Casal").
+- **Escolhido pelo usuário (2026-11-04), no plano:** manter **um PR só**, como na `D-080`, apesar da recomendação de dividir em 4a e 4b (o PR chegou a cerca de 100 arquivos, contra 91 e 82 dos PRs 1 e 2; a revisão foi partida em três: corretude do backend, corretude do front e design-a11y); "Meus próximos passos" **sempre "eu ou `Ambos`"**, sem depender da lente; remover um item do checklist **na hora, sem desfazer**.
+- **Decisão:**
+  1. **Avulsas** (`F-CRN-06`): tabela `schedule_tasks` (migration `0013`) com título (até 120), responsável, prazo (`DATE`), estado `A fazer`/`Em andamento`/`Concluída` (feminino, diferente do `Concluído` do marco) e nota (até 500). O responsável padrão é o **perfil da sessão, decidido no servidor** (o campo é opcional no corpo, nunca `Ambos` por padrão, porque o agente do Nível 5 chama o mesmo caso de uso). As transições são livres (reabrir volta a `A fazer`); excluir é lógico e há restaurar (o painel fecha e um aviso de 4 s oferece "Desfazer", `D-072`, item 8). Sem histórico para avulsas. Avulsas **nunca passam pelo `derive()`** (vazariam para "Libera" e bloqueios): `task_deadline` (função pura, o dia de Brasília) dá `Atrasada` e `days_left`; a lista sai ordenada por concluídas por último, depois prazo, título e id.
+  2. **Checklist** (`F-CRN-07`): tabela `checklist_items` com **dois donos opcionais** (`milestone_id`, `task_id`) e um `CHECK` de exatamente um dono (não polimórfico; os anexos do PR 5 podem ser). Item com texto (até 200), feito, posição e `version` **própria**; no máximo 50 itens vivos por dono (`422 checklist_full`). Marcar, editar e remover um item **não sobem a `version` do dono**. Reordenar é uma permutação exata dos itens vivos, sem `version` no pedido (`422 invalid_checklist_order`; um `409` só sai por corrida no banco), por Subir/Descer, sem arrastar (`D-068`, item 10). Remover é lógico e sem restaurar. Excluir o dono esconde os itens (o leitor só carrega itens de donos vivos) e restaurá-lo os traz de volta.
+  3. **Concluir com itens em aberto** (a regra vive na API, como o `ignore_block`, `D-081`): `PUT .../state` do marco e da avulsa ganha `ignore_open_items` (padrão falso), que só vale ao ir para `Concluído`/`Concluída`. Ordem: `version`, no-op (repetir o estado não grava), `milestone_blocked`, depois `422 checklist_open_items`. A mensagem não leva a contagem (a tela monta "há N itens em aberto" com `checklist_progress`). Um diálogo só mostra as duas linhas quando se aplicam e envia as duas permissões; concluir **não altera os itens** e nada vai para `milestone_changes`.
+  4. **Filtros e lente** (só no navegador, funções puras em `lib/`): chaves da URL `responsavel`, `estado`, `atrasados`, `avulsas` e `avulsa=<uuid>` (o painel; `marco` vence), com valor desconhecido descartado; grupos de escolha única que se combinam por E; `Bloqueado` e `Destravado` casam só marcos, `A fazer` só avulsas, `Em andamento` os dois, `Concluído` casa também a `Concluída`. A lente `Minha visão` **filtra** para "eu ou `Ambos`", o filtro explícito de responsável a **vence** (a barra diz isso em texto) e sem perfil a lente não filtra. Contadores e progresso por fase seguem **globais** ("N de M itens" à parte); sob filtro as fases sem item visível somem; o painel abre sempre pelos dados **sem filtro**; "Limpar filtros" limpa só os quatro filtros e mantém a lente e o painel; o estado vazio só pela lente ("Nada na Minha visão.") oferece "Ver a Visão do Casal". Cada filtro empurra uma entrada de histórico (Voltar o desfaz).
+  5. **"Meus próximos passos"** (só no celular, por JS, só com perfil): marcos `Destravado` ou `Em andamento` não arquivados e avulsas `A fazer` ou `Em andamento`, de "eu ou `Ambos`", **independente da lente e dos filtros**, ordenados por atrasados primeiro, depois prazo efetivo, depois sem prazo (desempate por título e id), até 8 com "Ver todos (N)". Isso **diverge da letra** da `F-CRN-09` ("sob minha responsabilidade", sem avulsas nem limite) e da `F-CCD-04` (que segue a lente); o texto da `F-CRN-09` foi ajustado.
+  6. **Web:** seção "Avulsas" depois da última fase (no computador, um `tbody` com `th scope=rowgroup` na mesma tabela, cujo cabeçalho agora diz "Marco ou avulsa"; no celular, uma `section` com `h2` e cartões); `TaskSheet` separado do painel do marco, aberto por `?avulsa=`; "Nova avulsa" com o perfil como responsável padrão; "Checklist: N de M" em texto nas linhas e cartões; o editor de checklist com Subir/Descer (o foco acompanha), "Editar o item X" por botão e "Remover o item X" imediato. **Todas as escritas do cronograma passam por um escopo serial** (`schedule-write`), para as respostas (que são o cronograma inteiro) não chegarem fora de ordem; a linha com escrita pendente trava Editar, Subir, Descer e Remover, e uma adição ou remoção pendente trava a reordenação. O `Chip` sobe para `components/ui` (terceiro uso, `D-074`, item 7), com teste e entrada na vitrine; o `form-alert` **não** sobe (há só 2 cópias).
+  7. **Desvios do guia** (sem página do Cronograma; linhas novas no `design-system.md` §15 e o `circle` no mapa de `identity.md` §7): o selo `A fazer` com o ícone `circle` e o `Atrasada` no feminino; a edição do item por botão em vez de campo sempre aberto; a seção "Avulsas" em `tbody` e em `section`; a barra de filtros do cronograma (chips em `fieldset` com legenda) e a lista de "Meus próximos passos".
+- **Ajustes em arquivos aprovados:** `cronograma.md` (a linha de status; a `F-CRN-09`, "Meus próximos passos"); `design-system.md` (§8, linha do `Chip`; §15, linhas novas e o texto "copiados para a feature"); `identity.md` §7 (`circle`); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` do módulo `schedule`.
+- **Razão:** o casal precisa guardar o que não tem ordem (avulsas), quebrar um marco em passos (checklist) e achar rápido o que é dele; filtrar no navegador e derivar no servidor mantém uma só verdade (`architecture.md` §5), e a confirmação de itens em aberto na API evita que o assistente do Nível 5 pule o que a tela exige.
+- **O que ficou rejeitado:**
+  - Passar avulsas pelo `derive()`: entrariam em "Libera" e nos bloqueios, que a spec proíbe.
+  - Dono do checklist polimórfico (`owner_type`/`owner_id`): sem chave estrangeira, órfãos passariam; só há dois donos.
+  - Subir a `version` do dono a cada tique: quem edita o formulário tomaria `409` por um item marcado.
+  - Índice único em (dono, posição): reordenar passa por posições repetidas.
+  - Dividir o PR em 4a e 4b (recomendado, mas o usuário manteve um só; a revisão partida foi a mitigação).
+  - Fazer "Meus próximos passos" seguir a lente: o título diz "meus", e o Centro de Comando pode seguir a lente por conta própria.
+  - Desfazer ao remover item do checklist: o item é uma linha curta e recriá-lo é barato; fica para o primeiro pedido.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Desfazer ao remover um item do checklist; restaurar item | O primeiro pedido |
+| Histórico das avulsas | O primeiro pedido de ver quem mudou o quê |
+| Lembrar a lente por usuário | O pedido (a `D-080` já registrou; este PR é a segunda tela que filtra pela lente) |
+| Menu de ações do item do checklist (hoje 4 botões por item) | Uso real que reclame da densidade, ou a passada do PR 7 |
+| "Filtros (N)" recolhível no celular | Uso real que reclame da altura da barra, ou a passada do PR 7 |
+| Ler os marcos uma só vez em `facts()` (hoje carrega avulsas e itens à toa) | A leitura ficar cara |
+| Ordem das avulsas por título sem diferenciar caixa e acento | O primeiro pedido |
+| Duas escritas seguidas no mesmo marco ou avulsa, de seções diferentes do painel, podem dar `409` (a segunda leva a `version` de quando foi enfileirada) | O primeiro caso real; a leitura de novo resolve |
+| Posições repetidas por duas adições simultâneas (o limite de 50 pode ir a 51) | O primeiro caso real (o `id` desempata) |
+| Promover o `form-alert` para `components/ui` | A terceira cópia |
+| Validar a `0013` no PostgreSQL (`position` cru no `CHECK`, `DEFAULT false`) | Antes do primeiro deploy (`stack.md` §4) |
+| Conferir 320 px reais, zoom de 200%, toque de 44 px dos botões `sm` do checklist e VoiceOver | A passada do PR 7 e a do usuário |
+| E2E do cronograma (avulsas, checklist, filtros, lente) | PR 7 |
+- **Verificação:** API com 1753 testes e web com 1102, Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter` e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade) em 1440 e 390 px, e a ausência de rolagem horizontal em 320 px conferida com Playwright em 5 URLs. O backend teve **12 mutações do código de produção mortas pelos testes** e a máquina de estados Hypothesis ganhou regras e invariantes novas (avulsas nunca em `unlocks`, `blocked_by` ou `depends_on`; o checklist não muda estado nem `version` do dono; `done <= total`; posições densas após reordenar; `ChecklistOpenItems` só com item aberto). Um defeito de piscar de diálogo foi corrigido pela leitura do código, sem RED no jsdom (o quadro intermediário não é observável lá).
+- **Time de agentes:** o `altare-api-dev` bateu o `maxTurns` de 80 sem relatório e foi retomado com um teto de chamadas; os três reviewers entregaram dentro dos 30 turnos e o hook barrou alguns comandos (`grep`, `rg` com `<` ou crases no padrão). A segunda rodada de revisão foi focada só no front e achou dois defeitos nos próprios ajustes (o diálogo que piscava e a remoção pendente), corrigidos. O hook Stop de gates e a Skill tool dentro de subagent seguem sem observação direta.
+- **Aprovado (2026-11-04):** esta decisão e o PR 4, pelo usuário ("Siga", o pedido de commit, push e PR).
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR (VoiceOver, 320 px reais, 768 px, zoom de 200%, toque de 44 px); e rodar `make migrate` no banco de desenvolvimento dele (a `0013`) antes de abrir o cronograma.
+
+---
+
+## D-085 — Anexos e links do cronograma e o `AlertDialog` (Bloco 1.3, PR 5 de 7)
+- **Data:** 2026-11-04
+- **Fase:** Implementação — Nível 1, Bloco 1.3, PR 5 de 7 (`D-080`)
+- **Pedido do usuário:** "Planeje o PR 5 do Bloco 1.3 (Cronograma): anexos e links (`F-CRN-08`)" e, aprovado o plano, a execução; depois do segundo GATE 2, "Aprovo. Prossiga até o PR." (os quatro `corrija`, a correção do `parse_link` também no `wedding` e as cinco sugestões baratas, conforme a recomendação).
+- **Escolhido pelo usuário (2026-11-04), no plano:** envio **como o módulo `files`** (PDF, JPEG, PNG ou WebP até 20 MB, um arquivo por vez, **sem limite de anexos por item**, `input` nativo **sem `capture`**); lista com **ícone, nome, tamanho, autor e data, sem miniatura**; remover pede confirmação e **não tem Desfazer nem restaurar**; o anexo de um dono excluído **some e volta com ele**; nome, tipo e tamanho **copiados no anexo ao anexar**; migram para o `AlertDialog` **excluir núcleo, excluir marco e remover anexo**; **um PR só**, com commits separados.
+- **Decisão:**
+  1. **Tabela genérica `attachments`** (migration `0014`, do módulo `schedule`; `D-080`, resposta 6): `owner_type` (`milestones` ou `tasks`, com `CHECK`) e `owner_id` **sem chave estrangeira** (a tabela é genérica; a integridade é do caso de uso, que exige dono vivo ou dá `404`, e do leitor); `kind` (`link` ou `file`), `profile` (`Noivo` ou `Noiva`, nunca `Ambos`), `url`, `file_id` (chave estrangeira `RESTRICT` para `file_assets`), `file_name`, `content_type`, `size_bytes`, título (até 120) e comentário (até 500). Um `CHECK` de forma garante link com endereço e sem arquivo, ou arquivo com os quatro campos e sem endereço. A `D-084` recusou o dono polimórfico para o checklist porque só havia dois donos e duas chaves estrangeiras cabiam; aqui a `D-080` manda genérico e a tabela atende também os próximos blocos que anexam. **Sem limite de anexos por item** (como a `F-PLN-06`).
+  2. **Exceção a "derivado, nunca copiado" (`D-073`):** o anexo de arquivo **copia** `file_name`, `content_type` e `size_bytes` do `files` **no instante de anexar**, por uma porta (`AttachmentFiles`) ligada só no `bootstrap` (padrão da `D-069`; o `schedule` não importa o `files` e o `import-linter` segue sem exceção). É seguro porque `file_assets` é imutável (um registro por envio); a leitura do cronograma, que roda em toda escrita e devolve tudo, fica pura, sem consulta ao `files`.
+  3. **Link seguro** (`parse_link`, domínio do `schedule`, **duplicado** de `wedding/domain/reference.py` porque os módulos não se importam; promover para o `shared_kernel` no terceiro uso, os contatos): só `http(s)`, sem espaço, sem usuário e senha, até 2000 caracteres, host com ponto, **sem `\` nem caractere Unicode das categorias `Cc` e `Cf` na URL inteira**, e host só em `[a-z0-9.-]`; o IDN é gravado e **exibido em punycode**. O domínio visível, que a `F-CRN-08` põe como indicador de confiança, é derivado do endereço, nunca lido da página. A revisão de segurança achou, e a sessão principal reproduziu, que a versão inicial aceitava `https://banco-exemplo.com\.gov.br/x` e mostrava um domínio que o navegador (que lê `\` como `/`) não abre. **A mesma correção foi aplicada ao `parse_link` do `wedding`** (módulo já integrado), por autorização do usuário, com o mesmo corpus de testes nas duas cópias.
+  4. **Domínio total na leitura:** o domínio do anexo, e o da referência do `wedding`, vêm de uma função que **nunca levanta** (`display_domain`): uma linha gravada antes de uma regra mais apertada mostra o host cru (sem controle nem o que vem depois de `\`) ou nada, e não derruba o `GET /schedule` nem a lista de referências.
+  5. **Arquivo:** o envio é o `POST /api/v1/files` existente (`D-063`, assinatura real, 20 MB); o vínculo só confere que o arquivo existe (`404`) e que é `application/pdf`, `image/jpeg`, `image/png` ou `image/webp` (**lista fechada**, sem `image/*`: um tipo novo no `files` não vira anexável sem decisão). `attachment_file_not_allowed` é defesa do domínio e hoje **inalcançável por HTTP**, porque o `files` já barra o resto.
+  6. **Autoria e remoção:** o autor é o perfil da sessão (`by` e `profile` no corpo são ignorados); **só o autor remove** (`403` ao outro perfil); `can_remove` é derivado do perfil de quem lê. A remoção é lógica (`deleted_at`, `deleted_by`), a linha **fica guardada** e **não há rota de restaurar**: "recuperável", na `F-CRN-08`, passa a significar "a linha fica guardada", e restaurar pela tela fica adiado com a tela de excluídos (`D-082`). Duas remoções simultâneas do mesmo anexo disputam a `version` e a segunda dá `409` (declarado no contrato). Anexar e remover **não tocam o dono** (nem a `version` nem o estado).
+  7. **Dono excluído e restaurado:** não há cascata. O leitor só agrupa anexos de donos vivos (uma consulta para todos), `require_attachment` dá `404` com o dono excluído e restaurar o dono traz os anexos de volta (padrão do checklist, `D-084`).
+  8. **Rotas:** `POST /api/v1/schedule/{owner_kind}/{owner_id}/attachments/links` e `.../attachments/files`, `DELETE /api/v1/schedule/attachments/{attachment_id}`; todas devolvem o cronograma inteiro, e os anexos vêm **embutidos** em `MilestoneOut.attachments` e `TaskOut.attachments` (`id`, `kind`, `title`, `comment`, `url`, `domain`, `file`, `by`, `at`, `can_remove`).
+  9. **`AlertDialog` nasce** (`components/ui/alert-dialog.tsx`, `D-082`, item 9): o mesmo desenho do `Dialog` (`z-40`, `bg-scrim`, folha inferior no celular), **sem botão Fechar e sem fechar por clique fora**; `Cancel` recebe o foco inicial; o botão de confirmar é um `Button` comum (não `AlertDialog.Action`, que fecha ao clicar e esconderia a escrita pendente e o erro do servidor); `pending` **bloqueia o Esc** enquanto a escrita está no ar, e quem usa desabilita o próprio Cancelar com o mesmo estado; `onCloseAutoFocus` é repassado. O botão destrutivo é o `soft-destructive` (argila). **Migram:** excluir núcleo (`guests`), excluir marco e remover anexo. **Ficam em `Dialog`:** reabrir marco, ignorar bloqueio e itens em aberto, que **não destroem nada** (a confirmação é de efeito colateral) e dividem uma raiz de diálogo. **Ficam como adiado:** excluir pessoa, remover referência e excluir categoria. Isso **corrige a letra da `D-082`** (item 9 e tabela de adiados, "migrando as três": núcleo, **reabrir** e excluir marco), que não é editada.
+  10. **Web:** a seção "Anexos" entra logo depois do "Checklist" no painel do marco e no da avulsa (`h3` com `tabIndex=-1`: o foco vai ao título depois de remover; região `role=status`); arquivo e link abrem em outra aba (`noopener noreferrer`, só `http(s)` vira `<a>`); o tamanho vem de um `formatBytes` pt-BR novo (`1,4 MB`) em mono; o **envio do arquivo fica fora do escopo serial** `schedule-write` (um upload de 20 MB travaria o checklist) e só o vínculo e a remoção entram; os formulários validam ao sair do campo (`onTouched`, `design-system.md` §10) e o Cancelar fica desabilitado durante o envio, para um anexo gravado nunca ficar sem anúncio; o Cancelar usa `preventDefault` no `mousedown`, porque o erro de validação empurrava o botão e o clique se perdia no Chrome real (o jsdom não faz layout e não via isso). A cópia é calma e não promete "apagado": "O anexo sai da lista deste item. O registro fica guardado."
+  11. **Desvios do guia** (sem página de `AlertDialog` nem de lista de anexos; linhas novas no `design-system.md` §15): o `AlertDialog` usa o diálogo da pág. 32 **sem o Fechar**; a linha de anexo usa a linha "Arquivos" da pág. 39, **mas o clipe da direita virou o ícone do link**, porque ali fica o Remover; o ícone `image` do Lucide, fora do mapa fixo de ícones, marca a imagem; só o tamanho é em mono.
+- **Ajustes em arquivos aprovados:** `cronograma.md` (a linha de status; **`F-CRN-08`, regra 1**, de "com os mesmos controles de `F-PLN-06`: **arquivo** (PDF ou imagem...)" para "com os controles de `F-PLN-06`, mas aceitando também PDF (`D-080`, resposta 6)"; **regra 3**, de "de forma lógica e recuperável" para "de forma lógica; o registro fica guardado e a restauração pela tela fica adiada (`D-085`)"); `design-system.md` (§8, §9 `FileAttachment`, §13 e §15); `architecture.md` §12 (`ATTACHMENT`); `AGENTS.md` §1; `roadmap.md` (Bloco 1.3); `CLAUDE.md` dos módulos `schedule` e `files`; a skill `altare-ui-ux` (a linha das confirmações destrutivas).
+- **Razão:** o casal guarda no marco o contrato, o comprovante e o link da proposta em vez de procurar em pastas e mensagens; copiar o que o arquivo tem de imutável mantém a leitura barata, e o domínio do link precisa ser o que o navegador abre, senão o indicador de confiança engana.
+- **O que ficou rejeitado:**
+  - Duas chaves estrangeiras (`milestone_id`, `task_id`) como no checklist: a `D-080` manda tabela genérica e os próximos blocos (contatos, propostas, contratos) vão anexar a outros donos.
+  - Ler nome, tipo e tamanho do `files` a cada leitura (um `GetFileInfo` por anexo ou um lote novo): toda escrita devolve o cronograma inteiro e o dado não muda.
+  - Miniatura de imagem e visualizador de PDF no painel: a imagem inteira, de até 20 MB, seria baixada por item no celular; o arquivo abre em outra aba (`D-063`).
+  - Limite de anexos por item: a `F-PLN-06` não tem e o abuso só poderia vir das duas contas.
+  - Desfazer e rota de restaurar anexo: o Desfazer teria de ficar dentro do painel modal (`D-072`, item 8); a `D-069` adiou o mesmo para as referências.
+  - `max_length` no Pydantic: o `422` viraria o genérico `validation_error`, que diz só "Valor inválido." por campo; o `invalid_schedule_value` diz o limite em português e continua no domínio (os limites constam na `description` dos campos do contrato).
+  - Extrair o `parse_link` para o `shared_kernel` agora: só há duas cópias e exigiria trocar o erro do `wedding` por um neutro; sobe no terceiro uso.
+  - Migrar todas as confirmações destrutivas e o "reabrir": o diff cresceria e o "reabrir" não destrói nada.
+- **Adiado, com gatilho para retomar:**
+
+| Item | Gatilho |
+| :--- | :--- |
+| Restaurar anexo removido, pela tela | A tela de excluídos (`D-082`) ou o primeiro pedido |
+| Purga dos arquivos e das linhas de anexo (`D-063`: o gatilho "o produto ter exclusão de anexo" chegou, mas a remoção é lógica e a purga segue manual) | O primeiro pedido de apagar de verdade, a exportação (`F-CCD-10`) ou abrir o Altare a outros casais |
+| O download é o `GET /files/{id}`, **sem amarração ao dono do anexo**: remover o anexo não revoga o acesso ao arquivo a quem tem o `id` | Abrir o Altare a outros casais (`D-002`) |
+| PDF servido inline sem `CSP: sandbox` (quebra o visualizador do Chrome) | Abrir o Altare a outros casais, ou o primeiro incidente |
+| `file_name` copiado é dado potencialmente pessoal (por exemplo, `comprovante-<nome>.pdf`) e continua depois da remoção lógica; a exportação e a purga precisam cobrir `attachments` | A exportação (`F-CCD-10`) |
+| Promover o `parse_link` e o `display_domain` para o `shared_kernel` | A terceira cópia (contatos, `F-CTT-07`) |
+| Migrar excluir pessoa, remover referência e excluir categoria para o `AlertDialog` | O próximo PR que tocar essas telas, ou a passada do PR 7 |
+| Limite de anexos por item | O primeiro abuso ou resposta do cronograma pesada |
+| Arquivo sem tipo declarado (alguns seletores do Android) é recusado no navegador antes de o servidor conferir a assinatura | O primeiro caso real |
+| Foco que pode se perder no botão desabilitado durante a escrita (confirmar a remoção, excluir) | A passada manual do usuário |
+| Caracteres `Cf` em título, comentário e nome de arquivo (inversão visual do rótulo, impacto baixo) | O primeiro caso real |
+| Índice parcial `ix_attachments_owner_live` não serve à única leitura em lote (varredura e ordenação, volume pequeno) | A leitura ficar cara |
+| `CHECK (size_bytes > 0)` na `0014` (hoje só o `files` garante) | Uma segunda origem de anexo |
+| Validar a `0014` no PostgreSQL (índice parcial) | Antes do primeiro deploy (`stack.md` §4) |
+| Conferir 320 px reais, zoom de 200%, VoiceOver, o seletor nativo do celular e o fundo escurecido duas vezes (painel mais `AlertDialog`) | A passada do PR 7 e a do usuário |
+| E2E do cronograma (anexos, remoção) e rodar `make e2e` (nenhum E2E rodou neste PR, só uma linha foi ajustada em `convidados.e2e.ts`) | PR 7 |
+- **Verificação:** API com 1976 testes (eram 1753) e web com 1167 (eram 1102), Ruff, Pyright (0 erros), Biome, `tsc`, os 7 contratos do `import-linter` e `make api-types` sem diferença, todos rodados pela sessão principal; capturas reais (API de verdade, SQLite temporário, build de produção) em 1440 e 390 px, com 25 de 27 verificações passando no roteiro (as 2 falhas eram do roteiro, uma expressão regular e uma medição no meio da animação, e foram remedidas com a animação assentada: a folha encosta na base e os botões têm 44 px). O ataque do `\`, do `U+202E`, do `DEL` e do `U+200B` foi **reproduzido contra a primeira versão e conferido recusado nas duas cópias** depois da correção. **Onde não houve RED por asserção:** persistência, HTTP e bootstrap do backend foram escritos junto com o código, compensados por 12 mutantes (11 mortos e 1 equivalente: o filtro de dono morto no agrupamento é redundante, o leitor só busca donos vivos), **bateria que não foi repetida depois dos ajustes da revisão**; no front, as migrações de diálogo e a seção de anexos tiveram RED por **timeout de `findByRole`** e por consulta de região, não só por `expect`, e fixtures, copy e o hook de mutação ficaram sem RED observado; o domínio total (`display_domain`) teve RED por **exceção**, o natural para "nunca levanta".
+- **Time de agentes:** `altare-api-dev` e `altare-web-dev` entregaram relatório dentro do limite nas duas rodadas, e foram retomados com `SendMessage` para os ajustes; os três reviewers entregaram dentro dos 30 turnos, sem nenhum `bloqueia`; o reviewer de segurança não pôde rodar Python (o hook barra) e por isso a sessão principal reproduziu o achado do `parse_link`. O web-dev achou sozinho, no Chrome real, o clique perdido do Cancelar com `onTouched` (o jsdom não pega).
+- **Aprovado (2026-11-04):** esta decisão e o PR 5, pelo usuário ("Aprovo. Prossiga até o PR.").
+- **Pendente:** a passada manual de `altare-acessibilidade` sobre as telas deste PR (VoiceOver, 320 px reais, zoom de 200%, toque de 44 px, o seletor nativo do celular); e rodar `make migrate` no banco de desenvolvimento dele (a `0014`, com backup antes e `DATABASE_URL` apontando para `./data/altare.db` na raiz) antes de abrir o cronograma.

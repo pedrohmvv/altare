@@ -23,6 +23,17 @@ class ProblemDetails(BaseModel):
     code: str
     detail: str
     errors: list[FieldError] | None = None
+    data: dict[str, Any] | None = None
+
+
+class _Params(dict[str, str]):
+    def __missing__(self, key: str) -> str:
+        # Um code com campo lançado sem o parâmetro vira um texto sem o detalhe, nunca um 500.
+        return "…"
+
+
+def _fill(detail: str, params: dict[str, str]) -> str:
+    return detail.format_map(_Params(params))
 
 
 def problem_response(
@@ -30,13 +41,21 @@ def problem_response(
     code: str,
     errors: list[FieldError] | None = None,
     headers: dict[str, str] | None = None,
+    data: dict[str, Any] | None = None,
+    detail_params: dict[str, str] | None = None,
 ) -> JSONResponse:
     message = message_for(code)
+    detail = _fill(message.detail, detail_params or {})
     problem = ProblemDetails(
-        title=message.title, status=status, code=code, detail=message.detail, errors=errors
+        title=message.title,
+        status=status,
+        code=code,
+        detail=detail,
+        errors=errors,
+        data=data or None,
     )
     return JSONResponse(
-        problem.model_dump(exclude_none=True),
+        problem.model_dump(mode="json", exclude_none=True),
         status_code=status,
         media_type=PROBLEM_JSON,
         headers=headers,

@@ -1,0 +1,9 @@
+---
+description: "Executar um bloco do roadmap com o time de agentes (altare-api-dev, altare-web-dev, altare-reviewer): plano aprovado, um PR por vez, revisão independente. Use quando o usuário pedir para executar, começar ou tocar um bloco (ex.: \"execute o Bloco 1.3\"). Não use para correção pontual."
+alwaysApply: false
+---
+
+<!-- Gerado por scripts/build-cursor-rules.mjs a partir de .claude/skills/altare-bloco/SKILL.md. Não edite aqui. -->
+
+Antes de agir, leia [SKILL.md](mdc:.claude/skills/altare-bloco/SKILL.md) e siga o que ele manda.
+As regras de projeto e a precedência estão em [AGENTS.md](mdc:AGENTS.md) (§5).

@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -13,6 +15,8 @@ MAX_URL = 2000
 MAX_TITLE = 120
 MAX_COMMENT = 500
 _SCHEMES = ("http", "https")
+_HOST_ASCII = re.compile(r"[a-z0-9.-]+")
+_UNSAFE_CATEGORIES = ("Cc", "Cf")
 
 
 class ReferenceKind(StrEnum):
@@ -29,9 +33,12 @@ class ParsedLink:
 def parse_link(raw: str) -> ParsedLink:
     """Valida um endereço colado (F-PLN-06). Só `http` e `https` valem (nada de `javascript:` nem
     `data:`, que virariam código ao abrir o link), sem espaços, sem usuário e senha no endereço e
-    com um domínio de verdade. O conteúdo da página nunca é lido (sem *scraping*)."""
+    com um domínio de verdade. Recusa a barra invertida e os caracteres de controle e de formato na
+    URL inteira, e o host (em ASCII; o IDN vira punycode) só tem letras, dígitos, ponto e hífen: o
+    domínio mostrado é o indicador de confiança e não pode diferir do que o navegador abre. O
+    conteúdo da página nunca é lido (sem *scraping*)."""
     url = raw.strip()
-    if not url or len(url) > MAX_URL or any(char.isspace() or ord(char) < 32 for char in url):
+    if not url or len(url) > MAX_URL or any(_is_unsafe(char) for char in url):
         raise InvalidReferenceUrl()
     try:
         parts = urlsplit(url)
@@ -39,10 +46,54 @@ def parse_link(raw: str) -> ParsedLink:
         has_credentials = parts.username is not None or parts.password is not None
     except ValueError as error:
         raise InvalidReferenceUrl() from error
-    if parts.scheme.lower() not in _SCHEMES or not host or "." not in host or has_credentials:
+    if parts.scheme.lower() not in _SCHEMES or not host or has_credentials:
         raise InvalidReferenceUrl()
-    normalized = parts._replace(scheme=parts.scheme.lower(), netloc=parts.netloc.lower())
-    return ParsedLink(url=normalized.geturl(), domain=host.lower().removeprefix("www."))
+    ascii_host = _ascii_host(host)
+    netloc = parts.netloc.lower()
+    if ascii_host is None or not netloc.startswith(host) or not _is_domain(ascii_host):
+        raise InvalidReferenceUrl()
+    # O que sobra do host no `netloc` é a porta, que segue como veio.
+    normalized = parts._replace(
+        scheme=parts.scheme.lower(), netloc=ascii_host + netloc.removeprefix(host)
+    )
+    return ParsedLink(url=normalized.geturl(), domain=ascii_host.removeprefix("www."))
+
+
+def _is_unsafe(char: str) -> bool:
+    """Espaço, controle (Cc), formato (Cf, como bidi e largura zero) e a barra invertida, que o
+    navegador lê como `/` e faz o domínio mostrado mentir."""
+    return char == "\\" or char.isspace() or unicodedata.category(char) in _UNSAFE_CATEGORIES
+
+
+def _ascii_host(host: str) -> str | None:
+    """O host em ASCII: o IDN vira punycode, e o que não codifica não é endereço."""
+    if host.isascii():
+        return host
+    try:
+        return host.encode("idna").decode("ascii")
+    except UnicodeError:
+        return None
+
+
+def _is_domain(host: str) -> bool:
+    return "." in host and _HOST_ASCII.fullmatch(host) is not None
+
+
+def display_domain(url: str) -> str | None:
+    """O domínio que a tela mostra, derivado do endereço guardado. **Total: nunca levanta.** Uma
+    referência gravada antes de uma regra mais apertada de `parse_link` não pode derrubar a
+    listagem: mostra o que der (o host cru, sem controle nem o que vem depois de `\\`) ou nada.
+    Mesma lógica do `display_domain` do `schedule` (cópia: um módulo não importa o outro)."""
+    try:
+        return parse_link(url).domain
+    except InvalidReferenceUrl:
+        pass
+    try:
+        host = urlsplit(url).hostname
+    except ValueError:
+        return None
+    visible = "".join(char for char in (host or "").split("\\")[0] if not _is_unsafe(char))
+    return visible.removeprefix("www.") or None
 
 
 def _clean(text: str | None, limit: int) -> str | None:
@@ -115,7 +166,7 @@ class ScopeReference:
 
     @property
     def domain(self) -> str | None:
-        return parse_link(self.url).domain if self.url else None
+        return display_domain(self.url) if self.url else None
 
     def remove(self, by_profile: ProfileKind, by_user: UUID | None, now: datetime) -> None:
         if by_profile is not self.profile:

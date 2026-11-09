@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 from fastapi import FastAPI
@@ -36,6 +37,11 @@ def _com_rotas_de_teste() -> FastAPI:
             "conflito": Conflict("duplicate_contact"),
             "versao": VersionConflict(),
             "excesso": TooManyAttempts(retry_after=120),
+            "ciclo": DomainRuleViolated(
+                "dependency_cycle",
+                data={"path": [{"id": UUID(int=1), "title": "{A}"}]},
+                detail_params={"path": "{A} → {A}"},
+            ),
         }
         if nome == "inesperado":
             raise RuntimeError("segredo interno: SELECT * FROM users")
@@ -189,3 +195,17 @@ def test_main_expoe_o_app_asgi():
     from wedding.main import app
 
     assert TestClient(app).get("/api/v1/health").status_code == 200
+
+
+def test_erro_com_dados_leva_os_dados_no_corpo_e_o_caminho_no_texto(client):
+    resposta = client.get("/api/v1/_teste/erro/ciclo")
+    corpo = resposta.json()
+    assert resposta.status_code == 422
+    assert corpo["code"] == "dependency_cycle"
+    assert corpo["data"] == {"path": [{"id": str(UUID(int=1)), "title": "{A}"}]}
+    assert "{A} → {A}" in corpo["detail"]
+    assert "{path}" not in corpo["detail"]
+
+
+def test_erro_sem_dados_nao_traz_o_campo_data(client):
+    assert "data" not in client.get("/api/v1/_teste/erro/versao").json()

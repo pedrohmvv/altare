@@ -41,6 +41,7 @@ export function Input({
         const suffixId = `${control.id}-suffix`
         const describedBy = [
           control['aria-describedby'],
+          props['aria-describedby'],
           prefix != null && prefixId,
           suffix != null && suffixId,
         ]

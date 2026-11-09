@@ -1,0 +1,132 @@
+"""A cola do `bootstrap` entre o cronograma e o `wedding`: só ela conhece os dois módulos."""
+
+from datetime import date
+from types import SimpleNamespace
+from uuid import UUID
+
+import pytest
+from tests.modules.schedule.conftest import NOIVO
+
+from wedding.modules.files.application.public import FileAssetDto
+from wedding.modules.schedule.application.ports import CategoryInfo, WeddingDate
+from wedding.modules.schedule.domain.attachments import AttachedFile
+from wedding.modules.schedule.domain.values import Standing
+from wedding.modules.wedding.application.public import (
+    CategoryStanding,
+    DateKind,
+    DefinitionStatus,
+    ScopeStatus,
+)
+from wedding.modules.wedding.application.public import (
+    WeddingDate as WeddingDateFound,
+)
+from wedding.platform.bootstrap.schedule import (
+    FilesForAttachments,
+    WeddingDateFromBaseline,
+    WeddingScopeCategories,
+)
+from wedding.shared_kernel.errors import NotFound
+
+
+def _categorias(*itens: CategoryStanding):
+    scope = SimpleNamespace(get_scope_standings=SimpleNamespace(execute=lambda actor: tuple(itens)))
+    return WeddingScopeCategories(lambda: scope)  # type: ignore[arg-type]
+
+
+def _arquivos(resposta):
+    chamadas = []
+
+    def achar(file_id, actor):
+        chamadas.append((file_id, actor))
+        if isinstance(resposta, Exception):
+            raise resposta
+        return resposta
+
+    files = SimpleNamespace(get_file_info=SimpleNamespace(execute=achar))
+    return FilesForAttachments(lambda: files), chamadas  # type: ignore[arg-type]
+
+
+def _data(achada: WeddingDateFound):
+    wedding = SimpleNamespace(get_wedding_date=SimpleNamespace(execute=lambda actor: achada))
+    return WeddingDateFromBaseline(lambda: wedding)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("status", "visivel", "esperado"),
+    [
+        (ScopeStatus.ESSENTIAL, True, Standing.ENTERS),
+        (ScopeStatus.MAYBE, True, Standing.MAYBE),
+        (ScopeStatus.IN_DISCUSSION, True, Standing.IN_DISCUSSION),
+        (ScopeStatus.OUT, True, Standing.OUT),
+        # Oculta, de grupo oculto ou excluída conta como `Fica de fora` (F-CRN-04, regra 3).
+        (ScopeStatus.ESSENTIAL, False, Standing.OUT),
+        (ScopeStatus.MAYBE, False, Standing.OUT),
+        (ScopeStatus.IN_DISCUSSION, False, Standing.OUT),
+    ],
+)
+def test_status_e_visibilidade_viram_a_situacao_da_categoria(status, visivel, esperado):
+    identificador = UUID(int=7)
+    categorias = _categorias(CategoryStanding(identificador, "Frente Exemplo", status, visivel))
+    assert categorias.categories(NOIVO) == {
+        identificador: CategoryInfo("Frente Exemplo", esperado, visivel)
+    }
+
+
+def test_sem_categorias_a_leitura_vem_vazia():
+    assert _categorias().categories(NOIVO) == {}
+
+
+@pytest.mark.parametrize(
+    ("status", "forma", "dia", "esperado"),
+    [
+        (
+            DefinitionStatus.DEFINED,
+            DateKind.EXACT,
+            date(2027, 6, 12),
+            WeddingDate(True, date(2027, 6, 12)),
+        ),
+        (DefinitionStatus.DEFINED, DateKind.WINDOW, None, WeddingDate(True, None)),
+        (
+            DefinitionStatus.IN_DEFINITION,
+            DateKind.EXACT,
+            date(2027, 6, 12),
+            WeddingDate(False, date(2027, 6, 12)),
+        ),
+        (DefinitionStatus.IN_DEFINITION, None, None, WeddingDate(False, None)),
+    ],
+)
+def test_a_data_do_casamento_so_vale_com_status_definido_e_forma_exata(
+    status, forma, dia, esperado
+):
+    lida = _data(WeddingDateFound(status, forma, dia)).wedding_date(NOIVO)
+    assert lida == esperado
+    assert lida.is_exact_and_defined is (status is DefinitionStatus.DEFINED and dia is not None)
+
+
+def test_a_ordem_das_categorias_e_a_do_contrato_do_wedding():
+    primeira = CategoryStanding(UUID(int=2), "Frente B Exemplo", ScopeStatus.ESSENTIAL, True)
+    segunda = CategoryStanding(UUID(int=1), "Frente A Exemplo", ScopeStatus.ESSENTIAL, False)
+    lidas = _categorias(primeira, segunda).categories(NOIVO)
+    assert list(lidas) == [UUID(int=2), UUID(int=1)]
+    assert lidas[UUID(int=1)].visible is False
+
+
+def test_o_arquivo_achado_no_files_vira_a_copia_de_nome_tipo_e_tamanho():  # F-CRN-08
+    arquivo = UUID(int=9)
+    info = FileAssetDto(arquivo, "contrato-exemplo.pdf", "application/pdf", 2048, "abc")
+    arquivos, chamadas = _arquivos(info)
+    assert arquivos.find(arquivo, NOIVO) == AttachedFile(
+        arquivo, "contrato-exemplo.pdf", "application/pdf", 2048
+    )
+    assert chamadas == [(arquivo, NOIVO)]
+
+
+def test_arquivo_que_o_files_nao_acha_vira_none_e_nao_erro():
+    arquivos, _ = _arquivos(NotFound())
+    assert arquivos.find(UUID(int=9), NOIVO) is None
+
+
+def test_outro_erro_do_files_nao_e_engolido():
+    arquivos, _ = _arquivos(RuntimeError("falha"))
+    with pytest.raises(RuntimeError):
+        arquivos.find(UUID(int=9), NOIVO)

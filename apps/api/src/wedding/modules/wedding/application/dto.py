@@ -1,6 +1,6 @@
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
@@ -11,6 +11,7 @@ from wedding.modules.wedding.domain.value_objects import (
     BaselineValue,
     CeilingValue,
     CeremonyValue,
+    DateKind,
     DateValue,
     DefinitionStatus,
     SizeValue,
@@ -91,3 +92,13 @@ def to_baseline_dto(fields: Iterable[BaselineField], guest_count: int) -> Baseli
         ceremony=_field_dto(by_key[BaselineKey.CEREMONY], CeremonyValue.from_json),
         guest_count=guest_count,
     )
+
+
+@dataclass(frozen=True)
+class WeddingDateDto:
+    """A data do casamento como o `F-PLN-01` a guarda, sem as demais variáveis: o status, a forma
+    (`kind`, nula enquanto o campo está vazio) e o dia, só quando a forma é exata."""
+
+    status: DefinitionStatus
+    kind: DateKind | None
+    exact: date | None

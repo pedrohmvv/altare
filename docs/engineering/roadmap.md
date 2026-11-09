@@ -70,6 +70,7 @@ Cada nível da pirâmide se apoia diretamente no nível inferior e entrega valor
   - *(Revisado em `D-030`; especificação em `docs/product/features/convidados-enxoval-e-dia-d.md`)* Pesos editáveis por probabilidade, acompanhante (+1), idade da criança, contatos e endereço do núcleo, convite enviado por núcleo e **exportação em Excel/CSV** (dependência `openpyxl` no backend).
 
 ### Bloco 1.3 — Cronograma com Dependências Explícitas
+- **Andamento (`D-080`):** 7 PRs. **PR 1, marcos, bloqueios e a tela "Por fase" (`F-CRN-02`, `03` e `04`; parte da `01` e da `09`): feito e integrado** (`D-081`, PR #45); **PR 2, edição de marcos, dependências e fases (`F-CRN-01`; `F-CRN-03`, regra 2): feito e integrado** (`D-082`, PR #46); **PR 3, datas, janelas calculadas, contagem regressiva e a prévia ao mudar a data (`F-CRN-05`): feito e integrado** (`D-083`, PR #47); **PR 4, avulsas, checklist, filtros, lente e "Meus próximos passos" (`F-CRN-06`, `07` e `09`): feito e integrado** (`D-084`, PR #48); **PR 5, anexos e links (`F-CRN-08`): implementado e em PR para a `develop`** (`D-085`); PR 6, calendário; PR 7, E2E e fechamento.
 - **O que é construído:**
   - Marcos e tarefas distribuídos nas 5 fases lógicas do planejamento, com atribuição de responsável (`Noivo`, `Noiva`, `Ambos`).
   - Motor de **Dependências (Bloqueios)**: destaca visualmente o que está **Destravado para agir agora** vs. o que está **Bloqueado por uma decisão anterior**.

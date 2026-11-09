@@ -16,6 +16,7 @@ from wedding.modules.wedding.application.commands.set_scope_group_visibility imp
 )
 from wedding.modules.wedding.application.commands.update_scope_category import UpdateScopeCategory
 from wedding.modules.wedding.application.queries.get_scope_map import GetScopeMap
+from wedding.modules.wedding.application.queries.get_scope_standings import GetScopeStandings
 from wedding.modules.wedding.application.queries.list_scope_category_history import (
     ListScopeCategoryHistory,
 )
@@ -27,6 +28,7 @@ class ScopeUseCases:
     pacote e o seu provedor)."""
 
     get_scope_map: GetScopeMap
+    get_scope_standings: GetScopeStandings
     list_scope_category_history: ListScopeCategoryHistory
     create_scope_group: CreateScopeGroup
     rename_scope_group: RenameScopeGroup

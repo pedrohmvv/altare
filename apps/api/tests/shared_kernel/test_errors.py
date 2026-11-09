@@ -54,3 +54,16 @@ def test_excesso_de_tentativas_carrega_a_espera_em_segundos():
     assert erro.code == "too_many_attempts"
     assert erro.retry_after == 300
     assert isinstance(erro, DomainError)
+
+
+def test_erro_leva_dados_e_parametros_do_texto_quando_a_regra_os_tem():
+    erro = DomainRuleViolated(
+        "dependency_cycle", data={"path": [1, 2]}, detail_params={"path": "A"}
+    )
+    assert erro.data == {"path": [1, 2]}
+    assert erro.detail_params == {"path": "A"}
+
+
+def test_erro_sem_dados_tem_dados_e_parametros_vazios():
+    erro = NotFound()
+    assert (erro.data, erro.detail_params) == ({}, {})

@@ -727,6 +727,366 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Schedule */
+        get: operations["read_schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/date-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Date Change */
+        get: operations["preview_date_change"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Milestone */
+        post: operations["create_milestone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Milestone */
+        put: operations["update_milestone"];
+        post?: never;
+        /** Delete Milestone */
+        delete: operations["delete_milestone"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Milestone Window */
+        put: operations["update_milestone_window"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Milestone */
+        post: operations["restore_milestone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change Milestone State */
+        put: operations["change_milestone_state"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/milestones/{milestone_id}/dependencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Milestone Dependencies */
+        put: operations["set_milestone_dependencies"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/phases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Phase */
+        post: operations["create_phase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/phases/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder Phases */
+        put: operations["reorder_phases"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/phases/{phase_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename Phase */
+        put: operations["rename_phase"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Task */
+        post: operations["create_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Task */
+        put: operations["update_task"];
+        post?: never;
+        /** Delete Task */
+        delete: operations["delete_task"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks/{task_id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change Task State */
+        put: operations["change_task_state"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/tasks/{task_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Task */
+        post: operations["restore_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Checklist Item */
+        post: operations["add_checklist_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/checklist/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder Checklist */
+        put: operations["reorder_checklist"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/checklist/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Checklist Item */
+        put: operations["update_checklist_item"];
+        post?: never;
+        /** Remove Checklist Item */
+        delete: operations["remove_checklist_item"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Link Attachment */
+        post: operations["add_link_attachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/{owner_kind}/{owner_id}/attachments/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add File Attachment */
+        post: operations["add_file_attachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Attachment */
+        delete: operations["remove_attachment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -747,6 +1107,121 @@ export interface components {
          * @enum {string}
          */
         AlignmentState: "alinhados" | "divergem" | "falta";
+        /**
+         * AttachmentFileIn
+         * @description Um arquivo já enviado por `POST /files` (PDF ou imagem; o envio valida o tipo, o tamanho e a
+         *     assinatura). Sem campo de autoria, como o link.
+         */
+        AttachmentFileIn: {
+            /**
+             * File Id
+             * Format: uuid
+             */
+            file_id: string;
+            /**
+             * Title
+             * @description Opcional, até 120 caracteres.
+             */
+            title?: string | null;
+            /**
+             * Comment
+             * @description Opcional, até 500 caracteres.
+             */
+            comment?: string | null;
+        };
+        /** AttachmentFileOut */
+        AttachmentFileOut: {
+            /**
+             * Id
+             * Format: uuid
+             * @description O id do arquivo, para baixar por `GET /files/{id}`.
+             */
+            id: string;
+            /**
+             * Name
+             * @description O nome do arquivo ao anexar (cópia).
+             */
+            name: string;
+            /**
+             * Content Type
+             * @description O tipo do arquivo ao anexar (cópia): PDF ou imagem.
+             */
+            content_type: string;
+            /**
+             * Size Bytes
+             * @description O tamanho em bytes ao anexar (cópia).
+             */
+            size_bytes: number;
+        };
+        /**
+         * AttachmentKind
+         * @enum {string}
+         */
+        AttachmentKind: "link" | "file";
+        /**
+         * AttachmentLinkIn
+         * @description Um link. Sem campo de autoria: quem anexou é o perfil da sessão, e um `by` ou `profile` que
+         *     venha no corpo é ignorado.
+         */
+        AttachmentLinkIn: {
+            /**
+             * Url
+             * @description Um endereço http ou https completo; até 2000 caracteres.
+             */
+            url: string;
+            /**
+             * Title
+             * @description Opcional, até 120 caracteres.
+             */
+            title?: string | null;
+            /**
+             * Comment
+             * @description Opcional, até 500 caracteres.
+             */
+            comment?: string | null;
+        };
+        /** AttachmentOut */
+        AttachmentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["AttachmentKind"];
+            /** Title */
+            title: string | null;
+            /** Comment */
+            comment: string | null;
+            /**
+             * Url
+             * @description O endereço do link; nulo se o anexo é um arquivo.
+             */
+            url: string | null;
+            /**
+             * Domain
+             * @description O domínio visível do link, derivado do endereço (sem `www.`); nunca lido da página.
+             */
+            domain: string | null;
+            /** @description O arquivo; nulo se o anexo é um link. */
+            file: components["schemas"]["AttachmentFileOut"] | null;
+            /**
+             * By
+             * @description Quem anexou: o perfil da sessão, nunca do corpo.
+             * @enum {string}
+             */
+            by: "Noivo" | "Noiva";
+            /**
+             * At
+             * Format: date-time
+             * @description O instante em que foi anexado.
+             */
+            at: string;
+            /**
+             * Can Remove
+             * @description Derivado do perfil de quem lê: só o autor remove.
+             */
+            can_remove: boolean;
+        };
         /** BandCountsOut */
         BandCountsOut: {
             /** Adults */
@@ -793,6 +1268,19 @@ export interface components {
             ceiling: components["schemas"]["CeilingFieldOut"];
             ceremony: components["schemas"]["CeremonyFieldOut"];
         };
+        /**
+         * BlockerKind
+         * @enum {string}
+         */
+        BlockerKind: "category" | "milestone";
+        /** BlockerOut */
+        BlockerOut: {
+            kind: components["schemas"]["BlockerKind"];
+            /** Milestone Id */
+            milestone_id: string | null;
+            /** Label */
+            label: string;
+        };
         /** Body_upload_file */
         Body_upload_file: {
             /** File */
@@ -809,6 +1297,26 @@ export interface components {
             name: string;
             /** Estimate Cents */
             estimate_cents?: number | null;
+        };
+        /** CategoryLinkOut */
+        CategoryLinkOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string | null;
+        };
+        /** CategoryOptionOut */
+        CategoryOptionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** CategoryOut */
         CategoryOut: {
@@ -920,6 +1428,66 @@ export interface components {
             /** Detail */
             detail?: string | null;
         };
+        /** ChecklistItemCreateIn */
+        ChecklistItemCreateIn: {
+            /**
+             * Text
+             * @description O texto do item, de 1 a 200 caracteres.
+             */
+            text: string;
+        };
+        /** ChecklistItemOut */
+        ChecklistItemOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Text */
+            text: string;
+            /** Done */
+            done: boolean;
+            /**
+             * Position
+             * @description Ordem no checklist, a partir de zero; pode ter buracos.
+             */
+            position: number;
+            /**
+             * Version
+             * @description A versão do item, própria: não é a do marco nem a da avulsa.
+             */
+            version: number;
+        };
+        /**
+         * ChecklistItemUpdateIn
+         * @description A substituição inteira do item: marcar, desmarcar e editar o texto são o mesmo pedido.
+         */
+        ChecklistItemUpdateIn: {
+            /** Text */
+            text: string;
+            /** Done */
+            done: boolean;
+            /**
+             * Version
+             * @description A versão do item que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** ChecklistOrderIn */
+        ChecklistOrderIn: {
+            /**
+             * Ids
+             * @description Exatamente os itens vivos do dono, sem repetir e sem faltar, na nova ordem.
+             */
+            ids: string[];
+        };
+        /** ChecklistProgressOut */
+        ChecklistProgressOut: {
+            /** Done */
+            done: number;
+            /** Total */
+            total: number;
+        };
         /**
          * CompanionChoice
          * @description O que fazer com o acompanhante ao excluir o titular (F-CNV-02, regra 4).
@@ -930,6 +1498,15 @@ export interface components {
         CompanionIn: {
             /** Name */
             name?: string | null;
+        };
+        /** CreatedMilestoneOut */
+        CreatedMilestoneOut: {
+            schedule: components["schemas"]["ScheduleOut"];
+            /**
+             * Milestone Id
+             * Format: uuid
+             */
+            milestone_id: string;
         };
         /** CurrentUserOut */
         CurrentUserOut: {
@@ -945,6 +1522,22 @@ export interface components {
              * @enum {string}
              */
             profile: "Noivo" | "Noiva";
+        };
+        /** DateChangeOut */
+        DateChangeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            window_before: components["schemas"]["DateRangeOut"] | null;
+            window_after: components["schemas"]["DateRangeOut"] | null;
+            /** Target Before */
+            target_before: string | null;
+            /** Target After */
+            target_after: string | null;
         };
         /** DateFieldIn */
         DateFieldIn: {
@@ -973,6 +1566,44 @@ export interface components {
          */
         DateKind: "nenhuma" | "janela" | "exata";
         /**
+         * DateMode
+         * @enum {string}
+         */
+        DateMode: "sem_data" | "com_data";
+        /** DatePreviewOut */
+        DatePreviewOut: {
+            mode_before: components["schemas"]["DateMode"];
+            mode_after: components["schemas"]["DateMode"];
+            /**
+             * Changes
+             * @description Marcos ativos e não concluídos, com janela e sem prazo manual, cujas datas calculadas mudam.
+             */
+            changes: components["schemas"]["DateChangeOut"][];
+            /**
+             * Manual Kept
+             * @description Marcos ativos e não concluídos com janela e prazo manual: o prazo não muda.
+             */
+            manual_kept: number;
+            /**
+             * Newly Overdue
+             * @description Marcos que passariam a Atrasado com a data hipotética e não estavam.
+             */
+            newly_overdue: number;
+        };
+        /** DateRangeOut */
+        DateRangeOut: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+        };
+        /**
          * DateValueSchema
          * @description `nenhuma` é o campo vazio: o domínio só guarda janela ou data exata.
          */
@@ -990,6 +1621,18 @@ export interface components {
          * @enum {string}
          */
         DefinitionStatus: "Em definição" | "Definido";
+        /** DependencyOut */
+        DependencyOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Resolved */
+            resolved: boolean;
+        };
         /** EvaluationIn */
         EvaluationIn: {
             priority?: components["schemas"]["Priority"] | null;
@@ -1411,6 +2054,23 @@ export interface components {
              */
             version: number;
         };
+        /**
+         * LeftOutDirection
+         * @description O sentido do vínculo que não voltou ao restaurar um marco, a partir do marco restaurado.
+         * @enum {string}
+         */
+        LeftOutDirection: "depends_on" | "dependency_of";
+        /** LeftOutOut */
+        LeftOutOut: {
+            /**
+             * Milestone Id
+             * Format: uuid
+             */
+            milestone_id: string;
+            /** Title */
+            title: string;
+            direction: components["schemas"]["LeftOutDirection"];
+        };
         /** LinkReferenceIn */
         LinkReferenceIn: {
             /** Url */
@@ -1426,6 +2086,224 @@ export interface components {
             username: string;
             /** Password */
             password: string;
+        };
+        /**
+         * ManualState
+         * @description O que o casal marca à mão (F-CRN-03). Sem marca, o estado é derivado.
+         * @enum {string}
+         */
+        ManualState: "Em andamento" | "Concluído";
+        /** MilestoneCreateIn */
+        MilestoneCreateIn: {
+            /** Title */
+            title: string;
+            /**
+             * Phase Id
+             * Format: uuid
+             */
+            phase_id: string;
+            /** @default Ambos */
+            responsible: components["schemas"]["ProfileKind"];
+            /**
+             * Category Id
+             * @description Uma categoria do Mapa de Escopo, pelo id; nenhuma se nulo.
+             */
+            category_id?: string | null;
+            /**
+             * Depends On
+             * @description Marcos vivos de que o novo depende; vale como conjunto.
+             */
+            depends_on?: string[];
+        };
+        /** MilestoneDependenciesIn */
+        MilestoneDependenciesIn: {
+            /**
+             * Depends On
+             * @description O conjunto inteiro de predecessores; substitui o atual. Repetido vale uma vez.
+             */
+            depends_on: string[];
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** MilestoneOut */
+        MilestoneOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Position */
+            position: number;
+            responsible: components["schemas"]["ProfileKind"];
+            /** Note */
+            note: string | null;
+            /**
+             * Target Date
+             * @description Só o prazo-alvo digitado à mão; nulo se não há. Nunca é o fim da janela calculada: esse vem em `effective_target`.
+             */
+            target_date: string | null;
+            state: components["schemas"]["MilestoneState"];
+            /** Optional */
+            optional: boolean;
+            /** Archived */
+            archived: boolean;
+            /** Overdue */
+            overdue: boolean;
+            /** Blocked By */
+            blocked_by: components["schemas"]["BlockerOut"][];
+            /** Depends On */
+            depends_on: components["schemas"]["DependencyOut"][];
+            /** Unlocks */
+            unlocks: components["schemas"]["MilestoneRefOut"][];
+            /** Warnings */
+            warnings: components["schemas"]["WarningOut"][];
+            category: components["schemas"]["CategoryLinkOut"] | null;
+            /** @description Os deslocamentos da janela, sempre que há janela; nulo se o marco não tem. */
+            window: components["schemas"]["MilestoneWindowOut"] | null;
+            /**
+             * Window Start
+             * @description Início calculado da janela; só no Modo Com Data e com janela.
+             */
+            window_start: string | null;
+            /**
+             * Window End
+             * @description Fim calculado da janela; só no Modo Com Data e com janela.
+             */
+            window_end: string | null;
+            /**
+             * Effective Target
+             * @description O prazo que vale: o manual (`target_date`) ou, sem ele, o fim da janela.
+             */
+            effective_target: string | null;
+            /**
+             * Days Left
+             * @description Dias de hoje (Brasília) ao prazo efetivo; negativo é passado e 0 é hoje. Nulo se o marco está concluído, arquivado ou sem prazo efetivo.
+             */
+            days_left: number | null;
+            /**
+             * Checklist
+             * @description Os itens vivos do checklist, na ordem; não mudam o estado do marco.
+             */
+            checklist: components["schemas"]["ChecklistItemOut"][];
+            /** @description O "N de M" do checklist. */
+            checklist_progress: components["schemas"]["ChecklistProgressOut"];
+            /**
+             * Attachments
+             * @description Os anexos vivos, na ordem em que foram anexados; não mudam o estado nem a `version`.
+             */
+            attachments: components["schemas"]["AttachmentOut"][];
+            /** Version */
+            version: number;
+        };
+        /** MilestoneRefOut */
+        MilestoneRefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * MilestoneState
+         * @description O estado que a tela mostra: o manual quando há, senão o derivado (F-CRN-03).
+         * @enum {string}
+         */
+        MilestoneState: "Bloqueado" | "Destravado" | "Em andamento" | "Concluído";
+        /** MilestoneStateIn */
+        MilestoneStateIn: {
+            /** @description Em andamento ou Concluído; nulo reabre e volta ao estado derivado. */
+            state: components["schemas"]["ManualState"] | null;
+            /**
+             * Ignore Block
+             * @description A confirmação de marcar Em andamento ou Concluído (inclusive saindo de Concluído) um marco que aguarda algo: a categoria ainda em discussão no Mapa de Escopo ou uma dependência não resolvida. Sem ela, esse pedido responde 422 (milestone_blocked).
+             * @default false
+             */
+            ignore_block: boolean;
+            /**
+             * Ignore Open Items
+             * @description A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.
+             * @default false
+             */
+            ignore_open_items: boolean;
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /**
+         * MilestoneUpdateIn
+         * @description A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio
+         *     vai como nulo, para omitir um campo nunca apagar um dado em silêncio. Mudar `phase_id` leva o
+         *     marco para o fim da nova fase.
+         */
+        MilestoneUpdateIn: {
+            /** Title */
+            title: string;
+            /**
+             * Phase Id
+             * Format: uuid
+             */
+            phase_id: string;
+            responsible: components["schemas"]["ProfileKind"];
+            /**
+             * Category Id
+             * @description Nulo desliga a ligação com o Mapa de Escopo.
+             */
+            category_id: string | null;
+            /**
+             * Note
+             * @description Nulo ou em branco apaga a nota.
+             */
+            note: string | null;
+            /**
+             * Target Date
+             * @description Nulo apaga o prazo-alvo manual.
+             */
+            target_date: string | null;
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /**
+         * MilestoneWindowIn
+         * @description A janela inteira, na unidade dada: do início ao fim, quantas unidades antes da data do
+         *     casamento. Vale em qualquer modo e para o marco que ainda não tinha janela; o início não vem
+         *     depois do fim, `0` e `0` é o dia do casamento e o teto é 120 meses ou 520 semanas.
+         */
+        MilestoneWindowIn: {
+            /** Start Before */
+            start_before: number;
+            /** End Before */
+            end_before: number;
+            unit: components["schemas"]["WindowUnit"];
+            /**
+             * Version
+             * @description A versão do marco que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /** MilestoneWindowOut */
+        MilestoneWindowOut: {
+            /** Start Before */
+            start_before: number;
+            /** End Before */
+            end_before: number;
+            unit: components["schemas"]["WindowUnit"];
+            /**
+             * Is Suggestion
+             * @description Há janela e ninguém a editou: a sugestão genérica.
+             */
+            is_suggestion: boolean;
         };
         /** MonthYearSchema */
         MonthYearSchema: {
@@ -1452,6 +2330,53 @@ export interface components {
          * @enum {string}
          */
         Origin: "catalogo" | "casal";
+        /** PhaseCreateIn */
+        PhaseCreateIn: {
+            /** Title */
+            title: string;
+        };
+        /** PhaseOrderIn */
+        PhaseOrderIn: {
+            /**
+             * Ids
+             * @description Exatamente as fases vivas, sem repetir e sem faltar, na nova ordem.
+             */
+            ids: string[];
+        };
+        /** PhaseOut */
+        PhaseOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Position */
+            position: number;
+            progress: components["schemas"]["PhaseProgressOut"];
+            /** Milestones */
+            milestones: components["schemas"]["MilestoneOut"][];
+            /** Version */
+            version: number;
+        };
+        /** PhaseProgressOut */
+        PhaseProgressOut: {
+            /** Done */
+            done: number;
+            /** Total */
+            total: number;
+        };
+        /** PhaseRenameIn */
+        PhaseRenameIn: {
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @description A versão da fase que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
         /**
          * Priority
          * @enum {string}
@@ -1482,6 +2407,10 @@ export interface components {
             detail: string;
             /** Errors */
             errors?: components["schemas"]["FieldError"][] | null;
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * ProfileKind
@@ -1530,6 +2459,26 @@ export interface components {
             at: string;
             /** Can Remove */
             can_remove: boolean;
+        };
+        /** RestoreOut */
+        RestoreOut: {
+            schedule: components["schemas"]["ScheduleOut"];
+            /** Left Out */
+            left_out: components["schemas"]["LeftOutOut"][];
+        };
+        /** ScheduleOut */
+        ScheduleOut: {
+            /** Phases */
+            phases: components["schemas"]["PhaseOut"][];
+            /**
+             * Tasks
+             * @description As avulsas vivas, fora das fases: concluídas e sem prazo por último, depois pelo prazo, pelo título e pelo id.
+             */
+            tasks: components["schemas"]["TaskOut"][];
+            /** Category Options */
+            category_options: components["schemas"]["CategoryOptionOut"][];
+            /** Has Exact Date */
+            has_exact_date: boolean;
         };
         /** ScopeMapOut */
         ScopeMapOut: {
@@ -1619,6 +2568,105 @@ export interface components {
              */
             version: number;
         };
+        /**
+         * TaskCreateIn
+         * @description A avulsa nasce `A fazer`. O responsável é opcional: sem ele, é o perfil de quem está na
+         *     sessão (`Noivo` ou `Noiva`, nunca `Ambos` por padrão); `Ambos` só se for pedido.
+         */
+        TaskCreateIn: {
+            /** Title */
+            title: string;
+            /** @description Sem ele, vale o perfil da sessão; Ambos só se vier explícito. */
+            responsible?: components["schemas"]["ProfileKind"] | null;
+            /** Note */
+            note?: string | null;
+            /**
+             * Target Date
+             * @description Entre os anos 2000 e 2100.
+             */
+            target_date?: string | null;
+        };
+        /** TaskOut */
+        TaskOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            responsible: components["schemas"]["ProfileKind"];
+            /** Note */
+            note: string | null;
+            /** Target Date */
+            target_date: string | null;
+            state: components["schemas"]["TaskState"];
+            /**
+             * Overdue
+             * @description Prazo vencido e não concluída; o dia é o de Brasília.
+             */
+            overdue: boolean;
+            /**
+             * Days Left
+             * @description Dias de hoje (Brasília) ao prazo; negativo é passado e 0 é hoje. Nulo se a avulsa está concluída ou sem prazo.
+             */
+            days_left: number | null;
+            /** Checklist */
+            checklist: components["schemas"]["ChecklistItemOut"][];
+            checklist_progress: components["schemas"]["ChecklistProgressOut"];
+            /** Attachments */
+            attachments: components["schemas"]["AttachmentOut"][];
+            /** Version */
+            version: number;
+        };
+        /**
+         * TaskState
+         * @description O estado da tarefa avulsa (F-CRN-06): todo estado vale a qualquer momento, e reabrir é voltar
+         *     a `A fazer`. Note o feminino de `Concluída`, diferente do `Concluído` do marco.
+         * @enum {string}
+         */
+        TaskState: "A fazer" | "Em andamento" | "Concluída";
+        /** TaskStateIn */
+        TaskStateIn: {
+            /** @description Qualquer estado vale a qualquer momento; reabrir é A fazer. */
+            state: components["schemas"]["TaskState"];
+            /**
+             * Ignore Open Items
+             * @description A confirmação de concluir com itens do checklist em aberto. Só vale ao ir para Concluído (marco) ou Concluída (avulsa); com outro destino é ignorada. Sem ela, esse pedido responde 422 (checklist_open_items). Concluir não altera os itens.
+             * @default false
+             */
+            ignore_open_items: boolean;
+            /**
+             * Version
+             * @description A versão da avulsa que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
+        /**
+         * TaskUpdateIn
+         * @description A substituição inteira dos campos editáveis: todos são obrigatórios, e o que pode ficar vazio
+         *     vai como nulo, para omitir um campo nunca apagar um dado em silêncio.
+         */
+        TaskUpdateIn: {
+            /** Title */
+            title: string;
+            responsible: components["schemas"]["ProfileKind"];
+            /**
+             * Note
+             * @description Nulo ou em branco apaga a nota.
+             */
+            note: string | null;
+            /**
+             * Target Date
+             * @description Nulo apaga o prazo.
+             */
+            target_date: string | null;
+            /**
+             * Version
+             * @description A versão da avulsa que a tela viu; divergir dá 409.
+             */
+            version: number;
+        };
         /** TextFieldIn */
         TextFieldIn: {
             status: components["schemas"]["DefinitionStatus"];
@@ -1676,6 +2724,22 @@ export interface components {
              */
             version: number;
         };
+        /**
+         * WarningKind
+         * @enum {string}
+         */
+        WarningKind: "depends_on_unresolved";
+        /** WarningOut */
+        WarningOut: {
+            kind: components["schemas"]["WarningKind"];
+            /**
+             * Milestone Id
+             * Format: uuid
+             */
+            milestone_id: string;
+            /** Title */
+            title: string;
+        };
         /** WeightsIn */
         WeightsIn: {
             /** Certain Pct */
@@ -1694,6 +2758,11 @@ export interface components {
             /** Phase 2 Pct */
             phase_2_pct: number;
         };
+        /**
+         * WindowUnit
+         * @enum {string}
+         */
+        WindowUnit: "meses" | "semanas";
     };
     responses: never;
     parameters: never;
@@ -4316,6 +5385,1344 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    preview_date_change: {
+        parameters: {
+            query?: {
+                /** @description A data exata que o casamento passaria a ter, já `Definida`; sem ela, o cenário é o Modo Sem Data. O ano vai de 2000 a 2100. */
+                exact?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatePreviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_milestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedMilestoneOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_milestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_milestone: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_milestone_window: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneWindowIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    restore_milestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_milestone_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    set_milestone_dependencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneDependenciesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_phase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    reorder_phases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    rename_phase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                phase_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseRenameIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_task: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    change_task_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    restore_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    reorder_checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    remove_checklist_item: {
+        parameters: {
+            query: {
+                /** @description A versão que a tela viu; divergir dá 409. */
+                version: number;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    add_link_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentLinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    add_file_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description De quem é o checklist ou o anexo: um marco (`milestones`) ou uma avulsa (`tasks`). */
+                owner_kind: "milestones" | "tasks";
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentFileIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    remove_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

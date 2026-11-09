@@ -174,6 +174,100 @@ MESSAGES: dict[str, Message] = {
         "Convite não aceito",
         "Informem a data e o canal do envio. A data é a de hoje ou de um dia que já passou.",
     ),
+    "invalid_schedule_value": Message(
+        "Valor não aceito",
+        (
+            "Confiram os textos e o prazo: o título do marco ou da tarefa, e o de um anexo, vai "
+            "até 120 caracteres, o da fase até 60, o texto de um item do checklist até 200, a "
+            "nota e o comentário de um anexo até 500 e o prazo é uma data entre os anos 2000 e "
+            "2100."
+        ),
+    ),
+    "invalid_preview_date": Message(
+        "Data não aceita",
+        "A data do casamento precisa estar entre os anos 2000 e 2100.",
+    ),
+    "invalid_window": Message(
+        "Janela não aceita",
+        (
+            "Confiram a janela: o início vem antes do fim (ou junto, com 0 e 0 para o dia do "
+            "casamento), nenhum valor é negativo e o limite é de 120 meses ou 520 semanas."
+        ),
+    ),
+    "milestone_title_required": Message(
+        "Falta o título",
+        "Escrevam o título do marco antes de salvar.",
+    ),
+    "phase_title_required": Message(
+        "Falta o título",
+        "Escrevam o título da fase antes de salvar.",
+    ),
+    "task_title_required": Message(
+        "Falta o título",
+        "Escrevam o título da tarefa antes de salvar.",
+    ),
+    "checklist_text_required": Message(
+        "Falta o texto",
+        "Escrevam o texto do item antes de salvar.",
+    ),
+    "invalid_checklist_order": Message(
+        "Ordem do checklist não aceita",
+        (
+            "A nova ordem precisa listar todos os itens do checklist uma só vez, sem repetir nem "
+            "faltar. Recarreguem o cronograma e tentem de novo."
+        ),
+    ),
+    "checklist_full": Message(
+        "Checklist cheio",
+        "Cada checklist tem no máximo 50 itens. Removam um item antes de acrescentar outro.",
+    ),
+    "checklist_open_items": Message(
+        "Itens em aberto",
+        (
+            "Ainda há itens do checklist em aberto. Confirmem que querem concluir mesmo assim: "
+            "os itens ficam como estão."
+        ),
+    ),
+    "invalid_attachment_url": Message(
+        "Endereço não aceito",
+        "Cole um endereço completo, começando com http:// ou https://.",
+    ),
+    "attachment_file_not_allowed": Message(
+        "Arquivo não aceito",
+        "Só dá para anexar PDF ou imagem (JPG, PNG ou WebP). Escolham outro arquivo.",
+    ),
+    "invalid_phase_order": Message(
+        "Ordem das fases não aceita",
+        (
+            "A nova ordem precisa listar todas as fases uma só vez, sem repetir nem faltar. "
+            "Recarreguem o cronograma e tentem de novo."
+        ),
+    ),
+    "self_dependency": Message(
+        "Dependência do marco nele mesmo",
+        "Um marco não pode depender dele mesmo. Escolham outro marco.",
+    ),
+    "category_not_available": Message(
+        "Categoria indisponível",
+        (
+            "Esta categoria não está disponível no Mapa de Escopo: ela foi excluída ou está "
+            "oculta. Escolham outra ou mostrem a categoria no Mapa."
+        ),
+    ),
+    "milestone_blocked": Message(
+        "Marco bloqueado",
+        (
+            "Este marco ainda aguarda outros passos. Confirmem que queiram ignorar o bloqueio "
+            "para marcá-lo como Em andamento ou Concluído."
+        ),
+    ),
+    "dependency_cycle": Message(
+        "Dependência em ciclo",
+        (
+            "Esta dependência fecharia um ciclo: {path}. "
+            "Removam uma dessas dependências ou escolham outro marco."
+        ),
+    ),
     "internal_error": Message(
         "Erro interno",
         "Algo deu errado do nosso lado. Tente de novo em instantes.",

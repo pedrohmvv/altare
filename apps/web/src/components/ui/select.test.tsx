@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Select, type SelectProps } from './select'
 
@@ -101,5 +102,46 @@ describe('Select', () => {
     renderSelect({ required: true, disabled: true })
 
     expect(screen.getByRole('combobox', { name: 'Categoria (obrigatório)' })).toBeDisabled()
+  })
+
+  it('repassa o ref ao botão que abre a lista, para o formulário poder focá-lo', () => {
+    const ref = createRef<HTMLButtonElement>()
+    renderSelect({ ref })
+
+    expect(ref.current).toBe(screen.getByRole('combobox', { name: 'Categoria' }))
+  })
+
+  describe('com grupos', () => {
+    const GROUPED = [
+      { value: 'nenhuma', label: 'Sem categoria' },
+      { value: 'a1', label: 'Marco A1', group: 'Fase Um' },
+      { value: 'a2', label: 'Marco A2', group: 'Fase Um' },
+      { value: 'b1', label: 'Marco B1', group: 'Fase Dois' },
+    ]
+
+    it('agrupa as opções sob o nome do grupo, na ordem em que aparecem', async () => {
+      render(<Select label="Marco" options={GROUPED} />)
+
+      await userEvent.click(screen.getByRole('combobox', { name: 'Marco' }))
+
+      expect(screen.getByRole('group', { name: 'Fase Um' })).toBeInTheDocument()
+      expect(screen.getByRole('group', { name: 'Fase Dois' })).toBeInTheDocument()
+      const grupo = screen.getByRole('group', { name: 'Fase Um' })
+      expect(
+        within(grupo)
+          .getAllByRole('option')
+          .map((o) => o.textContent),
+      ).toEqual(['Marco A1', 'Marco A2'])
+    })
+
+    it('mantém fora de grupo a opção sem grupo e ela continua escolhível', async () => {
+      const onValueChange = vi.fn()
+      render(<Select label="Marco" options={GROUPED} onValueChange={onValueChange} />)
+
+      await userEvent.click(screen.getByRole('combobox', { name: 'Marco' }))
+      await userEvent.click(screen.getByRole('option', { name: 'Sem categoria' }))
+
+      expect(onValueChange).toHaveBeenCalledWith('nenhuma')
+    })
   })
 })

@@ -1,9 +1,17 @@
 import { BadgeCheck, CircleAlert, HeartHandshake, Plus, Save, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Chip } from '@/components/ui/chip'
 import {
   Dialog,
   DialogClose,
@@ -57,10 +65,11 @@ const ETAPAS = [
   { value: 'c', label: 'Indisponível', disabled: true },
 ]
 
-// Os 16 primitivos com variantes e estados (design-system.md §8). Hover, ativo e foco são estados vivos:
+// Os primitivos de components/ui, com variantes e estados (design-system.md §8). Hover, ativo e foco são estados vivos:
 // passe o mouse, clique e use Tab. Os exemplos são fictícios (AGENTS.md §2).
 export function PrimitivesShowcase() {
   const { toast } = useToast()
+  const [alertOpen, setAlertOpen] = useState(false)
   const [teto, setTeto] = useState<number | null>(2_800_000)
 
   return (
@@ -182,6 +191,13 @@ export function PrimitivesShowcase() {
             defaultValue="a"
           />
         </div>
+      </section>
+
+      <section aria-labelledby="conf-chips" className="flex flex-col gap-4">
+        <h2 id="conf-chips" className="text-heading">
+          Chips de filtro
+        </h2>
+        <ChipsExample />
       </section>
 
       <section aria-labelledby="conf-dinheiro" className="flex flex-col gap-4">
@@ -383,6 +399,24 @@ export function PrimitivesShowcase() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="soft-destructive">Excluir espaço</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent
+              title="Excluir o Espaço Exemplo A?"
+              description="Ele sai da lista, mas o registro fica guardado e pode ser restaurado."
+            >
+              <AlertDialogFooter>
+                <AlertDialogCancel asChild>
+                  <Button variant="ghost">Cancelar</Button>
+                </AlertDialogCancel>
+                <Button variant="soft-destructive" onClick={() => setAlertOpen(false)}>
+                  Excluir espaço
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="secondary">Ver nota do espaço</Button>
@@ -464,6 +498,27 @@ export function PrimitivesShowcase() {
           </Button>
         </div>
       </section>
+    </div>
+  )
+}
+
+/** Chips de alternar: cada um liga e desliga sozinho, e `aria-pressed` diz o estado em texto. */
+function ChipsExample() {
+  const [on, setOn] = useState<string[]>(['Só atrasados'])
+  const toggle = (label: string) =>
+    setOn((current) =>
+      current.includes(label) ? current.filter((item) => item !== label) : [...current, label],
+    )
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {['Só atrasados', 'Só avulsas', 'Exemplo'].map((label) => (
+        <Chip key={label} pressed={on.includes(label)} onClick={() => toggle(label)}>
+          {label}
+        </Chip>
+      ))}
+      <Chip pressed={false} disabled onClick={() => {}}>
+        Indisponível
+      </Chip>
     </div>
   )
 }

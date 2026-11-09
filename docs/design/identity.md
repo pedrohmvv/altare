@@ -316,6 +316,7 @@ Linha de apoio (sans 16px, ink-muted) .......................... [Ação primár
 | Bloqueado | `lock` |
 | Pago / concluído | `circle-check` |
 | Próximo passo | `circle-arrow-right` |
+| A fazer (avulsa) | `circle` (neutro, sem cor de estado; `D-084`) |
 | WhatsApp | `message-circle` (com rótulo "Abrir WhatsApp") |
 | Anexo / PDF | `paperclip` / `file-text` |
 | Orçamento oficial ativo | `badge-check` |

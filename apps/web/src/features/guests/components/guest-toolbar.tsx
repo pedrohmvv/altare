@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { AGE_BANDS, GUEST_STATUSES, PROBABILITIES, SIDES } from '../api/guests'
 import { copy } from '../copy'
@@ -12,7 +13,6 @@ import {
   SIDE_SLUGS,
   STATUS_SLUGS,
 } from '../search'
-import { Chip } from './chip'
 
 const labels = copy.filters
 

@@ -1,6 +1,6 @@
 # Features: Cronograma & Dependências (`features/cronograma.md`)
 
-> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**.
+> **Status:** **Aprovado pelo usuário em 2026-10-27** (`D-031`). Cobre o **Bloco 1.3**, que roda em 7 PRs (`D-080`); o PR 1, marcos, bloqueios e estados (`F-CRN-02`, `03` e `04`, parte da `01` e da `09`), foi implementado em `D-081`, o PR 2, a edição de marcos, dependências e fases (`F-CRN-01` completa; `F-CRN-03`, regra 2), em `D-082`, o PR 3, as datas (`F-CRN-05`: Modos Sem e Com Data, janelas calculadas, prazo efetivo, contagem regressiva, editor de janela e a prévia ao mudar a data), em `D-083`, e o PR 4, as tarefas avulsas, o checklist, os filtros, a lente e "Meus próximos passos" (`F-CRN-06`, `07` e `09`), em `D-084`, e o PR 5, os anexos e links (`F-CRN-08`), em `D-085`.
 >
 > **Fontes:** `docs/product/scope.md` §2, `docs/design/experience.md` (objeto 4), `docs/product/jobs.md` (J4, J5), `features/planejamento-e-caminhos.md` (F-PLN-01, F-PLN-07), `D-026`, `D-031`.
 >
@@ -34,7 +34,7 @@
 | **Título** | Texto, obrigatório | — |
 | **Fase** | Uma das fases | Pode mudar de fase |
 | **Responsável** | `Noivo` · `Noiva` · `Ambos` | Obrigatório. Padrão `Ambos` |
-| **Categoria de escopo** | Uma categoria, opcional | Liga o marco ao Mapa de Escopo (F-CRN-04) |
+| **Categoria de escopo** | Uma categoria, opcional | Liga o marco ao Mapa de Escopo (F-CRN-04). O casal escolhe entre as categorias visíveis; a já ligada que ficou oculta continua escolhida (`D-082`) |
 | **Prazo-alvo** | Data, opcional | Ver F-CRN-05 |
 | **Janela** | Início e fim, em "antes da data", com unidade `meses` ou `semanas` | Só com Modo Com Data (F-CRN-05) |
 | **Estado** | Ver F-CRN-03 | — |
@@ -46,7 +46,7 @@
 **Regras**
 1. O casal pode **criar, renomear, mover de fase e excluir** marcos, e alterar dependências (`D-031`). A exclusão é lógica e recuperável (`architecture.md` §10).
 2. Qualquer dos dois edita. A autoria fica no histórico básico.
-3. Excluir um marco que tem dependentes pede confirmação **listando os dependentes**. As dependências do excluído são removidas; os dependentes mantêm as demais.
+3. Excluir um marco que tem dependentes pede confirmação **listando os dependentes**. As dependências do excluído são removidas; os dependentes mantêm as demais. Restaurar traz de volta as que saíram junto com ele, exceto a que hoje fecharia um ciclo e a que tem a outra ponta excluída; a tela diz quais ficaram de fora (`D-082`).
 4. O catálogo inicial (F-CRN-02) é uma **semente**: depois de criado, os marcos são dados do casal.
 
 **Critérios de aceite**
@@ -122,15 +122,15 @@
 1. Uma dependência "A depende de B" está **resolvida** quando B está `Concluído`, **arquivado** (categoria `Fica de fora`) ou **opcional** (categoria `Talvez`).
 2. O sistema **impede ciclos** ao criar uma dependência, com mensagem acionável.
 3. Um marco `Bloqueado` mostra **"Aguardando: …"** com os nomes do que falta. No celular, a lista abre em folha inferior.
-4. Marcar `Em andamento` ou `Concluído` em um marco `Bloqueado` é **permitido com confirmação** ("ignorar o bloqueio"); a escolha fica registrada. A vida real é paralela.
-5. **Reabrir** um marco `Concluído` bloqueia de novo os dependentes que ainda não estão concluídos e **avisa** os que já estão concluídos ("depende de um marco reaberto"), sem alterá-los.
+4. Marcar `Em andamento` ou `Concluído` em um marco que **aguarda algo** (uma dependência não resolvida ou a categoria `Em discussão`) é **permitido com confirmação** ("ignorar o bloqueio"), qualquer que seja a marca de partida (inclusive voltar de `Concluído` para `Em andamento`); a escolha fica registrada. A vida real é paralela (`D-081`).
+5. **Reabrir** um marco `Concluído` bloqueia de novo os dependentes que ainda não estão concluídos e **avisa** os que já estão concluídos ("Concluído antes de: …"), sem alterá-los. O aviso vale para todo marco `Concluído` com predecessor não resolvido, tenha o predecessor sido reaberto ou nunca concluído (o marco foi concluído ignorando o bloqueio): o estado é derivado e o sistema não guarda a diferença. Marcos arquivados (`Fica de fora`) não aparecem em "Libera" (`D-081`).
 6. **Conclusão por decisão:** quando existir o Registro de Decisão macro (Bloco 2.2, `D-033`), o marco "Escolher o caminho macro" (C04) fica `Concluído` automaticamente; quando existir o Registro de Decisão da categoria (Bloco 3.2) **ou um contrato direto na categoria** (Bloco 3.3, `D-036`), o marco "Fechar …" correspondente também. **Até lá, a conclusão é manual.**
 7. Estados e bloqueios são calculados **no backend**, derivados na leitura (`architecture.md` §3).
 
 **Critérios de aceite**
 - Concluir C06 muda C07 a C11, C14, C15, C21 e C24 de `Bloqueado` para `Destravado` (se as categorias não estiverem `Em discussão`) sem digitação. C20 só destrava se C02 também estiver concluído.
 - Criar uma dependência que fecha um ciclo é recusada, mostrando o caminho do ciclo.
-- Marcar `Concluído` um marco `Bloqueado` exige confirmação e registra "ignorou o bloqueio".
+- Marcar `Concluído` (ou `Em andamento`) um marco que aguarda algo exige confirmação e registra "ignorou o bloqueio".
 - Um marco com prazo ontem e estado `Destravado` aparece `Atrasado`; ao concluir, o sinalizador some.
 
 ---
@@ -166,7 +166,7 @@ Concretiza `F-PLN-07` para o cronograma.
 1. Cada marco com janela recebe **datas calculadas**: início = data − "início antes"; fim = data − "fim antes". Meses respeitam o fim do mês (31 → 30 ou 28/29).
 2. O **prazo-alvo padrão** é o **fim da janela**. Um prazo digitado à mão **prevalece**, e há um botão "voltar à sugestão".
 3. Mostra contagem regressiva em linguagem direta ("faltam 12 dias") com a data exata no `title`/tooltip.
-4. **Mudar a data do casamento** recalcula as janelas dos marcos **não editados à mão** e mostra, antes de confirmar, a lista do que muda ("7 marcos mudam de janela"). Marcos com prazo manual não mudam.
+4. **Mudar a data do casamento** recalcula as janelas e mostra, antes de confirmar, a lista do que muda ("7 marcos mudam de janela"). As janelas são deslocamentos "antes da data" e **acompanham sempre a nova data**; o que não muda é o **prazo digitado à mão**: os marcos com prazo manual ficam como estão ("não editados à mão" refere-se ao prazo, não à janela; `D-083`). A prévia aparece ao mudar uma data **já definida**.
 5. O casal pode editar a janela de um marco (início, fim e unidade).
 6. **Voltar ao Modo Sem Data** (data deixa de ser `Definida`) mantém prazos manuais e apaga as datas calculadas.
 
@@ -225,9 +225,9 @@ Concretiza `F-PLN-07` para o cronograma.
 ## F-CRN-08 — Anexos e Links (`D-031`)
 
 **Regras**
-1. Vale para marcos e avulsas, com os mesmos controles de `F-PLN-06`: **arquivo** (PDF ou imagem, via `FileStorage`, com validação de tipo real e tamanho) ou **link** (domínio visível, sem leitura automática da página).
+1. Vale para marcos e avulsas, com os controles de `F-PLN-06`, mas aceitando também PDF (`D-080`, resposta 6): **arquivo** (PDF ou imagem, via `FileStorage`, com validação de tipo real e tamanho) ou **link** (domínio visível, sem leitura automática da página).
 2. Título e comentário opcionais. Autor mostrado como rótulo (`Noivo`/`Noiva`).
-3. Qualquer um adiciona. **Só o autor** remove o seu, de forma lógica e recuperável.
+3. Qualquer um adiciona. **Só o autor** remove o seu, de forma lógica; o registro fica guardado e a restauração pela tela fica adiada (`D-085`).
 4. No celular, o envio abre a câmera ou a galeria.
 
 **Critérios de aceite**
@@ -249,7 +249,7 @@ Concretiza `F-PLN-07` para o cronograma.
 | **Lente `Minha visão`** | Itens em que sou responsável **ou** `Ambos` |
 | **Detalhe** | Painel lateral (desktop) ou folha inferior (mobile) com campos, **"Depende de"**, **"Libera"**, checklist e anexos |
 
-**Desktop:** seções de fase com tabela densa e painel lateral. **Mobile:** lista de cartões, com a seção "Meus próximos passos" no topo (itens `Destravado` ou `Em andamento` sob minha responsabilidade, ordenados por prazo).
+**Desktop:** seções de fase com tabela densa e painel lateral. **Mobile:** lista de cartões, com a seção "Meus próximos passos" no topo: os itens (marcos `Destravado` ou `Em andamento` e avulsas `A fazer` ou `Em andamento`) cujo responsável é **eu ou `Ambos`**, **qualquer que seja a lente ou o filtro**, com os atrasados primeiro, depois pelo prazo (o prazo efetivo do marco), depois os sem prazo, em até 8 com "Ver todos" (`D-084`).
 
 **Critérios de aceite**
 - Aplicar "Atrasados" altera a URL, e o botão voltar do navegador desfaz o filtro.

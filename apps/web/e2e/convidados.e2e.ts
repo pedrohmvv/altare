@@ -419,7 +419,7 @@ test.describe('Convidados: a lista nominal (F-CNV-01 a F-CNV-08)', () => {
 
     const painel = await abrirNucleo(page, d.b)
     await painel.getByRole('button', { name: 'Excluir núcleo' }).click()
-    const confirmacao = page.getByRole('dialog', { name: `Excluir ${d.b}?` })
+    const confirmacao = page.getByRole('alertdialog', { name: `Excluir ${d.b}?` })
     await confirmacao.getByRole('button', { name: 'Excluir núcleo' }).click()
     await expect(page.getByRole('button', { name: d.b, exact: true })).toBeHidden()
     expect(await total(page)).toBe(antes - 2)

@@ -315,7 +315,7 @@ describe('mover, excluir e desfazer (F-CNV-01 e F-CNV-02)', () => {
     })
     const sheet = await screen.findByRole('dialog', { name: 'Família Exemplo' })
     await user.click(within(sheet).getByRole('button', { name: 'Excluir núcleo' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Excluir Família Exemplo?' })
+    const dialog = await screen.findByRole('alertdialog', { name: 'Excluir Família Exemplo?' })
     expect(within(dialog).getByText(/as 3 pessoas saem da lista e dos contadores/)).toBeVisible()
 
     await user.click(within(dialog).getByRole('button', { name: 'Excluir núcleo' }))
@@ -333,6 +333,38 @@ describe('mover, excluir e desfazer (F-CNV-01 e F-CNV-02)', () => {
     await user.click(await screen.findByRole('button', { name: 'Desfazer' }))
     await waitFor(() => expect(api.callsTo(RESTORE_HOUSEHOLD('n-a'))).toHaveLength(1))
     expect(await screen.findByRole('heading', { name: 'Família Exemplo' })).toBeVisible()
+  })
+})
+
+describe('excluir núcleo com a escrita pendente (F-CNV-01, regra 2)', () => {
+  it('Esc não fecha a confirmação e o erro aparece dentro dela', async () => {
+    let release: () => void = () => {}
+    const { user } = renderGuests(
+      {
+        [GET_GUESTS]: jsonResponse(200, LIST),
+        [DELETE_HOUSEHOLD('n-a')]: () =>
+          new Promise<Response>((resolve) => {
+            release = () =>
+              resolve(
+                problemResponse(422, 'household_not_found', { detail: 'Núcleo não encontrado.' }),
+              )
+          }),
+      },
+      { nucleo: 'n-a' },
+    )
+    const sheet = await screen.findByRole('dialog', { name: 'Família Exemplo' })
+    await user.click(within(sheet).getByRole('button', { name: 'Excluir núcleo' }))
+    const dialog = await screen.findByRole('alertdialog', { name: 'Excluir Família Exemplo?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Excluir núcleo' }))
+    await waitFor(() =>
+      expect(within(dialog).getByRole('button', { name: 'Cancelar' })).toBeDisabled(),
+    )
+
+    await user.keyboard('{Escape}')
+
+    expect(screen.getByRole('alertdialog', { name: 'Excluir Família Exemplo?' })).toBeVisible()
+    release()
+    await waitFor(() => expect(within(dialog).getByText('Núcleo não encontrado.')).toBeVisible())
   })
 })
 
